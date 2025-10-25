@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import blackpalLogo from "@/assets/blackpal-logo.png";
+import { supabase } from "@/integrations/supabase/client";
 
 interface GlassPortalProps {
   onSuccess: () => void;
@@ -15,12 +16,44 @@ export const GlassPortal = ({ onSuccess }: GlassPortalProps) => {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulate auth - in real app, connect to Firebase/Supabase
-    setTimeout(() => {
-      onSuccess();
-    }, 800);
+    setLoading(true);
+    setError(null);
+
+    try {
+      if (mode === "signup") {
+        const { error: signUpError } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/`,
+            data: {
+              name: name
+            }
+          }
+        });
+
+        if (signUpError) throw signUpError;
+        
+        // Auth state change will trigger onSuccess
+      } else {
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+        if (signInError) throw signInError;
+        
+        // Auth state change will trigger onSuccess
+      }
+    } catch (err: any) {
+      setError(err.message || "Authentication failed");
+      setLoading(false);
+    }
   };
 
   return (
@@ -85,6 +118,17 @@ export const GlassPortal = ({ onSuccess }: GlassPortalProps) => {
               {mode === "signup" ? "ENTER ASCEND MODE." : "RESUME YOUR JOURNEY."}
             </p>
           </motion.div>
+
+          {/* Error Message */}
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-center p-3 rounded-lg bg-destructive/10 border border-destructive/20"
+            >
+              <p className="text-sm text-destructive">{error}</p>
+            </motion.div>
+          )}
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
@@ -158,8 +202,13 @@ export const GlassPortal = ({ onSuccess }: GlassPortalProps) => {
                 type="submit"
                 className="w-full voltage-button"
                 size="lg"
+                disabled={loading}
               >
-                {mode === "signup" ? "Initialize Access" : "Enter Portal"}
+                {loading
+                  ? "Authenticating..."
+                  : mode === "signup"
+                  ? "Initialize Access"
+                  : "Enter Portal"}
               </Button>
             </motion.div>
           </form>

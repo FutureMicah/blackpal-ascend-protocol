@@ -1,16 +1,61 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ArrivalAnimation } from "@/components/ArrivalAnimation";
 import { GlassPortal } from "@/components/GlassPortal";
+import { ProfileSetup } from "@/components/ProfileSetup";
 import { WelcomeScene } from "@/components/WelcomeScene";
 import { ParticleField } from "@/components/ParticleField";
 import { CursorTrail } from "@/components/CursorTrail";
+import { supabase } from "@/integrations/supabase/client";
+import type { User } from "@supabase/supabase-js";
 import { motion } from "framer-motion";
 
-type Stage = "arrival" | "portal" | "welcome" | "dashboard";
+type Stage = "arrival" | "portal" | "profile" | "welcome" | "dashboard";
 
 const Index = () => {
   const [stage, setStage] = useState<Stage>("arrival");
-  const [userName] = useState("User"); // In real app, get from auth
+  const [user, setUser] = useState<User | null>(null);
+  const [hasProfile, setHasProfile] = useState(false);
+
+  // Auth state listener
+  useEffect(() => {
+    // Check current session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        checkProfile(session.user.id);
+      }
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        checkProfile(session.user.id);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const checkProfile = async (userId: string) => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (!error && data) {
+      setHasProfile(true);
+      setStage("welcome");
+    } else {
+      setHasProfile(false);
+      setStage("profile");
+    }
+  };
+
+  const handleAuthSuccess = () => {
+    // Auth state listener will handle the rest
+  };
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-background">
@@ -26,13 +71,23 @@ const Index = () => {
       {stage === "portal" && (
         <>
           <ParticleField />
-          <GlassPortal onSuccess={() => setStage("welcome")} />
+          <GlassPortal onSuccess={handleAuthSuccess} />
         </>
       )}
 
-      {stage === "welcome" && (
+      {stage === "profile" && user && (
+        <>
+          <ParticleField />
+          <ProfileSetup 
+            userId={user.id} 
+            onComplete={() => setStage("welcome")} 
+          />
+        </>
+      )}
+
+      {stage === "welcome" && user && hasProfile && (
         <WelcomeScene 
-          name={userName} 
+          name={user.user_metadata?.name || "User"} 
           onEnter={() => setStage("dashboard")} 
         />
       )}
