@@ -51,7 +51,14 @@ export const GlassPortal = ({ onSuccess }: GlassPortalProps) => {
         // Auth state change will trigger onSuccess
       }
     } catch (err: any) {
-      setError(err.message || "Authentication failed");
+      // Normalize error messages to prevent user enumeration
+      if (mode === 'signup') {
+        setError('Unable to create account. Please try again or use a different email.');
+      } else {
+        setError('Invalid email or password. Please try again.');
+      }
+      console.error('Auth error:', err.message);
+    } finally {
       setLoading(false);
     }
   };
