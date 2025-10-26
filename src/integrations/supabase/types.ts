@@ -17,27 +17,69 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          bio: string | null
           country: string | null
           created_at: string
+          date_of_birth: string | null
           display_name: string
+          github_handle: string | null
           id: string
+          instagram_handle: string | null
+          language: string | null
+          linkedin_url: string | null
+          phone_number: string | null
+          profile_visibility: string | null
+          show_email: boolean | null
+          theme_preference: string | null
+          timezone: string | null
+          twitter_handle: string | null
           updated_at: string
+          username: string | null
+          website_url: string | null
         }
         Insert: {
           avatar_url?: string | null
+          bio?: string | null
           country?: string | null
           created_at?: string
+          date_of_birth?: string | null
           display_name: string
+          github_handle?: string | null
           id: string
+          instagram_handle?: string | null
+          language?: string | null
+          linkedin_url?: string | null
+          phone_number?: string | null
+          profile_visibility?: string | null
+          show_email?: boolean | null
+          theme_preference?: string | null
+          timezone?: string | null
+          twitter_handle?: string | null
           updated_at?: string
+          username?: string | null
+          website_url?: string | null
         }
         Update: {
           avatar_url?: string | null
+          bio?: string | null
           country?: string | null
           created_at?: string
+          date_of_birth?: string | null
           display_name?: string
+          github_handle?: string | null
           id?: string
+          instagram_handle?: string | null
+          language?: string | null
+          linkedin_url?: string | null
+          phone_number?: string | null
+          profile_visibility?: string | null
+          show_email?: boolean | null
+          theme_preference?: string | null
+          timezone?: string | null
+          twitter_handle?: string | null
           updated_at?: string
+          username?: string | null
+          website_url?: string | null
         }
         Relationships: []
       }

@@ -3,9 +3,12 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Check } from "lucide-react";
+import { Upload, Check, ArrowRight, ArrowLeft } from "lucide-react";
 
 interface ProfileSetupProps {
   userId: string;
@@ -13,8 +16,23 @@ interface ProfileSetupProps {
 }
 
 export const ProfileSetup = ({ userId, onComplete }: ProfileSetupProps) => {
+  const [step, setStep] = useState(1);
   const [displayName, setDisplayName] = useState("");
+  const [username, setUsername] = useState("");
   const [country, setCountry] = useState("");
+  const [bio, setBio] = useState("");
+  const [dateOfBirth, setDateOfBirth] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [language, setLanguage] = useState("en");
+  const [timezone, setTimezone] = useState("");
+  const [websiteUrl, setWebsiteUrl] = useState("");
+  const [twitterHandle, setTwitterHandle] = useState("");
+  const [linkedinUrl, setLinkedinUrl] = useState("");
+  const [githubHandle, setGithubHandle] = useState("");
+  const [instagramHandle, setInstagramHandle] = useState("");
+  const [profileVisibility, setProfileVisibility] = useState<"public" | "private" | "friends">("public");
+  const [showEmail, setShowEmail] = useState(false);
+  const [themePreference, setThemePreference] = useState<"light" | "dark" | "system">("system");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -63,8 +81,22 @@ export const ProfileSetup = ({ userId, onComplete }: ProfileSetupProps) => {
         .insert({
           id: userId,
           display_name: displayName,
+          username: username || null,
           avatar_url: avatarUrl,
-          country: country || null
+          country: country || null,
+          bio: bio || null,
+          date_of_birth: dateOfBirth || null,
+          phone_number: phoneNumber || null,
+          language,
+          timezone: timezone || null,
+          website_url: websiteUrl || null,
+          twitter_handle: twitterHandle || null,
+          linkedin_url: linkedinUrl || null,
+          github_handle: githubHandle || null,
+          instagram_handle: instagramHandle || null,
+          profile_visibility: profileVisibility,
+          show_email: showEmail,
+          theme_preference: themePreference
         });
 
       if (profileError) throw profileError;
@@ -86,7 +118,14 @@ export const ProfileSetup = ({ userId, onComplete }: ProfileSetupProps) => {
     }
   };
 
-  const isComplete = displayName.trim().length > 0;
+  const isStep1Complete = displayName.trim().length > 0;
+  const isStep2Complete = username.trim().length > 0;
+
+  const canProceedToNextStep = () => {
+    if (step === 1) return isStep1Complete;
+    if (step === 2) return isStep2Complete;
+    return true;
+  };
 
   return (
     <div className="fixed inset-0 z-40 flex items-center justify-center p-4">
@@ -122,147 +161,380 @@ export const ProfileSetup = ({ userId, onComplete }: ProfileSetupProps) => {
               PROFILE INITIALIZATION
             </h2>
             <p className="text-primary font-light tracking-wide">
-              CONSTRUCT YOUR IDENTITY.
+              STEP {step} OF 4 - CONSTRUCT YOUR IDENTITY.
             </p>
           </motion.div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Avatar Upload - Central Circular Frame */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.2 }}
-              className="flex flex-col items-center mb-6"
-            >
-              <div className="relative">
-                {/* Rotating glow ring */}
-                <motion.div
-                  className="absolute inset-0 rounded-full"
-                  style={{
-                    background: "conic-gradient(from 0deg, hsl(var(--primary)), hsl(var(--primary-glow)), hsl(var(--primary)))",
-                    padding: "3px",
-                  }}
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-                >
-                  <div className="w-full h-full rounded-full bg-background" />
-                </motion.div>
-
-                {/* Upload zone */}
-                <label
-                  htmlFor="avatar-upload"
-                  className="relative flex items-center justify-center w-32 h-32 rounded-full cursor-pointer overflow-hidden bg-background/50 backdrop-blur-sm border-2 border-primary/20 hover:border-primary/40 transition-all group"
-                >
-                  {avatarPreview ? (
-                    <motion.img
-                      src={avatarPreview}
-                      alt="Avatar preview"
-                      className="w-full h-full object-cover"
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                    />
-                  ) : (
-                    <div className="flex flex-col items-center gap-2 text-muted-foreground group-hover:text-primary transition-colors">
-                      <Upload className="w-8 h-8" />
-                      <span className="text-xs">Upload</span>
-                    </div>
-                  )}
-                  <input
-                    id="avatar-upload"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleAvatarChange}
-                    className="hidden"
-                  />
-                </label>
-              </div>
-
-              {avatarPreview && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="flex items-center gap-2 mt-3 text-sm text-primary"
-                >
-                  <Check className="w-4 h-4" />
-                  <span>Image Captured</span>
-                </motion.div>
-              )}
-            </motion.div>
-
-            {/* Display Name */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3 }}
-              className="space-y-2"
-            >
-              <Label htmlFor="displayName" className="text-sm font-medium text-muted-foreground">
-                Display Name
-              </Label>
-              <Input
-                id="displayName"
-                type="text"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                className="voltage-input"
-                placeholder="Enter your name"
-                required
-              />
-              {displayName && (
-                <motion.p
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="text-xs text-primary"
-                >
-                  Identity: {displayName} [Confirmed]
-                </motion.p>
-              )}
-            </motion.div>
-
-            {/* Country (Optional) */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.4 }}
-              className="space-y-2"
-            >
-              <Label htmlFor="country" className="text-sm font-medium text-muted-foreground">
-                Country <span className="text-xs">(Optional)</span>
-              </Label>
-              <Input
-                id="country"
-                type="text"
-                value={country}
-                onChange={(e) => setCountry(e.target.value)}
-                className="voltage-input"
-                placeholder="Your location"
-              />
-              {country && (
-                <motion.p
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="text-xs text-primary"
-                >
-                  Region: {country} [Connected]
-                </motion.p>
-              )}
-            </motion.div>
-
-            {/* Submit Button */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-            >
-              <Button
-                type="submit"
-                className="w-full voltage-button"
-                size="lg"
-                disabled={!isComplete || uploading}
+            {/* Step 1: Basic Info */}
+            {step === 1 && (
+              <motion.div
+                key="step1"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-6"
               >
-                {uploading ? "Initializing..." : "Complete Setup"}
-              </Button>
-            </motion.div>
+                {/* Avatar Upload */}
+                <div className="flex flex-col items-center mb-6">
+                  <div className="relative">
+                    <motion.div
+                      className="absolute inset-0 rounded-full"
+                      style={{
+                        background: "conic-gradient(from 0deg, hsl(var(--primary)), hsl(var(--primary-glow)), hsl(var(--primary)))",
+                        padding: "3px",
+                      }}
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                    >
+                      <div className="w-full h-full rounded-full bg-background" />
+                    </motion.div>
+
+                    <label
+                      htmlFor="avatar-upload"
+                      className="relative flex items-center justify-center w-32 h-32 rounded-full cursor-pointer overflow-hidden bg-background/50 backdrop-blur-sm border-2 border-primary/20 hover:border-primary/40 transition-all group"
+                    >
+                      {avatarPreview ? (
+                        <img
+                          src={avatarPreview}
+                          alt="Avatar preview"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex flex-col items-center gap-2 text-muted-foreground group-hover:text-primary transition-colors">
+                          <Upload className="w-8 h-8" />
+                          <span className="text-xs">Upload</span>
+                        </div>
+                      )}
+                      <input
+                        id="avatar-upload"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleAvatarChange}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+
+                  {avatarPreview && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="flex items-center gap-2 mt-3 text-sm text-primary"
+                    >
+                      <Check className="w-4 h-4" />
+                      <span>Image Captured</span>
+                    </motion.div>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="displayName" className="text-sm font-medium text-muted-foreground">
+                    Display Name *
+                  </Label>
+                  <Input
+                    id="displayName"
+                    type="text"
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    className="voltage-input"
+                    placeholder="Your full name"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="country" className="text-sm font-medium text-muted-foreground">
+                    Country
+                  </Label>
+                  <Input
+                    id="country"
+                    type="text"
+                    value={country}
+                    onChange={(e) => setCountry(e.target.value)}
+                    className="voltage-input"
+                    placeholder="Your location"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="bio" className="text-sm font-medium text-muted-foreground">
+                    Bio
+                  </Label>
+                  <Textarea
+                    id="bio"
+                    value={bio}
+                    onChange={(e) => setBio(e.target.value)}
+                    className="voltage-input min-h-[100px]"
+                    placeholder="Tell us about yourself..."
+                  />
+                </div>
+              </motion.div>
+            )}
+
+            {/* Step 2: Contact & Personal */}
+            {step === 2 && (
+              <motion.div
+                key="step2"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-6"
+              >
+                <div className="space-y-2">
+                  <Label htmlFor="username" className="text-sm font-medium text-muted-foreground">
+                    Username *
+                  </Label>
+                  <Input
+                    id="username"
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
+                    className="voltage-input"
+                    placeholder="unique_username"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="phoneNumber" className="text-sm font-medium text-muted-foreground">
+                    Phone Number
+                  </Label>
+                  <Input
+                    id="phoneNumber"
+                    type="tel"
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    className="voltage-input"
+                    placeholder="+1234567890"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="dateOfBirth" className="text-sm font-medium text-muted-foreground">
+                    Date of Birth
+                  </Label>
+                  <Input
+                    id="dateOfBirth"
+                    type="date"
+                    value={dateOfBirth}
+                    onChange={(e) => setDateOfBirth(e.target.value)}
+                    className="voltage-input"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="language" className="text-sm font-medium text-muted-foreground">
+                      Language
+                    </Label>
+                    <Select value={language} onValueChange={setLanguage}>
+                      <SelectTrigger className="voltage-input">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="en">English</SelectItem>
+                        <SelectItem value="es">Spanish</SelectItem>
+                        <SelectItem value="fr">French</SelectItem>
+                        <SelectItem value="de">German</SelectItem>
+                        <SelectItem value="zh">Chinese</SelectItem>
+                        <SelectItem value="ja">Japanese</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="timezone" className="text-sm font-medium text-muted-foreground">
+                      Timezone
+                    </Label>
+                    <Input
+                      id="timezone"
+                      type="text"
+                      value={timezone}
+                      onChange={(e) => setTimezone(e.target.value)}
+                      className="voltage-input"
+                      placeholder="UTC+0"
+                    />
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Step 3: Social Links */}
+            {step === 3 && (
+              <motion.div
+                key="step3"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-6"
+              >
+                <div className="space-y-2">
+                  <Label htmlFor="websiteUrl" className="text-sm font-medium text-muted-foreground">
+                    Website URL
+                  </Label>
+                  <Input
+                    id="websiteUrl"
+                    type="url"
+                    value={websiteUrl}
+                    onChange={(e) => setWebsiteUrl(e.target.value)}
+                    className="voltage-input"
+                    placeholder="https://yoursite.com"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="twitterHandle" className="text-sm font-medium text-muted-foreground">
+                    Twitter Handle
+                  </Label>
+                  <Input
+                    id="twitterHandle"
+                    type="text"
+                    value={twitterHandle}
+                    onChange={(e) => setTwitterHandle(e.target.value)}
+                    className="voltage-input"
+                    placeholder="@username"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="linkedinUrl" className="text-sm font-medium text-muted-foreground">
+                    LinkedIn URL
+                  </Label>
+                  <Input
+                    id="linkedinUrl"
+                    type="url"
+                    value={linkedinUrl}
+                    onChange={(e) => setLinkedinUrl(e.target.value)}
+                    className="voltage-input"
+                    placeholder="https://linkedin.com/in/username"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="githubHandle" className="text-sm font-medium text-muted-foreground">
+                    GitHub Handle
+                  </Label>
+                  <Input
+                    id="githubHandle"
+                    type="text"
+                    value={githubHandle}
+                    onChange={(e) => setGithubHandle(e.target.value)}
+                    className="voltage-input"
+                    placeholder="@username"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="instagramHandle" className="text-sm font-medium text-muted-foreground">
+                    Instagram Handle
+                  </Label>
+                  <Input
+                    id="instagramHandle"
+                    type="text"
+                    value={instagramHandle}
+                    onChange={(e) => setInstagramHandle(e.target.value)}
+                    className="voltage-input"
+                    placeholder="@username"
+                  />
+                </div>
+              </motion.div>
+            )}
+
+            {/* Step 4: Privacy & Preferences */}
+            {step === 4 && (
+              <motion.div
+                key="step4"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-6"
+              >
+                <div className="space-y-2">
+                  <Label htmlFor="profileVisibility" className="text-sm font-medium text-muted-foreground">
+                    Profile Visibility
+                  </Label>
+                  <Select value={profileVisibility} onValueChange={(value: "public" | "private" | "friends") => setProfileVisibility(value)}>
+                    <SelectTrigger className="voltage-input">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="public">Public</SelectItem>
+                      <SelectItem value="friends">Friends Only</SelectItem>
+                      <SelectItem value="private">Private</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="themePreference" className="text-sm font-medium text-muted-foreground">
+                    Theme Preference
+                  </Label>
+                  <Select value={themePreference} onValueChange={(value: "light" | "dark" | "system") => setThemePreference(value)}>
+                    <SelectTrigger className="voltage-input">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="system">System</SelectItem>
+                      <SelectItem value="light">Light</SelectItem>
+                      <SelectItem value="dark">Dark</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex items-center justify-between p-4 rounded-lg border border-primary/20 bg-background/50">
+                  <div className="space-y-1">
+                    <Label htmlFor="showEmail" className="text-sm font-medium">
+                      Show Email on Profile
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                      Let others see your email address
+                    </p>
+                  </div>
+                  <Switch
+                    id="showEmail"
+                    checked={showEmail}
+                    onCheckedChange={setShowEmail}
+                  />
+                </div>
+              </motion.div>
+            )}
+
+            {/* Navigation Buttons */}
+            <div className="flex gap-3 pt-4">
+              {step > 1 && (
+                <Button
+                  type="button"
+                  onClick={() => setStep(step - 1)}
+                  variant="outline"
+                  className="flex-1"
+                  disabled={uploading}
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back
+                </Button>
+              )}
+              
+              {step < 4 ? (
+                <Button
+                  type="button"
+                  onClick={() => setStep(step + 1)}
+                  className="flex-1 voltage-button"
+                  disabled={!canProceedToNextStep()}
+                >
+                  Next
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              ) : (
+                <Button
+                  type="submit"
+                  className="flex-1 voltage-button"
+                  disabled={!isStep1Complete || !isStep2Complete || uploading}
+                >
+                  {uploading ? "Initializing..." : "Complete Setup"}
+                </Button>
+              )}
+            </div>
           </form>
         </motion.div>
       </motion.div>
