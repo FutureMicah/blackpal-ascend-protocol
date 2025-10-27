@@ -11,8 +11,8 @@ interface CandlestickProps {
 
 const Candlestick = ({ position, type, scale, speed }: CandlestickProps) => {
   const meshRef = useRef<THREE.Group>(null);
-  const bodyColor = type === 'bullish' ? '#00ffe7' : '#ff4444';
-  const wickColor = type === 'bullish' ? '#00ffe7' : '#ff4444';
+  const bodyColor = type === 'bullish' ? '#22c55e' : '#ff6b4a';
+  const wickColor = type === 'bullish' ? '#16a34a' : '#ff4500';
 
   useFrame((state) => {
     if (meshRef.current) {
@@ -25,38 +25,39 @@ const Candlestick = ({ position, type, scale, speed }: CandlestickProps) => {
   return (
     <group ref={meshRef} position={position} scale={scale}>
       {/* Upper wick */}
-      <mesh position={[0, 0.6, 0]}>
-        <cylinderGeometry args={[0.02, 0.02, 0.4, 8]} />
-        <meshStandardMaterial 
+      <mesh position={[0, 0.6, 0]} castShadow>
+        <cylinderGeometry args={[0.04, 0.04, 0.5, 16]} />
+        <meshPhysicalMaterial 
           color={wickColor} 
-          emissive={bodyColor} 
-          emissiveIntensity={0.5}
-          transparent
-          opacity={0.7}
+          metalness={0.1}
+          roughness={0.3}
+          clearcoat={1}
+          clearcoatRoughness={0.1}
         />
       </mesh>
       
-      {/* Body */}
-      <mesh>
-        <boxGeometry args={[0.15, type === 'bullish' ? 0.5 : 0.3, 0.15]} />
-        <meshStandardMaterial 
-          color={bodyColor} 
-          emissive={bodyColor} 
-          emissiveIntensity={0.5}
-          transparent
-          opacity={0.8}
+      {/* Body - cylindrical for that toy-like look */}
+      <mesh castShadow receiveShadow>
+        <cylinderGeometry args={[0.2, 0.2, type === 'bullish' ? 0.7 : 0.5, 32]} />
+        <meshPhysicalMaterial 
+          color={bodyColor}
+          metalness={0.2}
+          roughness={0.2}
+          clearcoat={1}
+          clearcoatRoughness={0.1}
+          reflectivity={1}
         />
       </mesh>
       
       {/* Lower wick */}
-      <mesh position={[0, type === 'bullish' ? -0.4 : -0.3, 0]}>
-        <cylinderGeometry args={[0.02, 0.02, type === 'bullish' ? 0.3 : 0.5, 8]} />
-        <meshStandardMaterial 
-          color={wickColor} 
-          emissive={bodyColor} 
-          emissiveIntensity={0.5}
-          transparent
-          opacity={0.7}
+      <mesh position={[0, type === 'bullish' ? -0.5 : -0.4, 0]} castShadow>
+        <cylinderGeometry args={[0.04, 0.04, type === 'bullish' ? 0.4 : 0.6, 16]} />
+        <meshPhysicalMaterial 
+          color={wickColor}
+          metalness={0.1}
+          roughness={0.3}
+          clearcoat={1}
+          clearcoatRoughness={0.1}
         />
       </mesh>
     </group>
@@ -86,9 +87,23 @@ const Scene = () => {
 
   return (
     <>
-      <ambientLight intensity={0.3} />
-      <pointLight position={[10, 10, 10]} intensity={0.8} color="#00ffe7" />
-      <pointLight position={[-10, -10, -10]} intensity={0.5} color="#4299e1" />
+      <ambientLight intensity={0.5} />
+      <directionalLight 
+        position={[10, 10, 5]} 
+        intensity={1.5} 
+        castShadow
+        shadow-mapSize-width={1024}
+        shadow-mapSize-height={1024}
+      />
+      <pointLight position={[5, 5, 5]} intensity={1} color="#22c55e" />
+      <pointLight position={[-5, -5, 5]} intensity={1} color="#ff6b4a" />
+      <spotLight
+        position={[0, 10, 0]}
+        angle={0.6}
+        penumbra={1}
+        intensity={1}
+        castShadow
+      />
       
       {candlesticks.map((props, i) => (
         <Candlestick key={i} {...props} />
@@ -103,6 +118,7 @@ export const FloatingCandlesticks = () => {
       <Canvas
         camera={{ position: [0, 0, 10], fov: 50 }}
         style={{ background: 'transparent' }}
+        shadows
       >
         <Scene />
       </Canvas>
