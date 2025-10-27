@@ -12,7 +12,7 @@ interface CandlestickProps {
 const Candlestick = ({ position, type, scale, speed }: CandlestickProps) => {
   const meshRef = useRef<THREE.Group>(null);
   const bodyColor = type === 'bullish' ? '#00ffe7' : '#ff4444';
-  const wickColor = type === 'bullish' ? '#00ffe7aa' : '#ff4444aa';
+  const wickColor = type === 'bullish' ? '#00ffe7' : '#ff4444';
 
   useFrame((state) => {
     if (meshRef.current) {
@@ -27,7 +27,13 @@ const Candlestick = ({ position, type, scale, speed }: CandlestickProps) => {
       {/* Upper wick */}
       <mesh position={[0, 0.6, 0]}>
         <cylinderGeometry args={[0.02, 0.02, 0.4, 8]} />
-        <meshStandardMaterial color={wickColor} emissive={bodyColor} emissiveIntensity={0.3} />
+        <meshStandardMaterial 
+          color={wickColor} 
+          emissive={bodyColor} 
+          emissiveIntensity={0.5}
+          transparent
+          opacity={0.7}
+        />
       </mesh>
       
       {/* Body */}
@@ -45,7 +51,13 @@ const Candlestick = ({ position, type, scale, speed }: CandlestickProps) => {
       {/* Lower wick */}
       <mesh position={[0, type === 'bullish' ? -0.4 : -0.3, 0]}>
         <cylinderGeometry args={[0.02, 0.02, type === 'bullish' ? 0.3 : 0.5, 8]} />
-        <meshStandardMaterial color={wickColor} emissive={bodyColor} emissiveIntensity={0.3} />
+        <meshStandardMaterial 
+          color={wickColor} 
+          emissive={bodyColor} 
+          emissiveIntensity={0.5}
+          transparent
+          opacity={0.7}
+        />
       </mesh>
     </group>
   );
