@@ -14,72 +14,186 @@ export type Database = {
   }
   public: {
     Tables: {
+      payments: {
+        Row: {
+          amount_local: number | null
+          amount_usd: number
+          completed_at: string | null
+          created_at: string | null
+          crypto_network: string | null
+          crypto_tx_hash: string | null
+          crypto_wallet_address: string | null
+          id: string
+          invoice_expires_at: string | null
+          local_currency: string | null
+          payment_method: Database["public"]["Enums"]["payment_method"]
+          payment_status: Database["public"]["Enums"]["payment_status"] | null
+          payment_tier: Database["public"]["Enums"]["payment_tier"]
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          amount_local?: number | null
+          amount_usd: number
+          completed_at?: string | null
+          created_at?: string | null
+          crypto_network?: string | null
+          crypto_tx_hash?: string | null
+          crypto_wallet_address?: string | null
+          id?: string
+          invoice_expires_at?: string | null
+          local_currency?: string | null
+          payment_method: Database["public"]["Enums"]["payment_method"]
+          payment_status?: Database["public"]["Enums"]["payment_status"] | null
+          payment_tier: Database["public"]["Enums"]["payment_tier"]
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          amount_local?: number | null
+          amount_usd?: number
+          completed_at?: string | null
+          created_at?: string | null
+          crypto_network?: string | null
+          crypto_tx_hash?: string | null
+          crypto_wallet_address?: string | null
+          id?: string
+          invoice_expires_at?: string | null
+          local_currency?: string | null
+          payment_method?: Database["public"]["Enums"]["payment_method"]
+          payment_status?: Database["public"]["Enums"]["payment_status"] | null
+          payment_tier?: Database["public"]["Enums"]["payment_tier"]
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
+          activated_at: string | null
           avatar_url: string | null
           bio: string | null
+          citizenship_rank: string | null
+          continent: string | null
           country: string | null
           created_at: string
           date_of_birth: string | null
           display_name: string
           github_handle: string | null
+          google_id: string | null
           id: string
           instagram_handle: string | null
+          is_africa: boolean | null
+          is_nigeria: boolean | null
           language: string | null
+          last_login_at: string | null
           linkedin_url: string | null
+          payment_completed: boolean | null
+          payment_required: boolean | null
+          payment_tier: Database["public"]["Enums"]["payment_tier"] | null
           phone_number: string | null
           profile_visibility: string | null
+          rank_level: number | null
           show_email: boolean | null
+          streak_days: number | null
           theme_preference: string | null
           timezone: string | null
           twitter_handle: string | null
           updated_at: string
           username: string | null
           website_url: string | null
+          xp_points: number | null
         }
         Insert: {
+          activated_at?: string | null
           avatar_url?: string | null
           bio?: string | null
+          citizenship_rank?: string | null
+          continent?: string | null
           country?: string | null
           created_at?: string
           date_of_birth?: string | null
           display_name: string
           github_handle?: string | null
+          google_id?: string | null
           id: string
           instagram_handle?: string | null
+          is_africa?: boolean | null
+          is_nigeria?: boolean | null
           language?: string | null
+          last_login_at?: string | null
           linkedin_url?: string | null
+          payment_completed?: boolean | null
+          payment_required?: boolean | null
+          payment_tier?: Database["public"]["Enums"]["payment_tier"] | null
           phone_number?: string | null
           profile_visibility?: string | null
+          rank_level?: number | null
           show_email?: boolean | null
+          streak_days?: number | null
           theme_preference?: string | null
           timezone?: string | null
           twitter_handle?: string | null
           updated_at?: string
           username?: string | null
           website_url?: string | null
+          xp_points?: number | null
         }
         Update: {
+          activated_at?: string | null
           avatar_url?: string | null
           bio?: string | null
+          citizenship_rank?: string | null
+          continent?: string | null
           country?: string | null
           created_at?: string
           date_of_birth?: string | null
           display_name?: string
           github_handle?: string | null
+          google_id?: string | null
           id?: string
           instagram_handle?: string | null
+          is_africa?: boolean | null
+          is_nigeria?: boolean | null
           language?: string | null
+          last_login_at?: string | null
           linkedin_url?: string | null
+          payment_completed?: boolean | null
+          payment_required?: boolean | null
+          payment_tier?: Database["public"]["Enums"]["payment_tier"] | null
           phone_number?: string | null
           profile_visibility?: string | null
+          rank_level?: number | null
           show_email?: boolean | null
+          streak_days?: number | null
           theme_preference?: string | null
           timezone?: string | null
           twitter_handle?: string | null
           updated_at?: string
           username?: string | null
           website_url?: string | null
+          xp_points?: number | null
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
         }
         Relationships: []
       }
@@ -88,10 +202,31 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "student" | "investor" | "admin" | "moderator"
+      payment_method:
+        | "paystack"
+        | "flutterwave"
+        | "bank_transfer"
+        | "ussd"
+        | "voucher"
+        | "crypto_trc20"
+        | "crypto_bsc"
+      payment_status:
+        | "pending"
+        | "processing"
+        | "completed"
+        | "failed"
+        | "expired"
+      payment_tier: "NIGERIA" | "AFRICA" | "INTERNATIONAL"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -218,6 +353,25 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["student", "investor", "admin", "moderator"],
+      payment_method: [
+        "paystack",
+        "flutterwave",
+        "bank_transfer",
+        "ussd",
+        "voucher",
+        "crypto_trc20",
+        "crypto_bsc",
+      ],
+      payment_status: [
+        "pending",
+        "processing",
+        "completed",
+        "failed",
+        "expired",
+      ],
+      payment_tier: ["NIGERIA", "AFRICA", "INTERNATIONAL"],
+    },
   },
 } as const
