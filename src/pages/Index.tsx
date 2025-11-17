@@ -1,24 +1,37 @@
 import { useState, useEffect } from "react";
 import { ArrivalAnimation } from "@/components/ArrivalAnimation";
 import { GlassPortal } from "@/components/GlassPortal";
-import { ProfileSetup } from "@/components/ProfileSetup";
+import { ProfileSetupEnhanced } from "@/components/ProfileSetupEnhanced";
 import { WelcomeScene } from "@/components/WelcomeScene";
+import { GeoDetection } from "@/components/GeoDetection";
+import { PaymentTierCard } from "@/components/PaymentTierCard";
+import { PaymentGateway } from "@/pages/PaymentGateway";
 import { ParticleField } from "@/components/ParticleField";
 import { CursorTrail } from "@/components/CursorTrail";
 import { supabase } from "@/integrations/supabase/client";
 import type { User } from "@supabase/supabase-js";
 import { motion } from "framer-motion";
+import { GeoData, detectGeo } from "@/lib/geo";
 
-type Stage = "arrival" | "portal" | "profile" | "welcome" | "dashboard";
+type Stage = 
+  | "arrival" 
+  | "portal" 
+  | "geo-detect"
+  | "profile" 
+  | "payment-tier"
+  | "payment-gateway"
+  | "welcome" 
+  | "dashboard";
 
 const Index = () => {
   const [stage, setStage] = useState<Stage>("arrival");
   const [user, setUser] = useState<User | null>(null);
   const [hasProfile, setHasProfile] = useState(false);
+  const [geoData, setGeoData] = useState<GeoData | null>(null);
+  const [paymentComplete, setPaymentComplete] = useState(false);
 
   // Auth state listener
   useEffect(() => {
-    // Check current session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       if (session?.user) {
@@ -26,7 +39,6 @@ const Index = () => {
       }
     });
 
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
       if (session?.user) {
@@ -40,16 +52,31 @@ const Index = () => {
   const checkProfile = async (userId: string) => {
     const { data, error } = await supabase
       .from('profiles')
-      .select('id')
+      .select('id, payment_completed, country, continent, payment_tier')
       .eq('id', userId)
       .maybeSingle();
 
     if (!error && data) {
       setHasProfile(true);
-      setStage("welcome");
+      setPaymentComplete(data.payment_completed || false);
+      
+      // If profile exists, check payment status
+      if (data.payment_completed) {
+        setStage("welcome");
+      } else {
+        // Has profile but no payment - go to payment tier
+        if (data.country && data.continent && data.payment_tier) {
+          const geoInfo = await detectGeo();
+          setGeoData(geoInfo);
+          setStage("payment-tier");
+        } else {
+          // Profile incomplete, go to profile setup
+          setStage("profile");
+        }
+      }
     } else {
       setHasProfile(false);
-      setStage("profile");
+      setStage("geo-detect");
     }
   };
 
@@ -57,9 +84,30 @@ const Index = () => {
     // Auth state listener will handle the rest
   };
 
+  const handleGeoDetected = (detected: GeoData) => {
+    setGeoData(detected);
+    setStage("profile");
+  };
+
+  const handleProfileComplete = (profileGeoData: GeoData) => {
+    setGeoData(profileGeoData);
+    setStage("payment-tier");
+  };
+
+  const handlePaymentMethodSelect = (method: string) => {
+    // TODO: Implement actual payment processing
+    // For now, just mark as complete for demo
+    console.log("Selected payment method:", method);
+    
+    // In real implementation, this would process payment
+    // and update the database
+    setPaymentComplete(true);
+    setStage("welcome");
+  };
+
   return (
     <div className="relative min-h-screen overflow-hidden bg-background">
-      {/* Ambient effects - always present */}
+      {/* Ambient effects */}
       {stage !== "arrival" && <ParticleField />}
       <CursorTrail />
 
@@ -69,23 +117,39 @@ const Index = () => {
       )}
 
       {stage === "portal" && (
-        <>
-          <ParticleField />
-          <GlassPortal onSuccess={handleAuthSuccess} />
-        </>
+        <GlassPortal onSuccess={handleAuthSuccess} />
+      )}
+
+      {stage === "geo-detect" && geoData && (
+        <GeoDetection 
+          geoData={geoData} 
+          onComplete={() => handleGeoDetected(geoData)} 
+        />
       )}
 
       {stage === "profile" && user && (
-        <>
-          <ParticleField />
-          <ProfileSetup 
-            userId={user.id} 
-            onComplete={() => setStage("welcome")} 
-          />
-        </>
+        <ProfileSetupEnhanced 
+          userId={user.id} 
+          onComplete={handleProfileComplete} 
+        />
       )}
 
-      {stage === "welcome" && user && hasProfile && (
+      {stage === "payment-tier" && geoData && (
+        <PaymentTierCard
+          geoData={geoData}
+          onContinue={() => setStage("payment-gateway")}
+        />
+      )}
+
+      {stage === "payment-gateway" && geoData && (
+        <PaymentGateway
+          geoData={geoData}
+          onMethodSelect={handlePaymentMethodSelect}
+          onBack={() => setStage("payment-tier")}
+        />
+      )}
+
+      {stage === "welcome" && user && hasProfile && paymentComplete && (
         <WelcomeScene 
           name={user.user_metadata?.name || "User"} 
           onEnter={() => setStage("dashboard")} 
