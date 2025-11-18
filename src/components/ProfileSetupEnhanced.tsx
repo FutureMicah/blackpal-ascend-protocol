@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { GeoData, detectGeo, calculatePaymentTier } from "@/lib/geo";
 import { profileSchema } from "@/lib/validations";
 import { Upload } from "lucide-react";
+import { PremiumAvatar } from "./PremiumAvatar";
 
 interface ProfileSetupEnhancedProps {
   userId: string;
@@ -161,19 +162,18 @@ export const ProfileSetupEnhanced = ({ userId, onComplete }: ProfileSetupEnhance
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Avatar Upload */}
-            <div className="flex flex-col items-center">
-              <div className="relative w-24 h-24 rounded-full overflow-hidden border-2 border-primary/30 mb-4">
-                {avatarPreview ? (
-                  <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full bg-muted flex items-center justify-center">
-                    <Upload className="w-8 h-8 text-muted-foreground" />
-                  </div>
-                )}
-              </div>
+            <div className="flex flex-col items-center gap-4">
+              <PremiumAvatar 
+                src={avatarPreview || undefined}
+                alt="Avatar preview"
+                size={140}
+              />
               <label htmlFor="avatar-upload" className="cursor-pointer">
                 <Button type="button" variant="outline" size="sm" asChild>
-                  <span>Upload Avatar</span>
+                  <span className="flex items-center gap-2">
+                    <Upload className="w-4 h-4" />
+                    {avatarPreview ? "Change Avatar" : "Upload Avatar"}
+                  </span>
                 </Button>
                 <input
                   id="avatar-upload"
