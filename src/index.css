@@ -87,12 +87,12 @@ All colors MUST be HSL.
   }
 }
 
-@layer base {
-  * {
-    @apply border-border;
+@layer components {
+  .glass-card {
+    @apply bg-card/30 backdrop-blur-xl border border-border/40 rounded-2xl shadow-2xl;
   }
-
-  body {
-    @apply bg-background text-foreground;
+  
+  .bg-gradient-radial {
+    background: radial-gradient(circle, var(--tw-gradient-stops));
   }
 }
