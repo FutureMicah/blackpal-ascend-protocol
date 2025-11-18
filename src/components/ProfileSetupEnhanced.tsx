@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,10 +13,11 @@ import { PremiumAvatar } from "./PremiumAvatar";
 
 interface ProfileSetupEnhancedProps {
   userId: string;
-  onComplete: (geoData: GeoData) => void;
+  onComplete?: (geoData: GeoData) => void;
 }
 
 export const ProfileSetupEnhanced = ({ userId, onComplete }: ProfileSetupEnhancedProps) => {
+  const navigate = useNavigate();
   const [displayName, setDisplayName] = useState("");
   const [bio, setBio] = useState("");
   const [country, setCountry] = useState("");
@@ -125,10 +127,15 @@ export const ProfileSetupEnhanced = ({ userId, onComplete }: ProfileSetupEnhance
 
       toast({
         title: "Profile created!",
-        description: "Proceeding to payment setup.",
+        description: "Proceeding to your dashboard.",
       });
 
-      onComplete(finalGeoData);
+      if (onComplete) {
+        onComplete(finalGeoData);
+      } else {
+        // Navigate to dashboard
+        navigate("/dashboard");
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to create profile";
       toast({
