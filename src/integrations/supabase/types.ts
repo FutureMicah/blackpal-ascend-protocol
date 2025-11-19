@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      achievements: {
+        Row: {
+          badge_asset: string | null
+          category: string
+          cinematic_id: string | null
+          code: string
+          created_at: string | null
+          description: string
+          icon: string
+          id: string
+          is_hidden: boolean | null
+          name: string
+          rarity: string
+          unlock_condition: Json
+          updated_at: string | null
+          xp_reward: number | null
+        }
+        Insert: {
+          badge_asset?: string | null
+          category: string
+          cinematic_id?: string | null
+          code: string
+          created_at?: string | null
+          description: string
+          icon: string
+          id?: string
+          is_hidden?: boolean | null
+          name: string
+          rarity?: string
+          unlock_condition: Json
+          updated_at?: string | null
+          xp_reward?: number | null
+        }
+        Update: {
+          badge_asset?: string | null
+          category?: string
+          cinematic_id?: string | null
+          code?: string
+          created_at?: string | null
+          description?: string
+          icon?: string
+          id?: string
+          is_hidden?: boolean | null
+          name?: string
+          rarity?: string
+          unlock_condition?: Json
+          updated_at?: string | null
+          xp_reward?: number | null
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           amount_local: number | null
@@ -175,6 +226,41 @@ export type Database = {
           xp_points?: number | null
         }
         Relationships: []
+      }
+      user_achievements: {
+        Row: {
+          achievement_id: string
+          awarded_at: string | null
+          cinematic_watched: boolean | null
+          id: string
+          progress: Json | null
+          user_id: string
+        }
+        Insert: {
+          achievement_id: string
+          awarded_at?: string | null
+          cinematic_watched?: boolean | null
+          id?: string
+          progress?: Json | null
+          user_id: string
+        }
+        Update: {
+          achievement_id?: string
+          awarded_at?: string | null
+          cinematic_watched?: boolean | null
+          id?: string
+          progress?: Json | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_achievements_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievements"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {

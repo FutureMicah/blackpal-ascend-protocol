@@ -1,48 +1,87 @@
 import { motion } from "framer-motion";
-import { Trophy, Lock, Star } from "lucide-react";
+import { Trophy, Lock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AchievementsCarouselProps {
   userId: string;
 }
 
-// Mock achievements data
-const mockAchievements = [
-  {
-    id: 1,
-    title: "First Steps",
-    description: "Complete your profile",
-    icon: "🎯",
-    unlocked: true,
-    date: "2025-11-15",
-  },
-  {
-    id: 2,
-    title: "Quick Learner",
-    description: "Reach Level 5",
-    icon: "⚡",
-    unlocked: false,
-    progress: 40,
-  },
-  {
-    id: 3,
-    title: "Trade Master",
-    description: "Complete 10 successful trades",
-    icon: "📈",
-    unlocked: false,
-    progress: 30,
-  },
-  {
-    id: 4,
-    title: "Community Star",
-    description: "Help 5 other students",
-    icon: "⭐",
-    unlocked: false,
-    progress: 0,
-  },
-];
+interface Achievement {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  rarity: string;
+  unlocked: boolean;
+  awarded_at?: string;
+  progress?: any;
+}
 
 export const AchievementsCarousel = ({ userId }: AchievementsCarouselProps) => {
+  const [achievements, setAchievements] = useState<Achievement[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadAchievements();
+  }, [userId]);
+
+  const loadAchievements = async () => {
+    try {
+      // Get all achievements
+      const { data: allAchievements, error: achError } = await supabase
+        .from("achievements")
+        .select("*")
+        .order("rarity", { ascending: false });
+
+      if (achError) throw achError;
+
+      // Get user's unlocked achievements
+      const { data: userAchievements, error: userError } = await supabase
+        .from("user_achievements")
+        .select("achievement_id, awarded_at, progress")
+        .eq("user_id", userId);
+
+      if (userError) throw userError;
+
+      // Merge the data
+      const merged = allAchievements?.map((ach) => {
+        const userAch = userAchievements?.find((ua) => ua.achievement_id === ach.id);
+        return {
+          id: ach.id,
+          name: ach.name,
+          description: ach.description,
+          icon: ach.icon,
+          rarity: ach.rarity,
+          unlocked: !!userAch,
+          awarded_at: userAch?.awarded_at,
+          progress: userAch?.progress,
+        };
+      }) || [];
+
+      setAchievements(merged);
+    } catch (error) {
+      console.error("Error loading achievements:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  if (loading) {
+    return (
+      <motion.div
+        className="glass-card p-6 space-y-4"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+      >
+        <div className="flex items-center justify-center h-40">
+          <div className="text-muted-foreground">Loading achievements...</div>
+        </div>
+      </motion.div>
+    );
+  }
+
   return (
     <motion.div
       className="glass-card p-6 space-y-4"
@@ -56,13 +95,13 @@ export const AchievementsCarousel = ({ userId }: AchievementsCarouselProps) => {
           Achievements
         </h2>
         <Badge variant="secondary">
-          {mockAchievements.filter(a => a.unlocked).length} / {mockAchievements.length}
+          {achievements.filter(a => a.unlocked).length} / {achievements.length}
         </Badge>
       </div>
 
       {/* Achievements Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {mockAchievements.map((achievement, index) => (
+        {achievements.map((achievement, index) => (
           <motion.div
             key={achievement.id}
             className={`relative p-4 rounded-xl border transition-all ${
@@ -82,7 +121,7 @@ export const AchievementsCarousel = ({ userId }: AchievementsCarouselProps) => {
 
             {/* Title */}
             <div className="text-sm font-semibold text-center mb-1">
-              {achievement.title}
+              {achievement.name}
             </div>
 
             {/* Description */}
@@ -93,14 +132,14 @@ export const AchievementsCarousel = ({ userId }: AchievementsCarouselProps) => {
             {/* Progress or Date */}
             {achievement.unlocked ? (
               <div className="text-xs text-primary text-center mt-2">
-                {achievement.date}
+                {new Date(achievement.awarded_at!).toLocaleDateString()}
               </div>
-            ) : achievement.progress !== undefined ? (
+            ) : achievement.progress ? (
               <div className="mt-2">
                 <div className="h-1 bg-muted rounded-full overflow-hidden">
                   <div
                     className="h-full bg-primary transition-all"
-                    style={{ width: `${achievement.progress}%` }}
+                    style={{ width: `${achievement.progress.percent || 0}%` }}
                   />
                 </div>
               </div>
