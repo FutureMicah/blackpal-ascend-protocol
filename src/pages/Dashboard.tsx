@@ -9,6 +9,7 @@ import { XPReactor } from "@/components/dashboard/XPReactor";
 import { AchievementsCarousel } from "@/components/dashboard/AchievementsCarousel";
 import { WalletSnapshot } from "@/components/dashboard/WalletSnapshot";
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
+import { useAchievements } from "@/hooks/use-achievements";
 
 export default function Dashboard() {
   const [user, setUser] = useState<any>(null);
@@ -16,6 +17,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { checkAndAwardAchievements } = useAchievements();
 
   useEffect(() => {
     const initAuth = async () => {
@@ -54,6 +56,26 @@ export default function Dashboard() {
 
       if (error) throw error;
       setProfile(data);
+
+      // Check for level and XP achievements
+      if (data) {
+        await checkAndAwardAchievements({
+          user_id: userId,
+          event_type: 'level_reach',
+          event_data: {
+            level: data.rank_level || 1,
+            xp_total: data.xp_points || 0
+          }
+        });
+
+        await checkAndAwardAchievements({
+          user_id: userId,
+          event_type: 'xp_total',
+          event_data: {
+            xp_total: data.xp_points || 0
+          }
+        });
+      }
     } catch (error: any) {
       toast({
         variant: "destructive",

@@ -10,6 +10,7 @@ import { GeoData, detectGeo, calculatePaymentTier } from "@/lib/geo";
 import { profileSchema } from "@/lib/validations";
 import { Upload } from "lucide-react";
 import { PremiumAvatar } from "./PremiumAvatar";
+import { useAchievements } from "@/hooks/use-achievements";
 
 interface ProfileSetupEnhancedProps {
   userId: string;
@@ -28,6 +29,7 @@ export const ProfileSetupEnhanced = ({ userId, onComplete }: ProfileSetupEnhance
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [geoData, setGeoData] = useState<GeoData | null>(null);
   const { toast } = useToast();
+  const { checkAndAwardAchievements } = useAchievements();
 
   useEffect(() => {
     // Detect geo on mount
@@ -124,6 +126,12 @@ export const ProfileSetupEnhanced = ({ userId, onComplete }: ProfileSetupEnhance
         });
 
       if (profileError) throw profileError;
+
+      // Award profile completion achievement
+      await checkAndAwardAchievements({
+        user_id: userId,
+        event_type: 'profile_complete'
+      });
 
       toast({
         title: "Profile created!",
