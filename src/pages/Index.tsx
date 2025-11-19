@@ -29,9 +29,12 @@ const Index = () => {
   const [hasProfile, setHasProfile] = useState(false);
   const [geoData, setGeoData] = useState<GeoData | null>(null);
   const [paymentComplete, setPaymentComplete] = useState(false);
+  const [arrivalComplete, setArrivalComplete] = useState(false);
 
-  // Auth state listener
+  // Auth state listener - only starts after arrival animation
   useEffect(() => {
+    if (!arrivalComplete) return;
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       if (session?.user) {
@@ -47,7 +50,7 @@ const Index = () => {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [arrivalComplete]);
 
   const checkProfile = async (userId: string) => {
     const { data, error } = await supabase
@@ -113,7 +116,10 @@ const Index = () => {
 
       {/* Stage-based rendering */}
       {stage === "arrival" && (
-        <ArrivalAnimation onComplete={() => setStage("portal")} />
+        <ArrivalAnimation onComplete={() => {
+          setArrivalComplete(true);
+          setStage("portal");
+        }} />
       )}
 
       {stage === "portal" && (
