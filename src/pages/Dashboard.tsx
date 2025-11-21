@@ -3,18 +3,21 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, Trophy } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { ProfileHeroCard } from "@/components/dashboard/ProfileHeroCard";
 import { XPReactor } from "@/components/dashboard/XPReactor";
 import { AchievementsCarousel } from "@/components/dashboard/AchievementsCarousel";
 import { WalletSnapshot } from "@/components/dashboard/WalletSnapshot";
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
-import { useAchievements } from "@/hooks/use-achievements";
+import { AchievementNotification } from "@/components/AchievementNotification";
+import { useAchievements, AwardedAchievement } from "@/hooks/use-achievements";
 
 export default function Dashboard() {
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [notification, setNotification] = useState<AwardedAchievement | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { checkAndAwardAchievements } = useAchievements();
@@ -59,7 +62,7 @@ export default function Dashboard() {
 
       // Check for level and XP achievements
       if (data) {
-        await checkAndAwardAchievements({
+        const levelAchievements = await checkAndAwardAchievements({
           user_id: userId,
           event_type: 'level_reach',
           event_data: {
@@ -68,13 +71,21 @@ export default function Dashboard() {
           }
         });
 
-        await checkAndAwardAchievements({
+        if (levelAchievements.length > 0) {
+          setNotification(levelAchievements[0]);
+        }
+
+        const xpAchievements = await checkAndAwardAchievements({
           user_id: userId,
           event_type: 'xp_total',
           event_data: {
             xp_total: data.xp_points || 0
           }
         });
+
+        if (xpAchievements.length > 0 && !notification) {
+          setNotification(xpAchievements[0]);
+        }
       }
     } catch (error: any) {
       toast({
@@ -105,6 +116,12 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Achievement notification */}
+      <AchievementNotification
+        achievement={notification}
+        onClose={() => setNotification(null)}
+      />
+
       {/* Particle background */}
       <div className="fixed inset-0 pointer-events-none opacity-30">
         <div className="absolute inset-0 bg-gradient-radial from-primary/5 via-transparent to-transparent" />
@@ -112,6 +129,17 @@ export default function Dashboard() {
 
       {/* Main content */}
       <div className="relative max-w-[1400px] mx-auto px-8 py-8">
+        {/* Leaderboard button */}
+        <div className="flex justify-end mb-4">
+          <Button
+            variant="outline"
+            onClick={() => navigate("/leaderboard")}
+            className="flex items-center gap-2"
+          >
+            <Trophy className="h-5 w-5" />
+            Leaderboard
+          </Button>
+        </div>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
