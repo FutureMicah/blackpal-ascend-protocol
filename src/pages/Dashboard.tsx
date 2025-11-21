@@ -163,6 +163,22 @@ export default function Dashboard() {
           <div className="col-span-12 lg:col-span-3 space-y-6">
             <StreakTracker userId={profile.id} />
             <WalletSnapshot userId={profile.id} />
+            
+            {/* Quick Access to Hub */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+            >
+              <Button
+                onClick={() => navigate("/achievements/hub")}
+                className="w-full"
+                size="lg"
+              >
+                <Trophy className="mr-2 h-5 w-5" />
+                Achievement Hub
+              </Button>
+            </motion.div>
           </div>
         </motion.div>
       </div>
