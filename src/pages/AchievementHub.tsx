@@ -3,13 +3,17 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Gift, Hammer, Shield, Sparkles } from "lucide-react";
+import { ArrowLeft, Gift, Hammer, Shield, Sparkles, Book, TrendingUp, Swords, ShoppingCart } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ParticleField } from "@/components/ParticleField";
 import { DailyLottery } from "@/components/DailyLottery";
 import { AchievementCrafting } from "@/components/AchievementCrafting";
 import { AchievementGuilds } from "@/components/AchievementGuilds";
 import { AchievementTrading } from "@/components/AchievementTrading";
+import { AchievementLore } from "@/components/AchievementLore";
+import { AchievementEvolution } from "@/components/AchievementEvolution";
+import { GuildBossBattles } from "@/components/GuildBossBattles";
+import { AchievementMarketplace } from "@/components/AchievementMarketplace";
 
 const AchievementHub = () => {
   const navigate = useNavigate();
@@ -65,7 +69,7 @@ const AchievementHub = () => {
       {/* Content */}
       <div className="max-w-7xl mx-auto p-6 relative z-10">
         <Tabs defaultValue="lottery" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8 gap-2">
             <TabsTrigger value="lottery" className="flex items-center gap-2">
               <Gift className="h-4 w-4" />
               Lottery
@@ -81,6 +85,22 @@ const AchievementHub = () => {
             <TabsTrigger value="trading" className="flex items-center gap-2">
               <Sparkles className="h-4 w-4" />
               Trading
+            </TabsTrigger>
+            <TabsTrigger value="lore" className="flex items-center gap-2">
+              <Book className="h-4 w-4" />
+              Lore
+            </TabsTrigger>
+            <TabsTrigger value="evolution" className="flex items-center gap-2">
+              <TrendingUp className="h-4 w-4" />
+              Evolution
+            </TabsTrigger>
+            <TabsTrigger value="boss" className="flex items-center gap-2">
+              <Swords className="h-4 w-4" />
+              Boss Battles
+            </TabsTrigger>
+            <TabsTrigger value="marketplace" className="flex items-center gap-2">
+              <ShoppingCart className="h-4 w-4" />
+              Marketplace
             </TabsTrigger>
           </TabsList>
 
@@ -98,6 +118,22 @@ const AchievementHub = () => {
 
           <TabsContent value="trading">
             <AchievementTrading userId={userId} />
+          </TabsContent>
+
+          <TabsContent value="lore">
+            <AchievementLore userId={userId} />
+          </TabsContent>
+
+          <TabsContent value="evolution">
+            <AchievementEvolution userId={userId} />
+          </TabsContent>
+
+          <TabsContent value="boss">
+            <GuildBossBattles userId={userId} />
+          </TabsContent>
+
+          <TabsContent value="marketplace">
+            <AchievementMarketplace userId={userId} />
           </TabsContent>
         </Tabs>
       </div>
