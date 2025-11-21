@@ -68,6 +68,114 @@ export type Database = {
           },
         ]
       }
+      achievement_challenges: {
+        Row: {
+          challenge_description: string
+          challenge_icon: string | null
+          challenge_name: string
+          challenge_type: string
+          created_at: string
+          currency_reward: number | null
+          end_date: string
+          id: string
+          is_active: boolean | null
+          objective_target: number
+          objective_type: string
+          reward_achievement_id: string | null
+          start_date: string
+          xp_reward: number | null
+        }
+        Insert: {
+          challenge_description: string
+          challenge_icon?: string | null
+          challenge_name: string
+          challenge_type?: string
+          created_at?: string
+          currency_reward?: number | null
+          end_date: string
+          id?: string
+          is_active?: boolean | null
+          objective_target: number
+          objective_type: string
+          reward_achievement_id?: string | null
+          start_date: string
+          xp_reward?: number | null
+        }
+        Update: {
+          challenge_description?: string
+          challenge_icon?: string | null
+          challenge_name?: string
+          challenge_type?: string
+          created_at?: string
+          currency_reward?: number | null
+          end_date?: string
+          id?: string
+          is_active?: boolean | null
+          objective_target?: number
+          objective_type?: string
+          reward_achievement_id?: string | null
+          start_date?: string
+          xp_reward?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "achievement_challenges_reward_achievement_id_fkey"
+            columns: ["reward_achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievement_stats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "achievement_challenges_reward_achievement_id_fkey"
+            columns: ["reward_achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      achievement_combos: {
+        Row: {
+          bonus_currency: number | null
+          bonus_xp: number | null
+          combo_badge_icon: string | null
+          combo_description: string
+          combo_name: string
+          combo_rarity: string | null
+          created_at: string
+          id: string
+          is_secret: boolean | null
+          required_achievement_ids: string[]
+          xp_multiplier: number | null
+        }
+        Insert: {
+          bonus_currency?: number | null
+          bonus_xp?: number | null
+          combo_badge_icon?: string | null
+          combo_description: string
+          combo_name: string
+          combo_rarity?: string | null
+          created_at?: string
+          id?: string
+          is_secret?: boolean | null
+          required_achievement_ids: string[]
+          xp_multiplier?: number | null
+        }
+        Update: {
+          bonus_currency?: number | null
+          bonus_xp?: number | null
+          combo_badge_icon?: string | null
+          combo_description?: string
+          combo_name?: string
+          combo_rarity?: string | null
+          created_at?: string
+          id?: string
+          is_secret?: boolean | null
+          required_achievement_ids?: string[]
+          xp_multiplier?: number | null
+        }
+        Relationships: []
+      }
       achievement_evolution_paths: {
         Row: {
           base_achievement_id: string
@@ -235,6 +343,51 @@ export type Database = {
           material_description?: string | null
           material_name?: string
           rarity?: string
+        }
+        Relationships: []
+      }
+      achievement_milestones: {
+        Row: {
+          created_at: string
+          id: string
+          milestone_description: string
+          milestone_name: string
+          milestone_tier: number
+          required_achievements: number
+          required_category: string | null
+          required_xp: number | null
+          reward_avatar_url: string | null
+          reward_currency: number | null
+          reward_profile_badge: string | null
+          reward_title: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          milestone_description: string
+          milestone_name: string
+          milestone_tier?: number
+          required_achievements: number
+          required_category?: string | null
+          required_xp?: number | null
+          reward_avatar_url?: string | null
+          reward_currency?: number | null
+          reward_profile_badge?: string | null
+          reward_title?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          milestone_description?: string
+          milestone_name?: string
+          milestone_tier?: number
+          required_achievements?: number
+          required_category?: string | null
+          required_xp?: number | null
+          reward_avatar_url?: string | null
+          reward_currency?: number | null
+          reward_profile_badge?: string | null
+          reward_title?: string | null
         }
         Relationships: []
       }
@@ -856,6 +1009,7 @@ export type Database = {
         Row: {
           achievement_streak: number | null
           activated_at: string | null
+          active_title: string | null
           avatar_url: string | null
           best_achievement_streak: number | null
           bio: string | null
@@ -879,6 +1033,7 @@ export type Database = {
           payment_required: boolean | null
           payment_tier: Database["public"]["Enums"]["payment_tier"] | null
           phone_number: string | null
+          profile_badge: string | null
           profile_visibility: string | null
           rank_level: number | null
           show_email: boolean | null
@@ -886,6 +1041,7 @@ export type Database = {
           theme_preference: string | null
           timezone: string | null
           twitter_handle: string | null
+          unlocked_titles: string[] | null
           updated_at: string
           username: string | null
           virtual_currency: number | null
@@ -895,6 +1051,7 @@ export type Database = {
         Insert: {
           achievement_streak?: number | null
           activated_at?: string | null
+          active_title?: string | null
           avatar_url?: string | null
           best_achievement_streak?: number | null
           bio?: string | null
@@ -918,6 +1075,7 @@ export type Database = {
           payment_required?: boolean | null
           payment_tier?: Database["public"]["Enums"]["payment_tier"] | null
           phone_number?: string | null
+          profile_badge?: string | null
           profile_visibility?: string | null
           rank_level?: number | null
           show_email?: boolean | null
@@ -925,6 +1083,7 @@ export type Database = {
           theme_preference?: string | null
           timezone?: string | null
           twitter_handle?: string | null
+          unlocked_titles?: string[] | null
           updated_at?: string
           username?: string | null
           virtual_currency?: number | null
@@ -934,6 +1093,7 @@ export type Database = {
         Update: {
           achievement_streak?: number | null
           activated_at?: string | null
+          active_title?: string | null
           avatar_url?: string | null
           best_achievement_streak?: number | null
           bio?: string | null
@@ -957,6 +1117,7 @@ export type Database = {
           payment_required?: boolean | null
           payment_tier?: Database["public"]["Enums"]["payment_tier"] | null
           phone_number?: string | null
+          profile_badge?: string | null
           profile_visibility?: string | null
           rank_level?: number | null
           show_email?: boolean | null
@@ -964,6 +1125,7 @@ export type Database = {
           theme_preference?: string | null
           timezone?: string | null
           twitter_handle?: string | null
+          unlocked_titles?: string[] | null
           updated_at?: string
           username?: string | null
           virtual_currency?: number | null
@@ -1114,6 +1276,73 @@ export type Database = {
           },
         ]
       }
+      user_challenge_progress: {
+        Row: {
+          challenge_id: string
+          completed_at: string | null
+          created_at: string
+          current_progress: number | null
+          id: string
+          is_completed: boolean | null
+          user_id: string
+        }
+        Insert: {
+          challenge_id: string
+          completed_at?: string | null
+          created_at?: string
+          current_progress?: number | null
+          id?: string
+          is_completed?: boolean | null
+          user_id: string
+        }
+        Update: {
+          challenge_id?: string
+          completed_at?: string | null
+          created_at?: string
+          current_progress?: number | null
+          id?: string
+          is_completed?: boolean | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_challenge_progress_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "achievement_challenges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_combos: {
+        Row: {
+          combo_id: string
+          id: string
+          unlocked_at: string
+          user_id: string
+        }
+        Insert: {
+          combo_id: string
+          id?: string
+          unlocked_at?: string
+          user_id: string
+        }
+        Update: {
+          combo_id?: string
+          id?: string
+          unlocked_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_combos_combo_id_fkey"
+            columns: ["combo_id"]
+            isOneToOne: false
+            referencedRelation: "achievement_combos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_materials: {
         Row: {
           created_at: string
@@ -1142,6 +1371,35 @@ export type Database = {
             columns: ["material_id"]
             isOneToOne: false
             referencedRelation: "achievement_materials"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_milestones: {
+        Row: {
+          id: string
+          milestone_id: string
+          unlocked_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          milestone_id: string
+          unlocked_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          milestone_id?: string
+          unlocked_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_milestones_milestone_id_fkey"
+            columns: ["milestone_id"]
+            isOneToOne: false
+            referencedRelation: "achievement_milestones"
             referencedColumns: ["id"]
           },
         ]

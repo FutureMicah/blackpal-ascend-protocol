@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Gift, Hammer, Shield, Sparkles, Book, TrendingUp, Swords, ShoppingCart } from "lucide-react";
+import { ArrowLeft, Gift, Hammer, Shield, Sparkles, Book, TrendingUp, Swords, ShoppingCart, Target, Award, Trophy, Zap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ParticleField } from "@/components/ParticleField";
 import { DailyLottery } from "@/components/DailyLottery";
@@ -14,6 +14,10 @@ import { AchievementLore } from "@/components/AchievementLore";
 import { AchievementEvolution } from "@/components/AchievementEvolution";
 import { GuildBossBattles } from "@/components/GuildBossBattles";
 import { AchievementMarketplace } from "@/components/AchievementMarketplace";
+import { AchievementChallenges } from "@/components/AchievementChallenges";
+import { AchievementMilestones } from "@/components/AchievementMilestones";
+import { CategoryLeaderboards } from "@/components/CategoryLeaderboards";
+import { AchievementCombos } from "@/components/AchievementCombos";
 
 const AchievementHub = () => {
   const navigate = useNavigate();
@@ -68,41 +72,73 @@ const AchievementHub = () => {
 
       {/* Content */}
       <div className="max-w-7xl mx-auto p-6 relative z-10">
-        <Tabs defaultValue="lottery" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8 gap-2">
-            <TabsTrigger value="lottery" className="flex items-center gap-2">
-              <Gift className="h-4 w-4" />
+        <Tabs defaultValue="challenges" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6 xl:grid-cols-12 gap-1">
+            <TabsTrigger value="challenges" className="flex items-center gap-1 text-xs">
+              <Target className="h-3 w-3" />
+              Challenges
+            </TabsTrigger>
+            <TabsTrigger value="milestones" className="flex items-center gap-1 text-xs">
+              <Award className="h-3 w-3" />
+              Milestones
+            </TabsTrigger>
+            <TabsTrigger value="leaderboards" className="flex items-center gap-1 text-xs">
+              <Trophy className="h-3 w-3" />
+              Leaderboards
+            </TabsTrigger>
+            <TabsTrigger value="combos" className="flex items-center gap-1 text-xs">
+              <Zap className="h-3 w-3" />
+              Combos
+            </TabsTrigger>
+            <TabsTrigger value="lottery" className="flex items-center gap-1 text-xs">
+              <Gift className="h-3 w-3" />
               Lottery
             </TabsTrigger>
-            <TabsTrigger value="crafting" className="flex items-center gap-2">
-              <Hammer className="h-4 w-4" />
+            <TabsTrigger value="crafting" className="flex items-center gap-1 text-xs">
+              <Hammer className="h-3 w-3" />
               Crafting
             </TabsTrigger>
-            <TabsTrigger value="guilds" className="flex items-center gap-2">
-              <Shield className="h-4 w-4" />
+            <TabsTrigger value="guilds" className="flex items-center gap-1 text-xs">
+              <Shield className="h-3 w-3" />
               Guilds
             </TabsTrigger>
-            <TabsTrigger value="trading" className="flex items-center gap-2">
-              <Sparkles className="h-4 w-4" />
+            <TabsTrigger value="trading" className="flex items-center gap-1 text-xs">
+              <Sparkles className="h-3 w-3" />
               Trading
             </TabsTrigger>
-            <TabsTrigger value="lore" className="flex items-center gap-2">
-              <Book className="h-4 w-4" />
+            <TabsTrigger value="lore" className="flex items-center gap-1 text-xs">
+              <Book className="h-3 w-3" />
               Lore
             </TabsTrigger>
-            <TabsTrigger value="evolution" className="flex items-center gap-2">
-              <TrendingUp className="h-4 w-4" />
+            <TabsTrigger value="evolution" className="flex items-center gap-1 text-xs">
+              <TrendingUp className="h-3 w-3" />
               Evolution
             </TabsTrigger>
-            <TabsTrigger value="boss" className="flex items-center gap-2">
-              <Swords className="h-4 w-4" />
-              Boss Battles
+            <TabsTrigger value="boss" className="flex items-center gap-1 text-xs">
+              <Swords className="h-3 w-3" />
+              Boss
             </TabsTrigger>
-            <TabsTrigger value="marketplace" className="flex items-center gap-2">
-              <ShoppingCart className="h-4 w-4" />
-              Marketplace
+            <TabsTrigger value="marketplace" className="flex items-center gap-1 text-xs">
+              <ShoppingCart className="h-3 w-3" />
+              Market
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="challenges">
+            <AchievementChallenges userId={userId} />
+          </TabsContent>
+
+          <TabsContent value="milestones">
+            <AchievementMilestones userId={userId} />
+          </TabsContent>
+
+          <TabsContent value="leaderboards">
+            <CategoryLeaderboards userId={userId} />
+          </TabsContent>
+
+          <TabsContent value="combos">
+            <AchievementCombos userId={userId} />
+          </TabsContent>
 
           <TabsContent value="lottery">
             <DailyLottery userId={userId} />
