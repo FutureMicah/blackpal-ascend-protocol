@@ -7,8 +7,11 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Lock, Play, Award } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ArrowLeft, Lock, Play, Award, Search, Filter } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { CinematicModal } from "@/components/CinematicModal";
 
 interface Achievement {
   id: string;
@@ -27,8 +30,15 @@ interface Achievement {
 
 const Achievements = () => {
   const [achievements, setAchievements] = useState<Achievement[]>([]);
+  const [filteredAchievements, setFilteredAchievements] = useState<Achievement[]>([]);
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [rarityFilter, setRarityFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [selectedAchievement, setSelectedAchievement] = useState<Achievement | null>(null);
+  const [showCinematic, setShowCinematic] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -83,6 +93,7 @@ const Achievements = () => {
       }) || [];
 
       setAchievements(mergedAchievements);
+      setFilteredAchievements(mergedAchievements);
     } catch (error) {
       console.error("Error loading achievements:", error);
       toast({
@@ -94,6 +105,39 @@ const Achievements = () => {
       setLoading(false);
     }
   };
+
+  // Filter achievements
+  useEffect(() => {
+    let filtered = [...achievements];
+
+    // Search filter
+    if (searchQuery) {
+      filtered = filtered.filter(
+        (a) =>
+          a.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          a.description.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    // Category filter
+    if (categoryFilter !== "all") {
+      filtered = filtered.filter((a) => a.category === categoryFilter);
+    }
+
+    // Rarity filter
+    if (rarityFilter !== "all") {
+      filtered = filtered.filter((a) => a.rarity.toLowerCase() === rarityFilter);
+    }
+
+    // Status filter
+    if (statusFilter === "unlocked") {
+      filtered = filtered.filter((a) => a.unlocked);
+    } else if (statusFilter === "locked") {
+      filtered = filtered.filter((a) => !a.unlocked);
+    }
+
+    setFilteredAchievements(filtered);
+  }, [achievements, searchQuery, categoryFilter, rarityFilter, statusFilter]);
 
   const getRarityColor = (rarity: string) => {
     switch (rarity.toLowerCase()) {
@@ -122,24 +166,11 @@ const Achievements = () => {
   };
 
   const replayCinematic = (achievement: Achievement) => {
-    if (!achievement.cinematic_id) {
-      toast({
-        title: "No Cinematic",
-        description: "This achievement doesn't have a cinematic.",
-      });
-      return;
-    }
-
-    toast({
-      title: "🎬 Cinematic Replay",
-      description: `Playing: ${achievement.name}`,
-    });
-
-    // Here you would trigger the actual cinematic replay
-    // For now, just showing a toast
+    setSelectedAchievement(achievement);
+    setShowCinematic(true);
   };
 
-  const groupedAchievements = achievements.reduce((acc, achievement) => {
+  const groupedAchievements = filteredAchievements.reduce((acc, achievement) => {
     if (!acc[achievement.category]) {
       acc[achievement.category] = [];
     }
@@ -164,9 +195,16 @@ const Achievements = () => {
 
   const unlockedCount = achievements.filter(a => a.unlocked).length;
   const totalCount = achievements.length;
+  const categories = Array.from(new Set(achievements.map(a => a.category)));
+  const rarities = Array.from(new Set(achievements.map(a => a.rarity.toLowerCase())));
 
   return (
     <div className="min-h-screen bg-background">
+      <CinematicModal
+        open={showCinematic}
+        onOpenChange={setShowCinematic}
+        achievement={selectedAchievement}
+      />
       {/* Header */}
       <div className="bg-gradient-to-br from-primary/20 to-accent/20 border-b">
         <div className="max-w-7xl mx-auto p-6 space-y-4">
@@ -196,6 +234,69 @@ const Achievements = () => {
             </div>
             <Progress value={(unlockedCount / totalCount) * 100} className="flex-1 max-w-md" />
           </div>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="max-w-7xl mx-auto px-6 py-4 space-y-4">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
+          <Filter className="h-4 w-4" />
+          <span>Filters</span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search achievements..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+
+          {/* Category filter */}
+          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+            <SelectTrigger>
+              <SelectValue placeholder="All Categories" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Categories</SelectItem>
+              {categories.map((category) => (
+                <SelectItem key={category} value={category}>
+                  {category}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {/* Rarity filter */}
+          <Select value={rarityFilter} onValueChange={setRarityFilter}>
+            <SelectTrigger>
+              <SelectValue placeholder="All Rarities" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Rarities</SelectItem>
+              {rarities.map((rarity) => (
+                <SelectItem key={rarity} value={rarity}>
+                  {rarity.charAt(0).toUpperCase() + rarity.slice(1)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {/* Status filter */}
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger>
+              <SelectValue placeholder="All Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="unlocked">Unlocked</SelectItem>
+              <SelectItem value="locked">Locked</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
