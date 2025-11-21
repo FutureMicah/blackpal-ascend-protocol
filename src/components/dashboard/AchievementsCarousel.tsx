@@ -1,7 +1,9 @@
 import { motion } from "framer-motion";
-import { Trophy, Lock } from "lucide-react";
+import { Trophy, Lock, ExternalLink } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
 interface AchievementsCarouselProps {
@@ -22,6 +24,7 @@ interface Achievement {
 export const AchievementsCarousel = ({ userId }: AchievementsCarouselProps) => {
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     loadAchievements();
@@ -94,9 +97,19 @@ export const AchievementsCarousel = ({ userId }: AchievementsCarouselProps) => {
           <Trophy className="w-5 h-5 text-primary" />
           Achievements
         </h2>
-        <Badge variant="secondary">
-          {achievements.filter(a => a.unlocked).length} / {achievements.length}
-        </Badge>
+        <div className="flex items-center gap-2">
+          <Badge variant="secondary">
+            {achievements.filter(a => a.unlocked).length} / {achievements.length}
+          </Badge>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate("/achievements")}
+          >
+            View All
+            <ExternalLink className="ml-2 h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
       {/* Achievements Grid */}
