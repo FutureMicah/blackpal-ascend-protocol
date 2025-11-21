@@ -1,0 +1,316 @@
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ArrowLeft, Lock, Play, Award } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+
+interface Achievement {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  rarity: string;
+  category: string;
+  xp_reward: number;
+  cinematic_id: string | null;
+  unlocked: boolean;
+  awarded_at?: string;
+  progress?: number;
+  unlock_condition?: any;
+}
+
+const Achievements = () => {
+  const [achievements, setAchievements] = useState<Achievement[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    loadAchievements();
+  }, []);
+
+  const loadAchievements = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        navigate("/");
+        return;
+      }
+      setUserId(user.id);
+
+      // Fetch all achievements
+      const { data: allAchievements, error: achievementsError } = await supabase
+        .from("achievements")
+        .select("*")
+        .order("category", { ascending: true });
+
+      if (achievementsError) throw achievementsError;
+
+      // Fetch user's unlocked achievements
+      const { data: userAchievements, error: userError } = await supabase
+        .from("user_achievements")
+        .select("achievement_id, awarded_at, progress, cinematic_watched")
+        .eq("user_id", user.id);
+
+      if (userError) throw userError;
+
+      // Merge data
+      const mergedAchievements = allAchievements?.map((achievement) => {
+        const userAchievement = userAchievements?.find(
+          (ua) => ua.achievement_id === achievement.id
+        );
+
+        // Extract progress as number
+        let progressValue = 0;
+        if (userAchievement?.progress && typeof userAchievement.progress === 'object') {
+          progressValue = (userAchievement.progress as any).current || 0;
+        }
+
+        return {
+          ...achievement,
+          unlocked: !!userAchievement,
+          awarded_at: userAchievement?.awarded_at,
+          progress: progressValue,
+          unlock_condition: achievement.unlock_condition,
+        };
+      }) || [];
+
+      setAchievements(mergedAchievements);
+    } catch (error) {
+      console.error("Error loading achievements:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load achievements",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getRarityColor = (rarity: string) => {
+    switch (rarity.toLowerCase()) {
+      case "legendary":
+        return "bg-gradient-to-r from-amber-500 to-orange-600";
+      case "epic":
+        return "bg-gradient-to-r from-purple-500 to-pink-600";
+      case "rare":
+        return "bg-gradient-to-r from-blue-500 to-cyan-600";
+      case "uncommon":
+        return "bg-gradient-to-r from-green-500 to-emerald-600";
+      default:
+        return "bg-muted";
+    }
+  };
+
+  const getProgressFromCondition = (achievement: Achievement): number => {
+    if (achievement.unlocked) return 100;
+    
+    const condition = achievement.unlock_condition;
+    if (!condition) return 0;
+
+    // This is a simplified example - in reality you'd fetch actual user stats
+    // For now, return a random progress for locked achievements
+    return Math.floor(Math.random() * 80);
+  };
+
+  const replayCinematic = (achievement: Achievement) => {
+    if (!achievement.cinematic_id) {
+      toast({
+        title: "No Cinematic",
+        description: "This achievement doesn't have a cinematic.",
+      });
+      return;
+    }
+
+    toast({
+      title: "🎬 Cinematic Replay",
+      description: `Playing: ${achievement.name}`,
+    });
+
+    // Here you would trigger the actual cinematic replay
+    // For now, just showing a toast
+  };
+
+  const groupedAchievements = achievements.reduce((acc, achievement) => {
+    if (!acc[achievement.category]) {
+      acc[achievement.category] = [];
+    }
+    acc[achievement.category].push(achievement);
+    return acc;
+  }, {} as Record<string, Achievement[]>);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background p-6">
+        <div className="max-w-7xl mx-auto space-y-6">
+          <Skeleton className="h-12 w-64" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <Skeleton key={i} className="h-64" />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const unlockedCount = achievements.filter(a => a.unlocked).length;
+  const totalCount = achievements.length;
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <div className="bg-gradient-to-br from-primary/20 to-accent/20 border-b">
+        <div className="max-w-7xl mx-auto p-6 space-y-4">
+          <Button
+            variant="ghost"
+            onClick={() => navigate("/dashboard")}
+            className="mb-4"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Dashboard
+          </Button>
+
+          <div className="space-y-2">
+            <h1 className="text-4xl font-bold">Achievement Vault</h1>
+            <p className="text-muted-foreground">
+              Track your progress and unlock legendary rewards
+            </p>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Award className="h-5 w-5 text-primary" />
+              <span className="text-2xl font-bold">
+                {unlockedCount}/{totalCount}
+              </span>
+              <span className="text-muted-foreground">Unlocked</span>
+            </div>
+            <Progress value={(unlockedCount / totalCount) * 100} className="flex-1 max-w-md" />
+          </div>
+        </div>
+      </div>
+
+      {/* Achievement Grid */}
+      <div className="max-w-7xl mx-auto p-6 space-y-12">
+        {Object.entries(groupedAchievements).map(([category, categoryAchievements]) => (
+          <motion.div
+            key={category}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+          >
+            <h2 className="text-2xl font-bold mb-6 capitalize flex items-center gap-2">
+              <span className="w-1 h-8 bg-primary rounded-full" />
+              {category}
+            </h2>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {categoryAchievements.map((achievement, index) => {
+                const progress = getProgressFromCondition(achievement);
+                
+                return (
+                  <motion.div
+                    key={achievement.id}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.3, delay: index * 0.05 }}
+                  >
+                    <Card
+                      className={`relative overflow-hidden transition-all duration-300 ${
+                        achievement.unlocked
+                          ? "hover:scale-105 hover:shadow-xl cursor-pointer"
+                          : "opacity-75"
+                      }`}
+                    >
+                      {/* Rarity Accent */}
+                      <div className={`h-2 ${getRarityColor(achievement.rarity)}`} />
+
+                      <div className="p-6 space-y-4">
+                        {/* Icon & Lock */}
+                        <div className="flex items-start justify-between">
+                          <div className="relative">
+                            <div
+                              className={`text-6xl ${
+                                achievement.unlocked ? "" : "grayscale blur-sm"
+                              }`}
+                            >
+                              {achievement.icon}
+                            </div>
+                            {!achievement.unlocked && (
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <Lock className="h-8 w-8 text-muted-foreground" />
+                              </div>
+                            )}
+                          </div>
+
+                          <Badge variant={achievement.unlocked ? "default" : "secondary"}>
+                            {achievement.rarity}
+                          </Badge>
+                        </div>
+
+                        {/* Title & Description */}
+                        <div className="space-y-2">
+                          <h3 className="font-bold text-xl">{achievement.name}</h3>
+                          <p className="text-sm text-muted-foreground">
+                            {achievement.description}
+                          </p>
+                        </div>
+
+                        {/* Progress or Award Date */}
+                        {achievement.unlocked ? (
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <Award className="h-4 w-4" />
+                              <span>
+                                Unlocked{" "}
+                                {achievement.awarded_at &&
+                                  new Date(achievement.awarded_at).toLocaleDateString()}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm font-semibold text-primary">
+                              <span>+{achievement.xp_reward} XP</span>
+                            </div>
+                            {achievement.cinematic_id && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="w-full"
+                                onClick={() => replayCinematic(achievement)}
+                              >
+                                <Play className="mr-2 h-4 w-4" />
+                                Replay Cinematic
+                              </Button>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            <div className="flex justify-between text-sm">
+                              <span className="text-muted-foreground">Progress</span>
+                              <span className="font-semibold">{progress}%</span>
+                            </div>
+                            <Progress value={progress} />
+                          </div>
+                        )}
+                      </div>
+                    </Card>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default Achievements;
