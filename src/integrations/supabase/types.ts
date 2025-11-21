@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      achievement_seasons: {
+        Row: {
+          created_at: string
+          description: string | null
+          end_date: string
+          id: string
+          is_active: boolean | null
+          season_name: string
+          season_number: number
+          start_date: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          end_date: string
+          id?: string
+          is_active?: boolean | null
+          season_name: string
+          season_number: number
+          start_date: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          end_date?: string
+          id?: string
+          is_active?: boolean | null
+          season_name?: string
+          season_number?: number
+          start_date?: string
+        }
+        Relationships: []
+      }
       achievements: {
         Row: {
           badge_asset: string | null
@@ -62,6 +95,60 @@ export type Database = {
           unlock_condition?: Json
           updated_at?: string | null
           xp_reward?: number | null
+        }
+        Relationships: []
+      }
+      badge_presets: {
+        Row: {
+          achievement_ids: string[]
+          created_at: string
+          id: string
+          is_active: boolean | null
+          preset_name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          achievement_ids: string[]
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          preset_name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          achievement_ids?: string[]
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          preset_name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      friend_connections: {
+        Row: {
+          created_at: string
+          friend_id: string
+          id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          friend_id: string
+          id?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          friend_id?: string
+          id?: string
+          status?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -235,6 +322,47 @@ export type Database = {
           xp_points?: number | null
         }
         Relationships: []
+      }
+      season_leaderboard: {
+        Row: {
+          created_at: string
+          id: string
+          rank: number | null
+          season_achievements: number | null
+          season_id: string
+          season_xp: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          rank?: number | null
+          season_achievements?: number | null
+          season_id: string
+          season_xp?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          rank?: number | null
+          season_achievements?: number | null
+          season_id?: string
+          season_xp?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "season_leaderboard_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "achievement_seasons"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_achievements: {
         Row: {
