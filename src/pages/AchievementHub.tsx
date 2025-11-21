@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Gift, Hammer, Shield, Sparkles, Book, TrendingUp, Swords, ShoppingCart, Target, Award, Trophy, Zap } from "lucide-react";
+import { ArrowLeft, Gift, Hammer, Shield, Sparkles, Book, TrendingUp, Swords, ShoppingCart, Target, Award, Trophy, Zap, BarChart3 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ParticleField } from "@/components/ParticleField";
 import { DailyLottery } from "@/components/DailyLottery";
@@ -18,6 +18,7 @@ import { AchievementChallenges } from "@/components/AchievementChallenges";
 import { AchievementMilestones } from "@/components/AchievementMilestones";
 import { CategoryLeaderboards } from "@/components/CategoryLeaderboards";
 import { AchievementCombos } from "@/components/AchievementCombos";
+import { AnalyticsDashboard } from "@/components/AnalyticsDashboard";
 
 const AchievementHub = () => {
   const navigate = useNavigate();
@@ -73,7 +74,11 @@ const AchievementHub = () => {
       {/* Content */}
       <div className="max-w-7xl mx-auto p-6 relative z-10">
         <Tabs defaultValue="challenges" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6 xl:grid-cols-12 gap-1">
+          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-7 xl:grid-cols-13 gap-1">
+            <TabsTrigger value="analytics" className="flex items-center gap-1 text-xs">
+              <BarChart3 className="h-3 w-3" />
+              Analytics
+            </TabsTrigger>
             <TabsTrigger value="challenges" className="flex items-center gap-1 text-xs">
               <Target className="h-3 w-3" />
               Challenges
@@ -124,8 +129,8 @@ const AchievementHub = () => {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="challenges">
-            <AchievementChallenges userId={userId} />
+          <TabsContent value="analytics">
+            <AnalyticsDashboard userId={userId} />
           </TabsContent>
 
           <TabsContent value="milestones">

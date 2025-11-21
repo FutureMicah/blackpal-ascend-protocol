@@ -1,6 +1,5 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import blackpalLogo from "@/assets/blackpal-logo.png";
 
 interface WelcomeSceneProps {
   name: string;
@@ -25,7 +24,7 @@ export const WelcomeScene = ({ name, onEnter }: WelcomeSceneProps) => {
             className="absolute"
           >
             <img
-              src={blackpalLogo}
+              src="/blackpal-logo.png"
               alt="BlackPAL"
               className="w-24 h-24 object-contain"
               style={{
@@ -42,7 +41,7 @@ export const WelcomeScene = ({ name, onEnter }: WelcomeSceneProps) => {
             className="absolute"
           >
             <img
-              src={blackpalLogo}
+              src="/blackpal-logo.png"
               alt="BlackPAL"
               className="w-24 h-24 object-contain"
               style={{

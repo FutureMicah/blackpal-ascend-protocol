@@ -3,7 +3,6 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import blackpalLogo from "@/assets/blackpal-logo.png";
 import { supabase } from "@/integrations/supabase/client";
 
 interface GlassPortalProps {
@@ -97,7 +96,7 @@ export const GlassPortal = ({ onSuccess }: GlassPortalProps) => {
           {/* Logo */}
           <div className="flex justify-center mb-6">
             <motion.img
-              src={blackpalLogo}
+              src="/blackpal-logo.png"
               alt="BlackPAL"
               className="w-16 h-16 object-contain"
               animate={{

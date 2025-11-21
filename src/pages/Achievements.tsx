@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowLeft, Lock, Play, Award, Search, Filter, BarChart3, GitBranch } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { CinematicModal } from "@/components/CinematicModal";
-import { AchievementShare } from "@/components/AchievementShare";
+import { SocialShare } from "@/components/SocialShare";
 
 interface Achievement {
   id: string;
@@ -422,13 +422,9 @@ const Achievements = () => {
                                 </Button>
                               )}
                               {userProfile && (
-                                <AchievementShare
+                                <SocialShare
                                   achievement={achievement}
-                                  userStats={{
-                                    displayName: userProfile.display_name,
-                                    xpPoints: userProfile.xp_points || 0,
-                                    achievementCount: unlockedCount,
-                                  }}
+                                  userName={userProfile.display_name}
                                 />
                               )}
                             </div>

@@ -109,10 +109,10 @@ export const ProfileSetupEnhanced = ({ userId, onComplete }: ProfileSetupEnhance
 
       if (!finalGeoData) throw new Error("Unable to detect location");
 
-      // Create profile with geo data
+      // Update profile with geo data (use upsert to handle existing profile)
       const { error: profileError } = await supabase
         .from('profiles')
-        .insert({
+        .upsert({
           id: userId,
           display_name: result.data.display_name,
           avatar_url: avatarUrl,
@@ -123,6 +123,8 @@ export const ProfileSetupEnhanced = ({ userId, onComplete }: ProfileSetupEnhance
           is_nigeria: finalGeoData.isNigeria,
           is_africa: finalGeoData.isAfrica,
           payment_tier: finalGeoData.paymentTier,
+        }, {
+          onConflict: 'id'
         });
 
       if (profileError) throw profileError;
