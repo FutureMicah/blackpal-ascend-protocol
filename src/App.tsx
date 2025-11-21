@@ -10,6 +10,7 @@ import Dashboard from "./pages/Dashboard";
 import Achievements from "./pages/Achievements";
 import AchievementStats from "./pages/AchievementStats";
 import Leaderboard from "./pages/Leaderboard";
+import AchievementPathsPage from "./pages/AchievementPathsPage";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +26,7 @@ const App = () => (
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/achievements" element={<Achievements />} />
           <Route path="/achievements/stats" element={<AchievementStats />} />
+          <Route path="/achievements/paths" element={<AchievementPathsPage />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

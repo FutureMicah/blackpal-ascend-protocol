@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Lock, Play, Award, Search, Filter, BarChart3 } from "lucide-react";
+import { ArrowLeft, Lock, Play, Award, Search, Filter, BarChart3, GitBranch } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { CinematicModal } from "@/components/CinematicModal";
 import { AchievementShare } from "@/components/AchievementShare";
@@ -228,13 +228,22 @@ const Achievements = () => {
               Back to Dashboard
             </Button>
             
-            <Button
-              variant="outline"
-              onClick={() => navigate("/achievements/stats")}
-            >
-              <BarChart3 className="mr-2 h-4 w-4" />
-              View Statistics
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => navigate("/achievements/stats")}
+              >
+                <BarChart3 className="mr-2 h-4 w-4" />
+                Statistics
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => navigate("/achievements/paths")}
+              >
+                <GitBranch className="mr-2 h-4 w-4" />
+                Paths & Challenges
+              </Button>
+            </div>
           </div>
 
           <div className="space-y-2">

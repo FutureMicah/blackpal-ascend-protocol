@@ -1,11 +1,13 @@
 import { motion } from "framer-motion";
 import { PremiumAvatar } from "@/components/PremiumAvatar";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Calendar, LogOut } from "lucide-react";
+import { MapPin, Calendar, LogOut, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { PremiumBadges } from "@/components/PremiumBadges";
+import { useState, useEffect } from "react";
 
 interface ProfileHeroCardProps {
   profile: any;
@@ -15,6 +17,36 @@ interface ProfileHeroCardProps {
 export const ProfileHeroCard = ({ profile, user }: ProfileHeroCardProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [featuredAchievements, setFeaturedAchievements] = useState<any[]>([]);
+
+  useEffect(() => {
+    loadFeaturedAchievements();
+  }, [user.id]);
+
+  const loadFeaturedAchievements = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("user_achievements")
+        .select(`
+          achievement_id,
+          achievements (
+            id,
+            name,
+            icon,
+            rarity
+          )
+        `)
+        .eq("user_id", user.id)
+        .limit(5);
+
+      if (error) throw error;
+
+      const achievements = data?.map((ua: any) => ua.achievements).filter(Boolean) || [];
+      setFeaturedAchievements(achievements);
+    } catch (error) {
+      console.error("Error loading featured achievements:", error);
+    }
+  };
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -76,6 +108,11 @@ export const ProfileHeroCard = ({ profile, user }: ProfileHeroCardProps) => {
         </p>
       )}
 
+      {/* Featured Achievements */}
+      {featuredAchievements.length > 0 && (
+        <PremiumBadges achievements={featuredAchievements} />
+      )}
+
       {/* Meta Info */}
       <div className="space-y-2 text-sm">
         {profile.country && (
@@ -111,6 +148,16 @@ export const ProfileHeroCard = ({ profile, user }: ProfileHeroCardProps) => {
           <div className="text-xs text-muted-foreground">Streak</div>
         </div>
       </div>
+
+      {/* Connect to Cinematic Core */}
+      <Button
+        variant="default"
+        className="w-full"
+        onClick={() => window.open("https://blackpal-cinematic-core.lovable.app/", "_blank")}
+      >
+        <ExternalLink className="w-4 h-4 mr-2" />
+        Cinematic Core
+      </Button>
 
       {/* Sign Out */}
       <Button
