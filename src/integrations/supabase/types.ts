@@ -121,8 +121,10 @@ export type Database = {
       }
       profiles: {
         Row: {
+          achievement_streak: number | null
           activated_at: string | null
           avatar_url: string | null
+          best_achievement_streak: number | null
           bio: string | null
           citizenship_rank: string | null
           continent: string | null
@@ -137,6 +139,7 @@ export type Database = {
           is_africa: boolean | null
           is_nigeria: boolean | null
           language: string | null
+          last_achievement_date: string | null
           last_login_at: string | null
           linkedin_url: string | null
           payment_completed: boolean | null
@@ -156,8 +159,10 @@ export type Database = {
           xp_points: number | null
         }
         Insert: {
+          achievement_streak?: number | null
           activated_at?: string | null
           avatar_url?: string | null
+          best_achievement_streak?: number | null
           bio?: string | null
           citizenship_rank?: string | null
           continent?: string | null
@@ -172,6 +177,7 @@ export type Database = {
           is_africa?: boolean | null
           is_nigeria?: boolean | null
           language?: string | null
+          last_achievement_date?: string | null
           last_login_at?: string | null
           linkedin_url?: string | null
           payment_completed?: boolean | null
@@ -191,8 +197,10 @@ export type Database = {
           xp_points?: number | null
         }
         Update: {
+          achievement_streak?: number | null
           activated_at?: string | null
           avatar_url?: string | null
+          best_achievement_streak?: number | null
           bio?: string | null
           citizenship_rank?: string | null
           continent?: string | null
@@ -207,6 +215,7 @@ export type Database = {
           is_africa?: boolean | null
           is_nigeria?: boolean | null
           language?: string | null
+          last_achievement_date?: string | null
           last_login_at?: string | null
           linkedin_url?: string | null
           payment_completed?: boolean | null
@@ -232,7 +241,9 @@ export type Database = {
           achievement_id: string
           awarded_at: string | null
           cinematic_watched: boolean | null
+          combo_size: number | null
           id: string
+          part_of_combo: boolean | null
           progress: Json | null
           user_id: string
         }
@@ -240,7 +251,9 @@ export type Database = {
           achievement_id: string
           awarded_at?: string | null
           cinematic_watched?: boolean | null
+          combo_size?: number | null
           id?: string
+          part_of_combo?: boolean | null
           progress?: Json | null
           user_id: string
         }
@@ -248,11 +261,20 @@ export type Database = {
           achievement_id?: string
           awarded_at?: string | null
           cinematic_watched?: boolean | null
+          combo_size?: number | null
           id?: string
+          part_of_combo?: boolean | null
           progress?: Json | null
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "user_achievements_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievement_stats"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "user_achievements_achievement_id_fkey"
             columns: ["achievement_id"]
@@ -285,7 +307,17 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      achievement_stats: {
+        Row: {
+          category: string | null
+          id: string | null
+          name: string | null
+          rarity: string | null
+          unlock_count: number | null
+          unlock_percentage: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       has_role: {
@@ -294,6 +326,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      update_achievement_streak: {
+        Args: { user_id_param: string }
+        Returns: number
       }
     }
     Enums: {
