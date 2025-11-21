@@ -1,6 +1,5 @@
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
-import blackpalLogo from "@/assets/blackpal-logo.png";
 
 interface ArrivalAnimationProps {
   onComplete: () => void;
@@ -55,7 +54,7 @@ export const ArrivalAnimation = ({ onComplete }: ArrivalAnimationProps) => {
           className="flex flex-col items-center gap-8"
         >
           <motion.img
-            src={blackpalLogo}
+            src="/blackpal-logo.png"
             alt="BlackPAL"
             className="w-32 h-32 md:w-48 md:h-48 object-contain"
             style={{

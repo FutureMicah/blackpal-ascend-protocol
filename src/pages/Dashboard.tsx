@@ -11,6 +11,7 @@ import { AchievementsCarousel } from "@/components/dashboard/AchievementsCarouse
 import { WalletSnapshot } from "@/components/dashboard/WalletSnapshot";
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 import { AchievementNotification } from "@/components/AchievementNotification";
+import { NotificationCenter } from "@/components/NotificationCenter";
 import { StreakTracker } from "@/components/StreakTracker";
 import { useAchievements, AwardedAchievement } from "@/hooks/use-achievements";
 
@@ -130,8 +131,9 @@ export default function Dashboard() {
 
       {/* Main content */}
       <div className="relative max-w-[1400px] mx-auto px-8 py-8">
-        {/* Leaderboard button */}
-        <div className="flex justify-end mb-4">
+        {/* Header with Leaderboard and Notifications */}
+        <div className="flex justify-end gap-2 mb-4">
+          {user && <NotificationCenter userId={user.id} />}
           <Button
             variant="outline"
             onClick={() => navigate("/leaderboard")}
