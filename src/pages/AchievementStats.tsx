@@ -1,4 +1,8 @@
 import { useEffect, useState } from "react";
+import { AchievementAnalytics } from "@/components/AchievementAnalytics";
+import { SeasonalChallenges } from "@/components/SeasonalChallenges";
+import { BadgePresets } from "@/components/BadgePresets";
+import { FriendActivityFeed } from "@/components/FriendActivityFeed";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -351,6 +355,43 @@ const AchievementStats = () => {
             </ResponsiveContainer>
           </Card>
         </motion.div>
+
+        {/* Achievement Analytics */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.9 }}
+        >
+          {userId && <AchievementAnalytics userId={userId} />}
+        </motion.div>
+
+        {/* Seasonal Challenges */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.0 }}
+        >
+          {userId && <SeasonalChallenges userId={userId} />}
+        </motion.div>
+
+        {/* Two Column Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.1 }}
+          >
+            {userId && <BadgePresets userId={userId} />}
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.2 }}
+          >
+            {userId && <FriendActivityFeed userId={userId} />}
+          </motion.div>
+        </div>
       </div>
     </div>
   );
