@@ -3,13 +3,14 @@ import { useToast } from "@/hooks/use-toast";
 
 export interface AwardAchievementParams {
   user_id: string;
-  event_type: 'profile_complete' | 'payment_complete' | 'level_reach' | 'xp_total' | 'trades_complete' | 'referrals' | 'gear_collected' | 'vault_first_access';
+  event_type: 'profile_complete' | 'payment_complete' | 'level_reach' | 'xp_total' | 'trades_complete' | 'referrals' | 'gear_collected' | 'vault_first_access' | 'streak_milestone';
   event_data?: {
     level?: number;
     xp_total?: number;
     trades_count?: number;
     referrals_count?: number;
     gear_count?: number;
+    streak_days?: number;
   };
 }
 
@@ -21,6 +22,11 @@ export interface AwardedAchievement {
   rarity: string;
   xp_reward: number;
   cinematic_id: string | null;
+  combo?: {
+    size: number;
+    bonus_xp: number;
+    category: string;
+  } | null;
 }
 
 export const useAchievements = () => {

@@ -11,6 +11,7 @@ import { AchievementsCarousel } from "@/components/dashboard/AchievementsCarouse
 import { WalletSnapshot } from "@/components/dashboard/WalletSnapshot";
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 import { AchievementNotification } from "@/components/AchievementNotification";
+import { StreakTracker } from "@/components/StreakTracker";
 import { useAchievements, AwardedAchievement } from "@/hooks/use-achievements";
 
 export default function Dashboard() {
@@ -160,6 +161,7 @@ export default function Dashboard() {
 
           {/* Right Column - Sidebar */}
           <div className="col-span-12 lg:col-span-3 space-y-6">
+            <StreakTracker userId={profile.id} />
             <WalletSnapshot userId={profile.id} />
           </div>
         </motion.div>
