@@ -12,6 +12,11 @@ interface AchievementNotificationProps {
     icon: string;
     rarity: string;
     xp_reward: number;
+    combo?: {
+      size: number;
+      bonus_xp: number;
+      category: string;
+    } | null;
   } | null;
   onClose: () => void;
 }
@@ -33,6 +38,7 @@ export const AchievementNotification = ({ achievement, onClose }: AchievementNot
   if (!achievement) return null;
 
   const isLegendary = achievement.rarity.toLowerCase() === "legendary";
+  const isCombo = achievement.combo && achievement.combo.size > 1;
 
   return (
     <AnimatePresence>
@@ -43,7 +49,7 @@ export const AchievementNotification = ({ achievement, onClose }: AchievementNot
           exit={{ opacity: 0, y: -100, scale: 0.8 }}
           className="fixed top-4 right-4 z-50 max-w-md"
         >
-          <Card className={`relative overflow-hidden ${isLegendary ? 'border-2 border-amber-500' : ''}`}>
+          <Card className={`relative overflow-hidden ${isLegendary ? 'border-2 border-amber-500' : ''} ${isCombo ? 'border-2 border-purple-500' : ''}`}>
             {/* Legendary background effect */}
             {isLegendary && (
               <motion.div
@@ -52,6 +58,18 @@ export const AchievementNotification = ({ achievement, onClose }: AchievementNot
                   backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
                 }}
                 transition={{ duration: 3, repeat: Infinity }}
+                style={{ backgroundSize: "200% 200%" }}
+              />
+            )}
+
+            {/* Combo background effect */}
+            {isCombo && (
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-purple-500/20"
+                animate={{
+                  backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
+                }}
+                transition={{ duration: 2, repeat: Infinity }}
                 style={{ backgroundSize: "200% 200%" }}
               />
             )}
@@ -71,7 +89,9 @@ export const AchievementNotification = ({ achievement, onClose }: AchievementNot
               {/* Header */}
               <div className="flex items-center gap-2">
                 <Sparkles className="h-5 w-5 text-primary" />
-                <h3 className="font-bold text-lg">Achievement Unlocked!</h3>
+                <h3 className="font-bold text-lg">
+                  {isCombo ? `${achievement.combo!.size}x COMBO!` : 'Achievement Unlocked!'}
+                </h3>
               </div>
 
               {/* Achievement content */}
@@ -95,8 +115,18 @@ export const AchievementNotification = ({ achievement, onClose }: AchievementNot
                     </Badge>
                   </div>
                   <p className="text-sm text-muted-foreground">{achievement.description}</p>
+                  {isCombo && (
+                    <div className="text-xs font-semibold text-purple-500">
+                      {achievement.combo!.size}x {achievement.combo!.category} Combo!
+                    </div>
+                  )}
                   <div className="text-sm font-semibold text-primary">
                     +{achievement.xp_reward} XP
+                    {isCombo && (
+                      <span className="text-purple-500 ml-2">
+                        (+{achievement.combo!.bonus_xp} bonus)
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>

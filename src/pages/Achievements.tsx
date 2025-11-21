@@ -9,9 +9,10 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Lock, Play, Award, Search, Filter } from "lucide-react";
+import { ArrowLeft, Lock, Play, Award, Search, Filter, BarChart3 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { CinematicModal } from "@/components/CinematicModal";
+import { AchievementShare } from "@/components/AchievementShare";
 
 interface Achievement {
   id: string;
@@ -39,6 +40,7 @@ const Achievements = () => {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedAchievement, setSelectedAchievement] = useState<Achievement | null>(null);
   const [showCinematic, setShowCinematic] = useState(false);
+  const [userProfile, setUserProfile] = useState<any>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -54,6 +56,15 @@ const Achievements = () => {
         return;
       }
       setUserId(user.id);
+
+      // Fetch user profile
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("display_name, xp_points")
+        .eq("id", user.id)
+        .single();
+      
+      setUserProfile(profile);
 
       // Fetch all achievements
       const { data: allAchievements, error: achievementsError } = await supabase
@@ -208,14 +219,23 @@ const Achievements = () => {
       {/* Header */}
       <div className="bg-gradient-to-br from-primary/20 to-accent/20 border-b">
         <div className="max-w-7xl mx-auto p-6 space-y-4">
-          <Button
-            variant="ghost"
-            onClick={() => navigate("/dashboard")}
-            className="mb-4"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Dashboard
-          </Button>
+          <div className="flex items-center justify-between mb-4">
+            <Button
+              variant="ghost"
+              onClick={() => navigate("/dashboard")}
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Dashboard
+            </Button>
+            
+            <Button
+              variant="outline"
+              onClick={() => navigate("/achievements/stats")}
+            >
+              <BarChart3 className="mr-2 h-4 w-4" />
+              View Statistics
+            </Button>
+          </div>
 
           <div className="space-y-2">
             <h1 className="text-4xl font-bold">Achievement Vault</h1>
@@ -380,17 +400,29 @@ const Achievements = () => {
                             <div className="flex items-center gap-2 text-sm font-semibold text-primary">
                               <span>+{achievement.xp_reward} XP</span>
                             </div>
-                            {achievement.cinematic_id && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="w-full"
-                                onClick={() => replayCinematic(achievement)}
-                              >
-                                <Play className="mr-2 h-4 w-4" />
-                                Replay Cinematic
-                              </Button>
-                            )}
+                            <div className="flex gap-2">
+                              {achievement.cinematic_id && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="flex-1"
+                                  onClick={() => replayCinematic(achievement)}
+                                >
+                                  <Play className="mr-2 h-4 w-4" />
+                                  Replay
+                                </Button>
+                              )}
+                              {userProfile && (
+                                <AchievementShare
+                                  achievement={achievement}
+                                  userStats={{
+                                    displayName: userProfile.display_name,
+                                    xpPoints: userProfile.xp_points || 0,
+                                    achievementCount: unlockedCount,
+                                  }}
+                                />
+                              )}
+                            </div>
                           </div>
                         ) : (
                           <div className="space-y-2">

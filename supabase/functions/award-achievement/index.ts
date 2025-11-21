@@ -7,13 +7,14 @@ const corsHeaders = {
 
 interface AwardRequest {
   user_id: string;
-  event_type: 'profile_complete' | 'payment_complete' | 'level_reach' | 'xp_total' | 'trades_complete' | 'referrals' | 'gear_collected' | 'vault_first_access';
+  event_type: 'profile_complete' | 'payment_complete' | 'level_reach' | 'xp_total' | 'trades_complete' | 'referrals' | 'gear_collected' | 'vault_first_access' | 'streak_milestone';
   event_data?: {
     level?: number;
     xp_total?: number;
     trades_count?: number;
     referrals_count?: number;
     gear_count?: number;
+    streak_days?: number;
   };
 }
 
@@ -58,7 +59,7 @@ Deno.serve(async (req) => {
     // Get user's already unlocked achievements
     const { data: userAchievements, error: userAchError } = await supabaseClient
       .from('user_achievements')
-      .select('achievement_id')
+      .select('achievement_id, awarded_at')
       .eq('user_id', user_id);
 
     if (userAchError) {
@@ -68,6 +69,13 @@ Deno.serve(async (req) => {
 
     const unlockedIds = new Set(userAchievements?.map(ua => ua.achievement_id) || []);
     const newlyAwarded = [];
+    const recentAchievements = userAchievements
+      ?.filter(ua => {
+        const awardedTime = new Date(ua.awarded_at).getTime();
+        const now = Date.now();
+        return (now - awardedTime) < 3600000; // Within last hour
+      })
+      .map(ua => ua.achievement_id) || [];
 
     // Check each achievement's unlock condition
     for (const achievement of achievements || []) {
@@ -118,10 +126,26 @@ Deno.serve(async (req) => {
               shouldAward = true;
             }
             break;
+
+          case 'streak_milestone':
+            if (event_data?.streak_days && event_data.streak_days >= condition.streak_days) {
+              shouldAward = true;
+            }
+            break;
         }
 
         if (shouldAward) {
           console.log(`[Award Achievement] Awarding achievement: ${achievement.name} to user ${user_id}`);
+          
+          // Check for combo (multiple achievements in same category within an hour)
+          const relatedAchievements = achievements?.filter(a => 
+            a.category === achievement.category && 
+            recentAchievements.includes(a.id)
+          ) || [];
+          
+          const isCombo = relatedAchievements.length >= 2;
+          const comboSize = isCombo ? relatedAchievements.length + 1 : null;
+          const bonusXP = isCombo ? Math.floor(achievement.xp_reward * 0.5 * comboSize!) : 0;
           
           // Award the achievement
           const { error: insertError } = await supabaseClient
@@ -130,15 +154,29 @@ Deno.serve(async (req) => {
               user_id,
               achievement_id: achievement.id,
               awarded_at: new Date().toISOString(),
+              part_of_combo: isCombo,
+              combo_size: comboSize,
             });
 
           if (insertError) {
             console.error(`[Award Achievement] Error inserting achievement ${achievement.id}:`, insertError);
             continue;
           }
+          
+          // Update streak
+          const { data: streakData } = await supabaseClient.rpc('update_achievement_streak', {
+            user_id_param: user_id
+          });
+          
+          console.log(`[Award Achievement] Updated streak for user ${user_id}: ${streakData}`);
+          
+          if (isCombo) {
+            console.log(`[Award Achievement] COMBO! ${comboSize}x combo in ${achievement.category}, awarding ${bonusXP} bonus XP`);
+          }
 
-          // Award XP if applicable
-          if (achievement.xp_reward > 0) {
+          // Award XP if applicable (including bonus)
+          const totalXP = achievement.xp_reward + bonusXP;
+          if (totalXP > 0) {
             const { data: profile } = await supabaseClient
               .from('profiles')
               .select('xp_points')
@@ -148,10 +186,10 @@ Deno.serve(async (req) => {
             if (profile) {
               await supabaseClient
                 .from('profiles')
-                .update({ xp_points: (profile.xp_points || 0) + achievement.xp_reward })
+                .update({ xp_points: (profile.xp_points || 0) + totalXP })
                 .eq('id', user_id);
 
-              console.log(`[Award Achievement] Awarded ${achievement.xp_reward} XP to user ${user_id}`);
+              console.log(`[Award Achievement] Awarded ${totalXP} XP to user ${user_id} (base: ${achievement.xp_reward}, bonus: ${bonusXP})`);
             }
           }
 
@@ -161,8 +199,13 @@ Deno.serve(async (req) => {
             description: achievement.description,
             icon: achievement.icon,
             rarity: achievement.rarity,
-            xp_reward: achievement.xp_reward,
+            xp_reward: totalXP,
             cinematic_id: achievement.cinematic_id,
+            combo: isCombo ? {
+              size: comboSize,
+              bonus_xp: bonusXP,
+              category: achievement.category
+            } : null,
           });
         }
       }
