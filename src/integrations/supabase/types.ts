@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      achievement_guilds: {
+        Row: {
+          created_at: string
+          founder_id: string
+          guild_description: string | null
+          guild_icon: string | null
+          guild_name: string
+          id: string
+          is_public: boolean | null
+          member_count: number | null
+          total_guild_xp: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          founder_id: string
+          guild_description?: string | null
+          guild_icon?: string | null
+          guild_name: string
+          id?: string
+          is_public?: boolean | null
+          member_count?: number | null
+          total_guild_xp?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          founder_id?: string
+          guild_description?: string | null
+          guild_icon?: string | null
+          guild_name?: string
+          id?: string
+          is_public?: boolean | null
+          member_count?: number | null
+          total_guild_xp?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       achievement_seasons: {
         Row: {
           created_at: string
@@ -46,6 +85,57 @@ export type Database = {
           start_date?: string
         }
         Relationships: []
+      }
+      achievement_trades: {
+        Row: {
+          achievement_id: string
+          completed_at: string | null
+          created_at: string
+          from_user_id: string
+          id: string
+          message: string | null
+          status: string
+          to_user_id: string
+          trade_type: string
+        }
+        Insert: {
+          achievement_id: string
+          completed_at?: string | null
+          created_at?: string
+          from_user_id: string
+          id?: string
+          message?: string | null
+          status?: string
+          to_user_id: string
+          trade_type: string
+        }
+        Update: {
+          achievement_id?: string
+          completed_at?: string | null
+          created_at?: string
+          from_user_id?: string
+          id?: string
+          message?: string | null
+          status?: string
+          to_user_id?: string
+          trade_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "achievement_trades_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievement_stats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "achievement_trades_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievements"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       achievements: {
         Row: {
@@ -128,6 +218,124 @@ export type Database = {
         }
         Relationships: []
       }
+      crafted_achievements: {
+        Row: {
+          achievement_id: string
+          crafted_at: string
+          id: string
+          recipe_id: string
+          user_id: string
+        }
+        Insert: {
+          achievement_id: string
+          crafted_at?: string
+          id?: string
+          recipe_id: string
+          user_id: string
+        }
+        Update: {
+          achievement_id?: string
+          crafted_at?: string
+          id?: string
+          recipe_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crafted_achievements_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievement_stats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crafted_achievements_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crafted_achievements_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "crafting_recipes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crafting_recipes: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean | null
+          recipe_name: string
+          required_achievement_ids: string[]
+          result_achievement_id: string
+          xp_cost: number | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          recipe_name: string
+          required_achievement_ids: string[]
+          result_achievement_id: string
+          xp_cost?: number | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          recipe_name?: string
+          required_achievement_ids?: string[]
+          result_achievement_id?: string
+          xp_cost?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crafting_recipes_result_achievement_id_fkey"
+            columns: ["result_achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievement_stats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crafting_recipes_result_achievement_id_fkey"
+            columns: ["result_achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      daily_lottery_spins: {
+        Row: {
+          created_at: string
+          id: string
+          last_spin_date: string
+          spins_remaining: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_spin_date: string
+          spins_remaining?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_spin_date?: string
+          spins_remaining?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       friend_connections: {
         Row: {
           created_at: string
@@ -151,6 +359,131 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      guild_challenges: {
+        Row: {
+          challenge_name: string
+          created_at: string
+          current_xp: number | null
+          guild_id: string
+          id: string
+          is_completed: boolean | null
+          reward_description: string | null
+          season_id: string | null
+          target_xp: number
+        }
+        Insert: {
+          challenge_name: string
+          created_at?: string
+          current_xp?: number | null
+          guild_id: string
+          id?: string
+          is_completed?: boolean | null
+          reward_description?: string | null
+          season_id?: string | null
+          target_xp: number
+        }
+        Update: {
+          challenge_name?: string
+          created_at?: string
+          current_xp?: number | null
+          guild_id?: string
+          id?: string
+          is_completed?: boolean | null
+          reward_description?: string | null
+          season_id?: string | null
+          target_xp?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guild_challenges_guild_id_fkey"
+            columns: ["guild_id"]
+            isOneToOne: false
+            referencedRelation: "achievement_guilds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guild_challenges_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "achievement_seasons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guild_members: {
+        Row: {
+          contribution_xp: number | null
+          guild_id: string
+          id: string
+          joined_at: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          contribution_xp?: number | null
+          guild_id: string
+          id?: string
+          joined_at?: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          contribution_xp?: number | null
+          guild_id?: string
+          id?: string
+          joined_at?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guild_members_guild_id_fkey"
+            columns: ["guild_id"]
+            isOneToOne: false
+            referencedRelation: "achievement_guilds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lottery_prizes: {
+        Row: {
+          achievement_id: string
+          created_at: string
+          id: string
+          is_active: boolean | null
+          rarity_weight: number
+        }
+        Insert: {
+          achievement_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          rarity_weight: number
+        }
+        Update: {
+          achievement_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          rarity_weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lottery_prizes_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievement_stats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lottery_prizes_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievements"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       payments: {
         Row: {
