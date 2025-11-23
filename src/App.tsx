@@ -7,6 +7,7 @@ import { FloatingCandlesticks } from "./components/FloatingCandlesticks";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Dashboard from "./pages/Dashboard";
+import Auth from "./pages/Auth";
 import Achievements from "./pages/Achievements";
 import AchievementStats from "./pages/AchievementStats";
 import Leaderboard from "./pages/Leaderboard";
@@ -31,6 +32,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/auth" element={<Auth />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/achievements" element={<Achievements />} />
           <Route path="/achievements/stats" element={<AchievementStats />} />
