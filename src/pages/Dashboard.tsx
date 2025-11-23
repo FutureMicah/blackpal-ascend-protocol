@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -21,6 +21,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [notification, setNotification] = useState<AwardedAchievement | null>(null);
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   const { checkAndAwardAchievements } = useAchievements();
 
@@ -129,8 +130,72 @@ export default function Dashboard() {
         <div className="absolute inset-0 bg-gradient-radial from-primary/5 via-transparent to-transparent" />
       </div>
 
+      {/* Floating Navigation */}
+      <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50">
+        <div className="glass-strong rounded-full px-6 py-3 shadow-depth-xl border border-primary/20">
+          <div className="flex items-center gap-2">
+            <Button
+              variant={location.pathname === "/dashboard" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => navigate("/dashboard")}
+            >
+              Dashboard
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate("/blackboard")}
+            >
+              BlackBoard
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate("/blackvault")}
+            >
+              BlackVault
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate("/blackverse")}
+            >
+              BlackVerse
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate("/blackpass")}
+            >
+              BlackPass
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate("/blackforge")}
+            >
+              BlackForge
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate("/blackcoin")}
+            >
+              BlackCoin
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate("/blacknotify")}
+            >
+              BlackNotify
+            </Button>
+          </div>
+        </div>
+      </div>
+
       {/* Main content */}
-      <div className="relative max-w-[1400px] mx-auto px-8 py-8">
+      <div className="relative max-w-[1400px] mx-auto px-8 py-24">
         {/* Header with Leaderboard and Notifications */}
         <div className="flex justify-end gap-2 mb-4">
           {user && <NotificationCenter userId={user.id} />}
