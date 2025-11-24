@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { calculateProfileCompletion, EnhancedProfileCompletion } from "@/lib/profile-utils";
 import { useAchievements } from "@/hooks/use-achievements";
 import { supabase } from "@/integrations/supabase/client";
+import confetti from "canvas-confetti";
 
 interface ProfileCompletionProps {
   profile: any;
@@ -17,7 +18,39 @@ export function ProfileCompletion({ profile, onRefresh }: ProfileCompletionProps
   const [completion, setCompletion] = useState<EnhancedProfileCompletion | null>(null);
   const [hasAwardedCompletion, setHasAwardedCompletion] = useState(false);
   const [hasAwardedTheme, setHasAwardedTheme] = useState(false);
+  const [hasFiredConfetti, setHasFiredConfetti] = useState(false);
   const { checkAndAwardAchievements } = useAchievements();
+
+  const fireConfetti = () => {
+    const duration = 3000;
+    const animationEnd = Date.now() + duration;
+    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 9999 };
+
+    const randomInRange = (min: number, max: number) => {
+      return Math.random() * (max - min) + min;
+    };
+
+    const interval: any = setInterval(() => {
+      const timeLeft = animationEnd - Date.now();
+
+      if (timeLeft <= 0) {
+        return clearInterval(interval);
+      }
+
+      const particleCount = 50 * (timeLeft / duration);
+      
+      confetti({
+        ...defaults,
+        particleCount,
+        origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
+      });
+      confetti({
+        ...defaults,
+        particleCount,
+        origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
+      });
+    }, 250);
+  };
 
   useEffect(() => {
     if (profile) {
@@ -36,6 +69,10 @@ export function ProfileCompletion({ profile, onRefresh }: ProfileCompletionProps
             event_type: "profile_complete",
           });
           setHasAwardedCompletion(true);
+          if (!hasFiredConfetti) {
+            fireConfetti();
+            setHasFiredConfetti(true);
+          }
           onRefresh?.();
         }
 
@@ -46,6 +83,10 @@ export function ProfileCompletion({ profile, onRefresh }: ProfileCompletionProps
             event_type: "profile_complete",
           });
           setHasAwardedTheme(true);
+          if (!hasFiredConfetti) {
+            fireConfetti();
+            setHasFiredConfetti(true);
+          }
           onRefresh?.();
         }
       };
