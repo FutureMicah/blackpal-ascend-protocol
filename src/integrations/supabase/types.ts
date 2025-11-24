@@ -1005,6 +1005,45 @@ export type Database = {
         }
         Relationships: []
       }
+      profile_history: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          change_type: string
+          changed_fields: string[] | null
+          country: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          phone_number: string | null
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          change_type?: string
+          changed_fields?: string[] | null
+          country?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          phone_number?: string | null
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          change_type?: string
+          changed_fields?: string[] | null
+          country?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          phone_number?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           achievement_streak: number | null
