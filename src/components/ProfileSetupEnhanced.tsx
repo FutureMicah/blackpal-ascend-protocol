@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { GeoData, detectGeo, calculatePaymentTier } from "@/lib/geo";
 import { profileSchema } from "@/lib/validations";
-import { Upload, CheckCircle2, XCircle, Camera, Eye, Download, RotateCcw } from "lucide-react";
+import { Upload, CheckCircle2, XCircle, Camera, Eye, Download, RotateCcw, Share2, History } from "lucide-react";
 import { PremiumAvatar } from "./PremiumAvatar";
 import { useAchievements } from "@/hooks/use-achievements";
 import { 
@@ -20,6 +20,9 @@ import {
   hasProfileBackup 
 } from "@/lib/profile-utils";
 import { ProfilePreview } from "./ProfilePreview";
+import { ImageEditor } from "./ImageEditor";
+import { ProfileShareModal } from "./ProfileShareModal";
+import { ProfileHistoryTimeline } from "./ProfileHistoryTimeline";
 import { AnimatePresence } from "framer-motion";
 
 interface ProfileSetupEnhancedProps {
@@ -43,6 +46,10 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
   const [geoData, setGeoData] = useState<GeoData | null>(propGeoData || null);
   const [showPreview, setShowPreview] = useState(false);
   const [hasBackup, setHasBackup] = useState(hasProfileBackup());
+  const [showImageEditor, setShowImageEditor] = useState(false);
+  const [tempImageForEdit, setTempImageForEdit] = useState<string | null>(null);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
   const { toast } = useToast();
   const { checkAndAwardAchievements } = useAchievements();
 
@@ -141,17 +148,15 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
         });
         return;
       }
-      setAvatarFile(file);
+      
       const reader = new FileReader();
       reader.onloadend = () => {
-        setAvatarPreview(reader.result as string);
+        const imageUrl = reader.result as string;
+        // Open image editor instead of directly setting
+        setTempImageForEdit(imageUrl);
+        setShowImageEditor(true);
       };
       reader.readAsDataURL(file);
-      
-      toast({
-        title: "Photo captured!",
-        description: "Your profile photo has been set",
-      });
     }
   };
 
@@ -166,12 +171,41 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
         });
         return;
       }
-      setAvatarFile(file);
+      
       const reader = new FileReader();
       reader.onloadend = () => {
-        setAvatarPreview(reader.result as string);
+        const imageUrl = reader.result as string;
+        // Open image editor for gallery uploads too
+        setTempImageForEdit(imageUrl);
+        setShowImageEditor(true);
       };
       reader.readAsDataURL(file);
+    }
+  };
+
+  const handleImageEdited = (editedImageUrl: string) => {
+    setAvatarPreview(editedImageUrl);
+    // Convert base64 to file for upload
+    fetch(editedImageUrl)
+      .then((res) => res.blob())
+      .then((blob) => {
+        const file = new File([blob], "avatar.jpg", { type: "image/jpeg" });
+        setAvatarFile(file);
+      });
+    setShowImageEditor(false);
+    setTempImageForEdit(null);
+  };
+
+  const handleHistoryRevert = (historyEntry: any) => {
+    // Reload the current profile data after revert
+    if (existingProfile) {
+      setDisplayName(historyEntry.display_name || "");
+      setBio(historyEntry.bio || "");
+      setCountry(historyEntry.country || "");
+      setPhoneNumber(historyEntry.phone_number || "");
+      if (historyEntry.avatar_url) {
+        setAvatarPreview(historyEntry.avatar_url);
+      }
     }
   };
 
@@ -314,6 +348,39 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
         )}
       </AnimatePresence>
 
+      <AnimatePresence>
+        {showImageEditor && tempImageForEdit && (
+          <ImageEditor
+            imageSrc={tempImageForEdit}
+            onSave={handleImageEdited}
+            onCancel={() => {
+              setShowImageEditor(false);
+              setTempImageForEdit(null);
+            }}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showShareModal && (
+          <ProfileShareModal
+            userId={userId}
+            displayName={displayName}
+            onClose={() => setShowShareModal(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showHistory && (
+          <ProfileHistoryTimeline
+            userId={userId}
+            onClose={() => setShowHistory(false)}
+            onRevert={handleHistoryRevert}
+          />
+        )}
+      </AnimatePresence>
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -332,6 +399,35 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
           <p className="text-center text-muted-foreground mb-2">
             Your profile in the BTA Digital Republic
           </p>
+
+          {/* Action buttons row */}
+          <div className="flex gap-2 mb-4">
+            {existingProfile && (
+              <>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowHistory(true)}
+                  className="flex-1"
+                >
+                  <History className="w-4 h-4 mr-1" />
+                  History
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowShareModal(true)}
+                  className="flex-1"
+                  disabled={!displayName.trim()}
+                >
+                  <Share2 className="w-4 h-4 mr-1" />
+                  Share
+                </Button>
+              </>
+            )}
+          </div>
 
           {/* Backup restore banner */}
           {hasBackup && !existingProfile && (
