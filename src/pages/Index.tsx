@@ -4,20 +4,17 @@ import { ArrivalAnimation } from "@/components/ArrivalAnimation";
 import { GlassPortal } from "@/components/GlassPortal";
 import { ProfileSetupEnhanced } from "@/components/ProfileSetupEnhanced";
 import { WelcomeScene } from "@/components/WelcomeScene";
-import { GeoDetection } from "@/components/GeoDetection";
 import { PaymentTierCard } from "@/components/PaymentTierCard";
 import { PaymentGateway } from "@/pages/PaymentGateway";
 import { ParticleField } from "@/components/ParticleField";
 import { CursorTrail } from "@/components/CursorTrail";
 import { supabase } from "@/integrations/supabase/client";
 import type { User } from "@supabase/supabase-js";
-import { motion } from "framer-motion";
 import { GeoData, detectGeo } from "@/lib/geo";
 
 type Stage = 
   | "arrival" 
   | "portal" 
-  | "geo-detect"
   | "profile" 
   | "payment-tier"
   | "payment-gateway"
@@ -80,18 +77,16 @@ const Index = () => {
         }
       }
     } else {
+      // No profile found - detect geo first, then show profile setup
       setHasProfile(false);
-      setStage("geo-detect");
+      const geoInfo = await detectGeo();
+      setGeoData(geoInfo);
+      setStage("profile");
     }
   };
 
   const handleAuthSuccess = () => {
     // Auth state listener will handle the rest
-  };
-
-  const handleGeoDetected = (detected: GeoData) => {
-    setGeoData(detected);
-    setStage("profile");
   };
 
   const handleProfileComplete = (profileGeoData: GeoData) => {
@@ -126,13 +121,6 @@ const Index = () => {
 
       {stage === "portal" && (
         <GlassPortal onSuccess={handleAuthSuccess} />
-      )}
-
-      {stage === "geo-detect" && geoData && (
-        <GeoDetection 
-          geoData={geoData} 
-          onComplete={() => handleGeoDetected(geoData)} 
-        />
       )}
 
       {stage === "profile" && user && (
