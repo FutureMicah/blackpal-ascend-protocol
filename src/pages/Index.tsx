@@ -11,6 +11,7 @@ import { CursorTrail } from "@/components/CursorTrail";
 import { supabase } from "@/integrations/supabase/client";
 import type { User } from "@supabase/supabase-js";
 import { GeoData, detectGeo } from "@/lib/geo";
+import { checkProfileCompletion, Profile } from "@/lib/profile-utils";
 
 type Stage = 
   | "arrival" 
@@ -29,6 +30,7 @@ const Index = () => {
   const [geoData, setGeoData] = useState<GeoData | null>(null);
   const [paymentComplete, setPaymentComplete] = useState(false);
   const [arrivalComplete, setArrivalComplete] = useState(false);
+  const [existingProfile, setExistingProfile] = useState<Partial<Profile> | null>(null);
 
   // Auth state listener - only starts after arrival animation
   useEffect(() => {
@@ -54,31 +56,47 @@ const Index = () => {
   const checkProfile = async (userId: string) => {
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, payment_completed, country, continent, payment_tier')
+      .select('*')
       .eq('id', userId)
       .maybeSingle();
 
     if (!error && data) {
       setHasProfile(true);
+      setExistingProfile(data);
       setPaymentComplete(data.payment_completed || false);
       
-      // If profile exists, check payment status
-      if (data.payment_completed) {
+      // Check profile completion status
+      const completionStatus = checkProfileCompletion(data);
+      
+      // If profile is complete and payment is done
+      if (completionStatus.isComplete && data.payment_completed) {
         setStage("welcome");
-      } else {
-        // Has profile but no payment - go to payment tier
-        if (data.country && data.continent && data.payment_tier) {
-          const geoInfo = await detectGeo();
-          setGeoData(geoInfo);
-          setStage("payment-tier");
-        } else {
-          // Profile incomplete, go to profile setup
-          setStage("profile");
-        }
+      } 
+      // Profile complete but no payment - skip to payment tier
+      else if (completionStatus.readyForPayment) {
+        // Use stored geo data, no need to re-detect
+        const storedGeo: GeoData = {
+          country: data.country || '',
+          continent: data.continent || '',
+          countryCode: data.country || '',
+          paymentTier: data.payment_tier || 'INTERNATIONAL',
+          amountUSD: data.payment_tier === 'NIGERIA' ? 20 : data.payment_tier === 'AFRICA' ? 100 : 200,
+          isNigeria: data.is_nigeria || false,
+          isAfrica: data.is_africa || false
+        };
+        setGeoData(storedGeo);
+        setStage("payment-tier");
+      } 
+      // Profile incomplete - go to profile setup with existing data
+      else {
+        const geoInfo = await detectGeo();
+        setGeoData(geoInfo);
+        setStage("profile");
       }
     } else {
       // No profile found - detect geo first, then show profile setup
       setHasProfile(false);
+      setExistingProfile(null);
       const geoInfo = await detectGeo();
       setGeoData(geoInfo);
       setStage("profile");
@@ -125,7 +143,9 @@ const Index = () => {
 
       {stage === "profile" && user && (
         <ProfileSetupEnhanced 
-          userId={user.id} 
+          userId={user.id}
+          existingProfile={existingProfile}
+          geoData={geoData}
           onComplete={handleProfileComplete} 
         />
       )}

@@ -28,47 +28,48 @@ export const loginSchema = z.object({
     .max(128, { message: "Password must be less than 128 characters" })
 });
 
-// Profile validation schema
+// Profile validation schema with friendly error messages
 export const profileSchema = z.object({
   display_name: z.string()
     .trim()
-    .min(2, { message: "Display name must be at least 2 characters" })
-    .max(100, { message: "Display name must be less than 100 characters" }),
+    .min(1, { message: "Please enter your display name" })
+    .min(2, { message: "Display name is too short - at least 2 characters needed" })
+    .max(100, { message: "Display name is too long - maximum 100 characters" }),
   bio: z.string()
     .trim()
-    .max(500, { message: "Bio must be less than 500 characters" })
+    .max(500, { message: "Bio is too long - maximum 500 characters" })
     .optional(),
   date_of_birth: z.string().optional(),
   phone_number: z.string()
     .trim()
-    .regex(/^\+?[1-9]\d{1,14}$/, { message: "Invalid phone number format" })
+    .regex(/^\+?[1-9]\d{1,14}$/, { message: "Phone number format should be like +1234567890" })
     .optional()
     .or(z.literal('')),
   website_url: z.string()
     .trim()
-    .url({ message: "Invalid URL" })
+    .url({ message: "Please enter a valid website URL" })
     .optional()
     .or(z.literal('')),
   country: z.string().trim().optional(),
   profile_visibility: z.enum(['public', 'private', 'friends_only']).optional(),
   twitter_handle: z.string()
     .trim()
-    .max(15, { message: "Twitter handle must be less than 15 characters" })
+    .max(15, { message: "Twitter handle is too long - maximum 15 characters" })
     .optional()
     .or(z.literal('')),
   linkedin_url: z.string()
     .trim()
-    .url({ message: "Invalid LinkedIn URL" })
+    .url({ message: "Please enter a valid LinkedIn URL" })
     .optional()
     .or(z.literal('')),
   github_handle: z.string()
     .trim()
-    .max(39, { message: "GitHub handle must be less than 39 characters" })
+    .max(39, { message: "GitHub handle is too long - maximum 39 characters" })
     .optional()
     .or(z.literal('')),
   instagram_handle: z.string()
     .trim()
-    .max(30, { message: "Instagram handle must be less than 30 characters" })
+    .max(30, { message: "Instagram handle is too long - maximum 30 characters" })
     .optional()
     .or(z.literal(''))
 });

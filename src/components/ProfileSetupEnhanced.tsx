@@ -8,33 +8,71 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { GeoData, detectGeo, calculatePaymentTier } from "@/lib/geo";
 import { profileSchema } from "@/lib/validations";
-import { Upload } from "lucide-react";
+import { Upload, CheckCircle2, XCircle } from "lucide-react";
 import { PremiumAvatar } from "./PremiumAvatar";
 import { useAchievements } from "@/hooks/use-achievements";
+import { Profile, getProfileCompletionPercentage } from "@/lib/profile-utils";
 
 interface ProfileSetupEnhancedProps {
   userId: string;
+  existingProfile?: Partial<Profile> | null;
+  geoData?: GeoData | null;
   onComplete?: (geoData: GeoData) => void;
 }
 
-export const ProfileSetupEnhanced = ({ userId, onComplete }: ProfileSetupEnhancedProps) => {
+export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeoData, onComplete }: ProfileSetupEnhancedProps) => {
   const navigate = useNavigate();
-  const [displayName, setDisplayName] = useState("");
-  const [bio, setBio] = useState("");
-  const [country, setCountry] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
+  const [displayName, setDisplayName] = useState(existingProfile?.display_name || "");
+  const [bio, setBio] = useState(existingProfile?.bio || "");
+  const [country, setCountry] = useState(existingProfile?.country || "");
+  const [phoneNumber, setPhoneNumber] = useState(existingProfile?.phone_number || "");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(existingProfile?.avatar_url || null);
   const [uploading, setUploading] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
-  const [geoData, setGeoData] = useState<GeoData | null>(null);
+  const [fieldStatus, setFieldStatus] = useState<Record<string, 'valid' | 'invalid' | null>>({});
+  const [geoData, setGeoData] = useState<GeoData | null>(propGeoData || null);
   const { toast } = useToast();
   const { checkAndAwardAchievements } = useAchievements();
 
   useEffect(() => {
-    // Detect geo on mount
-    detectGeo().then(setGeoData);
-  }, []);
+    // Detect geo on mount if not provided
+    if (!geoData) {
+      detectGeo().then(setGeoData);
+    }
+  }, [geoData]);
+
+  // Real-time validation for display name
+  useEffect(() => {
+    if (!displayName) {
+      setFieldStatus(prev => ({ ...prev, display_name: null }));
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      const result = profileSchema.shape.display_name.safeParse(displayName);
+      setFieldStatus(prev => ({ 
+        ...prev, 
+        display_name: result.success ? 'valid' : 'invalid' 
+      }));
+      
+      if (!result.success) {
+        setValidationErrors(prev => ({
+          ...prev,
+          display_name: result.error.issues[0].message
+        }));
+      } else {
+        setValidationErrors(prev => {
+          const { display_name, ...rest } = prev;
+          return rest;
+        });
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [displayName]);
+
+  const completionPercentage = getProfileCompletionPercentage(existingProfile as Profile | null);
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -171,11 +209,30 @@ export const ProfileSetupEnhanced = ({ userId, onComplete }: ProfileSetupEnhance
           animate={{ scale: 1 }}
         >
           <h2 className="text-3xl font-bold text-center mb-2">
-            Create Your Identity
+            {existingProfile ? 'Complete Your Profile' : 'Create Your Identity'}
           </h2>
-          <p className="text-center text-muted-foreground mb-8">
+          <p className="text-center text-muted-foreground mb-2">
             Your profile in the BTA Digital Republic
           </p>
+          {existingProfile && (
+            <div className="mb-6">
+              <div className="flex items-center justify-between text-sm text-muted-foreground mb-2">
+                <span>Profile Completion</span>
+                <span className="font-semibold">{completionPercentage}%</span>
+              </div>
+              <div className="h-2 bg-muted rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r from-primary to-accent transition-all duration-500"
+                  style={{ width: `${completionPercentage}%` }}
+                />
+              </div>
+              {completionPercentage < 100 && (
+                <p className="text-xs text-center text-muted-foreground mt-2">
+                  Fill out the required fields below to continue
+                </p>
+              )}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Avatar Upload */}
@@ -204,17 +261,31 @@ export const ProfileSetupEnhanced = ({ userId, onComplete }: ProfileSetupEnhance
             </div>
 
             {/* Display Name */}
-            <div>
-              <Input
-                placeholder="Display Name *"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                disabled={uploading}
-                required
-                className="h-12"
-              />
+            <div className="relative">
+              <div className="relative">
+                <Input
+                  placeholder="Display Name *"
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  disabled={uploading}
+                  required
+                  className="h-12 pr-10"
+                />
+                {fieldStatus.display_name && (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    {fieldStatus.display_name === 'valid' ? (
+                      <CheckCircle2 className="w-5 h-5 text-green-500" />
+                    ) : (
+                      <XCircle className="w-5 h-5 text-red-500" />
+                    )}
+                  </div>
+                )}
+              </div>
               {validationErrors.display_name && (
-                <p className="text-red-400 text-xs mt-1">{validationErrors.display_name}</p>
+                <p className="text-red-400 text-xs mt-1 flex items-center gap-1">
+                  <XCircle className="w-3 h-3" />
+                  {validationErrors.display_name}
+                </p>
               )}
             </div>
 
