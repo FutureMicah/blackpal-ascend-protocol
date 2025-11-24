@@ -48,8 +48,8 @@ export const profileSchema = z.object({
   website_url: z.string()
     .trim()
     .url({ message: "Please enter a valid website URL" })
-    .optional()
-    .or(z.literal('')),
+    .or(z.literal(''))
+    .optional(),
   country: z.string().trim().optional(),
   profile_visibility: z.enum(['public', 'private', 'friends_only']).optional(),
   twitter_handle: z.string()
