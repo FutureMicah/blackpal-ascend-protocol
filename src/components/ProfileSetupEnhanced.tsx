@@ -589,7 +589,7 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
                     <div className="flex flex-col items-center gap-4">
                       <div className="relative">
                         {avatarPreview ? (
-                          <PremiumAvatar src={avatarPreview} size="xl" />
+                          <PremiumAvatar src={avatarPreview} size={128} />
                         ) : (
                           <div className="w-32 h-32 rounded-full bg-muted flex items-center justify-center text-4xl">
                             👤

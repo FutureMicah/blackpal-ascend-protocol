@@ -422,10 +422,14 @@ const Achievements = () => {
                                 </Button>
                               )}
                               {userProfile && (
-                                <SocialShare
-                                  achievement={achievement}
-                                  userName={userProfile.display_name}
-                                />
+                              <SocialShare
+                                achievement={achievement}
+                                userStats={{
+                                  displayName: userProfile.display_name,
+                                  xpPoints: userProfile.xp_points || 0,
+                                  achievementCount: achievements.filter(a => a.unlocked).length
+                                }}
+                              />
                               )}
                             </div>
                           </div>
