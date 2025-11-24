@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FloatingNav } from "@/components/FloatingNav";
 import { PremiumBadges } from "@/components/PremiumBadges";
 import { ProfileMilestoneBadges } from "@/components/ProfileMilestoneBadges";
+import { ProfileShowcaseDisplay } from "@/components/ProfileShowcaseDisplay";
 
 export default function PublicProfile() {
   const { userId } = useParams<{ userId: string }>();
@@ -432,6 +433,9 @@ export default function PublicProfile() {
                 )}
               </CardContent>
             </Card>
+
+            {/* Pinned Achievement Showcase */}
+            <ProfileShowcaseDisplay profile={profile} />
           </motion.div>
         </div>
       </div>
