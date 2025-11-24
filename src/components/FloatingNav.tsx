@@ -1,6 +1,16 @@
-import { Home, Trophy, BarChart3, BookOpen, Vault, Users, CreditCard, Hammer, Coins, Bell } from "lucide-react";
+import { Home, Trophy, BarChart3, BookOpen, Vault, Users, CreditCard, Hammer, Coins, Bell, Menu, X } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { useState } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 const navItems = [
   { name: "Dashboard", path: "/dashboard", icon: Home },
@@ -17,6 +27,54 @@ const navItems = [
 
 export const FloatingNav = () => {
   const location = useLocation();
+  const isMobile = useIsMobile();
+  const [open, setOpen] = useState(false);
+
+  if (isMobile) {
+    return (
+      <nav className="fixed top-6 left-1/2 -translate-x-1/2 z-50 animate-fade-in">
+        <Sheet open={open} onOpenChange={setOpen}>
+          <SheetTrigger asChild>
+            <Button
+              variant="outline"
+              size="icon"
+              className="glass-strong rounded-full shadow-depth-xl border border-primary/20"
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="top" className="glass-strong border-primary/20">
+            <SheetHeader>
+              <SheetTitle>Navigation</SheetTitle>
+            </SheetHeader>
+            <div className="grid gap-2 py-4">
+              {navItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = location.pathname === item.path;
+                
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    onClick={() => setOpen(false)}
+                    className={cn(
+                      "flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300",
+                      isActive
+                        ? "bg-primary text-primary-foreground shadow-lg"
+                        : "hover:bg-primary/10 text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    <Icon className="w-5 h-5" />
+                    <span className="text-sm font-medium">{item.name}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          </SheetContent>
+        </Sheet>
+      </nav>
+    );
+  }
 
   return (
     <nav className="fixed top-6 left-1/2 -translate-x-1/2 z-50 animate-fade-in">
@@ -38,7 +96,7 @@ export const FloatingNav = () => {
                 )}
               >
                 <Icon className="w-4 h-4" />
-                <span className="text-sm font-medium hidden md:inline">
+                <span className="text-sm font-medium hidden lg:inline">
                   {item.name}
                 </span>
                 {isActive && (
