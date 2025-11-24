@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { profileSchema, ProfileFormData } from "@/lib/validations";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Upload, User, Twitter, Linkedin, Github, Instagram, Eye, EyeOff, Users } from "lucide-react";
+import { Loader2, Upload, User, Twitter, Linkedin, Github, Instagram, Eye, EyeOff, CheckCircle2, XCircle } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -30,6 +30,7 @@ export const ProfileEdit = ({ profile, onUpdate, children }: ProfileEditProps) =
   const [uploading, setUploading] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(profile?.avatar_url);
   const [showOptionalFields, setShowOptionalFields] = useState(false);
+  const [dynamicCompletion, setDynamicCompletion] = useState(0);
   const { toast } = useToast();
 
   const {
@@ -37,6 +38,7 @@ export const ProfileEdit = ({ profile, onUpdate, children }: ProfileEditProps) =
     handleSubmit,
     formState: { errors, isSubmitting },
     setValue,
+    watch,
   } = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
@@ -52,6 +54,28 @@ export const ProfileEdit = ({ profile, onUpdate, children }: ProfileEditProps) =
       instagram_handle: profile?.instagram_handle || "",
     },
   });
+
+  // Watch all fields for completion calculation
+  const watchedFields = watch();
+
+  // Calculate completion percentage dynamically
+  useEffect(() => {
+    let completed = 0;
+    let total = 10; // All fields including optional
+    
+    if (watchedFields.display_name && watchedFields.display_name.length >= 2) completed++;
+    if (watchedFields.country) completed++;
+    if (watchedFields.bio) completed++;
+    if (!watchedFields.website_url || watchedFields.website_url === '' || /^https?:\/\/.+/.test(watchedFields.website_url)) completed++;
+    if (!watchedFields.phone_number || watchedFields.phone_number === '' || /^\+?[1-9]\d{1,14}$/.test(watchedFields.phone_number)) completed++;
+    if (watchedFields.profile_visibility) completed++;
+    if (!watchedFields.twitter_handle || watchedFields.twitter_handle.length <= 15) completed++;
+    if (!watchedFields.linkedin_url || watchedFields.linkedin_url === '' || /^https?:\/\/.+/.test(watchedFields.linkedin_url)) completed++;
+    if (!watchedFields.github_handle || watchedFields.github_handle.length <= 39) completed++;
+    if (!watchedFields.instagram_handle || watchedFields.instagram_handle.length <= 30) completed++;
+    
+    setDynamicCompletion(Math.round((completed / total) * 100));
+  }, [watchedFields]);
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -169,13 +193,27 @@ export const ProfileEdit = ({ profile, onUpdate, children }: ProfileEditProps) =
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit Profile</DialogTitle>
           <DialogDescription>
             Update your profile information and avatar
           </DialogDescription>
         </DialogHeader>
+
+        {/* Progress Bar */}
+        <div className="mb-4">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium">Profile Completion</span>
+            <span className="text-sm font-bold text-primary">{dynamicCompletion}%</span>
+          </div>
+          <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-gradient-to-r from-primary to-primary/80 transition-all duration-500"
+              style={{ width: `${dynamicCompletion}%` }}
+            />
+          </div>
+        </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           {/* Avatar Upload */}
@@ -219,7 +257,15 @@ export const ProfileEdit = ({ profile, onUpdate, children }: ProfileEditProps) =
 
           {/* Display Name */}
           <div className="space-y-2">
-            <Label htmlFor="display_name">Display Name *</Label>
+            <Label htmlFor="display_name" className="flex items-center justify-between">
+              <span>Display Name *</span>
+              {watchedFields.display_name && watchedFields.display_name.length >= 2 && !errors.display_name && (
+                <CheckCircle2 className="w-4 h-4 text-green-500" />
+              )}
+              {errors.display_name && (
+                <XCircle className="w-4 h-4 text-red-500" />
+              )}
+            </Label>
             <Input
               id="display_name"
               {...register("display_name")}
@@ -230,23 +276,17 @@ export const ProfileEdit = ({ profile, onUpdate, children }: ProfileEditProps) =
             )}
           </div>
 
-          {/* Bio */}
-          <div className="space-y-2">
-            <Label htmlFor="bio">Bio</Label>
-            <Textarea
-              id="bio"
-              {...register("bio")}
-              placeholder="Tell us about yourself"
-              rows={3}
-            />
-            {errors.bio && (
-              <p className="text-sm text-destructive">{errors.bio.message}</p>
-            )}
-          </div>
-
           {/* Country */}
           <div className="space-y-2">
-            <Label htmlFor="country">Country</Label>
+            <Label htmlFor="country" className="flex items-center justify-between">
+              <span>Country</span>
+              {watchedFields.country && !errors.country && (
+                <CheckCircle2 className="w-4 h-4 text-green-500" />
+              )}
+              {errors.country && (
+                <XCircle className="w-4 h-4 text-red-500" />
+              )}
+            </Label>
             <Input
               id="country"
               {...register("country")}
@@ -410,16 +450,20 @@ export const ProfileEdit = ({ profile, onUpdate, children }: ProfileEditProps) =
             </>
           )}
 
-          <div className="flex gap-2 pt-4">
+          <div className="flex flex-wrap gap-2 pt-4">
             <Button
               type="button"
               variant="outline"
               onClick={() => setOpen(false)}
-              className="flex-1"
+              className="flex-1 min-w-[100px]"
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting} className="flex-1">
+            <Button 
+              type="submit" 
+              disabled={isSubmitting || dynamicCompletion < 20} 
+              className="flex-1 min-w-[100px]"
+            >
               {isSubmitting ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
