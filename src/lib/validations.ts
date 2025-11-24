@@ -43,8 +43,8 @@ export const profileSchema = z.object({
   phone_number: z.string()
     .trim()
     .regex(/^\+?[1-9]\d{1,14}$/, { message: "Phone number format should be like +1234567890" })
-    .optional()
-    .or(z.literal('')),
+    .or(z.literal(''))
+    .optional(),
   website_url: z.string()
     .trim()
     .url({ message: "Please enter a valid website URL" })
@@ -55,23 +55,23 @@ export const profileSchema = z.object({
   twitter_handle: z.string()
     .trim()
     .max(15, { message: "Twitter handle is too long - maximum 15 characters" })
-    .optional()
-    .or(z.literal('')),
+    .or(z.literal(''))
+    .optional(),
   linkedin_url: z.string()
     .trim()
     .url({ message: "Please enter a valid LinkedIn URL" })
-    .optional()
-    .or(z.literal('')),
+    .or(z.literal(''))
+    .optional(),
   github_handle: z.string()
     .trim()
     .max(39, { message: "GitHub handle is too long - maximum 39 characters" })
-    .optional()
-    .or(z.literal('')),
+    .or(z.literal(''))
+    .optional(),
   instagram_handle: z.string()
     .trim()
     .max(30, { message: "Instagram handle is too long - maximum 30 characters" })
-    .optional()
     .or(z.literal(''))
+    .optional()
 });
 
 export type SignupFormData = z.infer<typeof signupSchema>;
