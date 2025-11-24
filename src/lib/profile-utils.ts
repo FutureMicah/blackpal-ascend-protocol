@@ -63,3 +63,64 @@ export function getProfileCompletionPercentage(profile: Profile | null): number 
 
   return Math.round((filledFields.length / fields.length) * 100);
 }
+
+// Profile backup/restore utilities
+export interface ProfileBackup {
+  version: string;
+  timestamp: number;
+  data: {
+    displayName: string;
+    bio?: string;
+    country?: string;
+    phoneNumber?: string;
+    avatarPreview?: string;
+  };
+}
+
+const BACKUP_KEY = 'blackpal_profile_backup';
+
+export function saveProfileBackup(data: ProfileBackup['data']): void {
+  try {
+    const backup: ProfileBackup = {
+      version: '1.0',
+      timestamp: Date.now(),
+      data
+    };
+    localStorage.setItem(BACKUP_KEY, JSON.stringify(backup));
+  } catch (error) {
+    console.error('Failed to save profile backup:', error);
+  }
+}
+
+export function loadProfileBackup(): ProfileBackup | null {
+  try {
+    const stored = localStorage.getItem(BACKUP_KEY);
+    if (!stored) return null;
+    
+    const backup = JSON.parse(stored) as ProfileBackup;
+    
+    // Check if backup is less than 30 days old
+    const thirtyDaysInMs = 30 * 24 * 60 * 60 * 1000;
+    if (Date.now() - backup.timestamp > thirtyDaysInMs) {
+      clearProfileBackup();
+      return null;
+    }
+    
+    return backup;
+  } catch (error) {
+    console.error('Failed to load profile backup:', error);
+    return null;
+  }
+}
+
+export function clearProfileBackup(): void {
+  try {
+    localStorage.removeItem(BACKUP_KEY);
+  } catch (error) {
+    console.error('Failed to clear profile backup:', error);
+  }
+}
+
+export function hasProfileBackup(): boolean {
+  return loadProfileBackup() !== null;
+}
