@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FloatingNav } from "@/components/FloatingNav";
 import { PremiumBadges } from "@/components/PremiumBadges";
+import { ProfileMilestoneBadges } from "@/components/ProfileMilestoneBadges";
 
 export default function PublicProfile() {
   const { userId } = useParams<{ userId: string }>();
@@ -266,6 +267,11 @@ export default function PublicProfile() {
                   >
                     {profile.citizenship_rank || "Visitor"} • Rank {profile.rank_level || 1}
                   </Badge>
+                </div>
+
+                {/* Profile Milestone Badges */}
+                <div className="flex justify-center">
+                  <ProfileMilestoneBadges profile={profile} size="sm" />
                 </div>
 
                 {/* Visibility Badge */}
