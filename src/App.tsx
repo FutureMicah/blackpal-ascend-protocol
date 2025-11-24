@@ -20,6 +20,7 @@ import BlackPass from "./pages/BlackPass";
 import BlackForge from "./pages/BlackForge";
 import BlackCoin from "./pages/BlackCoin";
 import BlackNotify from "./pages/BlackNotify";
+import PublicProfile from "./pages/PublicProfile";
 
 const queryClient = new QueryClient();
 
@@ -46,6 +47,7 @@ const App = () => (
           <Route path="/blackforge" element={<BlackForge />} />
           <Route path="/blackcoin" element={<BlackCoin />} />
           <Route path="/blacknotify" element={<BlackNotify />} />
+          <Route path="/profile/:userId" element={<PublicProfile />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

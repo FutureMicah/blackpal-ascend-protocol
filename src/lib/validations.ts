@@ -49,7 +49,28 @@ export const profileSchema = z.object({
     .url({ message: "Invalid URL" })
     .optional()
     .or(z.literal('')),
-  country: z.string().trim().optional()
+  country: z.string().trim().optional(),
+  profile_visibility: z.enum(['public', 'private', 'friends_only']).optional(),
+  twitter_handle: z.string()
+    .trim()
+    .max(15, { message: "Twitter handle must be less than 15 characters" })
+    .optional()
+    .or(z.literal('')),
+  linkedin_url: z.string()
+    .trim()
+    .url({ message: "Invalid LinkedIn URL" })
+    .optional()
+    .or(z.literal('')),
+  github_handle: z.string()
+    .trim()
+    .max(39, { message: "GitHub handle must be less than 39 characters" })
+    .optional()
+    .or(z.literal('')),
+  instagram_handle: z.string()
+    .trim()
+    .max(30, { message: "Instagram handle must be less than 30 characters" })
+    .optional()
+    .or(z.literal(''))
 });
 
 export type SignupFormData = z.infer<typeof signupSchema>;

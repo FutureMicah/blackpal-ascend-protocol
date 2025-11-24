@@ -90,6 +90,14 @@ export const ProfileHeroCard = ({ profile, user, onProfileUpdate }: ProfileHeroC
         {profile.username && (
           <p className="text-sm text-muted-foreground">@{profile.username}</p>
         )}
+        <Button
+          variant="link"
+          size="sm"
+          onClick={() => navigate(`/profile/${user.id}`)}
+          className="text-xs text-muted-foreground hover:text-primary"
+        >
+          View Public Profile
+        </Button>
       </div>
 
       {/* Citizenship Badge */}

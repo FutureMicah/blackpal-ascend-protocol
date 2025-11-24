@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { profileSchema, ProfileFormData } from "@/lib/validations";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Upload, User } from "lucide-react";
+import { Loader2, Upload, User, Twitter, Linkedin, Github, Instagram, Eye, EyeOff, Users } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -44,6 +44,11 @@ export const ProfileEdit = ({ profile, onUpdate, children }: ProfileEditProps) =
       website_url: profile?.website_url || "",
       phone_number: profile?.phone_number || "",
       country: profile?.country || "",
+      profile_visibility: profile?.profile_visibility || "public",
+      twitter_handle: profile?.twitter_handle || "",
+      linkedin_url: profile?.linkedin_url || "",
+      github_handle: profile?.github_handle || "",
+      instagram_handle: profile?.instagram_handle || "",
     },
   });
 
@@ -127,6 +132,11 @@ export const ProfileEdit = ({ profile, onUpdate, children }: ProfileEditProps) =
           website_url: data.website_url || null,
           phone_number: data.phone_number || null,
           country: data.country || null,
+          profile_visibility: data.profile_visibility || "public",
+          twitter_handle: data.twitter_handle || null,
+          linkedin_url: data.linkedin_url || null,
+          github_handle: data.github_handle || null,
+          instagram_handle: data.instagram_handle || null,
         })
         .eq("id", profile.id);
 
@@ -270,6 +280,94 @@ export const ProfileEdit = ({ profile, onUpdate, children }: ProfileEditProps) =
             {errors.phone_number && (
               <p className="text-sm text-destructive">{errors.phone_number.message}</p>
             )}
+          </div>
+
+          {/* Profile Visibility */}
+          <div className="space-y-2">
+            <Label htmlFor="profile_visibility">Profile Visibility</Label>
+            <select
+              id="profile_visibility"
+              {...register("profile_visibility")}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            >
+              <option value="public">🌍 Public - Anyone can view</option>
+              <option value="friends_only">👥 Friends Only</option>
+              <option value="private">🔒 Private - Only you can view</option>
+            </select>
+            {errors.profile_visibility && (
+              <p className="text-sm text-destructive">{errors.profile_visibility.message}</p>
+            )}
+          </div>
+
+          {/* Social Media Section */}
+          <div className="pt-4 border-t border-border">
+            <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">
+              Social Media Links
+            </h3>
+
+            {/* Twitter */}
+            <div className="space-y-2 mb-4">
+              <Label htmlFor="twitter_handle" className="flex items-center gap-2">
+                <Twitter className="w-4 h-4 text-[#1DA1F2]" />
+                Twitter Handle
+              </Label>
+              <Input
+                id="twitter_handle"
+                {...register("twitter_handle")}
+                placeholder="username (without @)"
+              />
+              {errors.twitter_handle && (
+                <p className="text-sm text-destructive">{errors.twitter_handle.message}</p>
+              )}
+            </div>
+
+            {/* LinkedIn */}
+            <div className="space-y-2 mb-4">
+              <Label htmlFor="linkedin_url" className="flex items-center gap-2">
+                <Linkedin className="w-4 h-4 text-[#0A66C2]" />
+                LinkedIn URL
+              </Label>
+              <Input
+                id="linkedin_url"
+                {...register("linkedin_url")}
+                placeholder="https://linkedin.com/in/username"
+              />
+              {errors.linkedin_url && (
+                <p className="text-sm text-destructive">{errors.linkedin_url.message}</p>
+              )}
+            </div>
+
+            {/* GitHub */}
+            <div className="space-y-2 mb-4">
+              <Label htmlFor="github_handle" className="flex items-center gap-2">
+                <Github className="w-4 h-4" />
+                GitHub Handle
+              </Label>
+              <Input
+                id="github_handle"
+                {...register("github_handle")}
+                placeholder="username"
+              />
+              {errors.github_handle && (
+                <p className="text-sm text-destructive">{errors.github_handle.message}</p>
+              )}
+            </div>
+
+            {/* Instagram */}
+            <div className="space-y-2">
+              <Label htmlFor="instagram_handle" className="flex items-center gap-2">
+                <Instagram className="w-4 h-4 text-[#E4405F]" />
+                Instagram Handle
+              </Label>
+              <Input
+                id="instagram_handle"
+                {...register("instagram_handle")}
+                placeholder="username (without @)"
+              />
+              {errors.instagram_handle && (
+                <p className="text-sm text-destructive">{errors.instagram_handle.message}</p>
+              )}
+            </div>
           </div>
 
           <div className="flex gap-2 pt-4">
