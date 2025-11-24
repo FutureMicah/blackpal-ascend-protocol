@@ -7,14 +7,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { PremiumBadges } from "@/components/PremiumBadges";
+import { ProfileEdit } from "@/components/ProfileEdit";
 import { useState, useEffect } from "react";
 
 interface ProfileHeroCardProps {
   profile: any;
   user: any;
+  onProfileUpdate?: () => void;
 }
 
-export const ProfileHeroCard = ({ profile, user }: ProfileHeroCardProps) => {
+export const ProfileHeroCard = ({ profile, user, onProfileUpdate }: ProfileHeroCardProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [featuredAchievements, setFeaturedAchievements] = useState<any[]>([]);
@@ -112,6 +114,12 @@ export const ProfileHeroCard = ({ profile, user }: ProfileHeroCardProps) => {
       {featuredAchievements.length > 0 && (
         <PremiumBadges achievements={featuredAchievements} />
       )}
+
+      {/* Edit Profile Button */}
+      <ProfileEdit 
+        profile={profile} 
+        onUpdate={() => onProfileUpdate?.()} 
+      />
 
       {/* Meta Info */}
       <div className="space-y-2 text-sm">
