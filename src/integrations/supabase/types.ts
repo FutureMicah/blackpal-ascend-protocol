@@ -1005,6 +1005,51 @@ export type Database = {
         }
         Relationships: []
       }
+      profile_challenges: {
+        Row: {
+          challenge_description: string
+          challenge_name: string
+          challenge_type: string
+          created_at: string | null
+          currency_reward: number | null
+          end_date: string
+          id: string
+          is_active: boolean | null
+          start_date: string
+          target_section: string | null
+          target_value: number
+          xp_reward: number
+        }
+        Insert: {
+          challenge_description: string
+          challenge_name: string
+          challenge_type: string
+          created_at?: string | null
+          currency_reward?: number | null
+          end_date: string
+          id?: string
+          is_active?: boolean | null
+          start_date: string
+          target_section?: string | null
+          target_value: number
+          xp_reward: number
+        }
+        Update: {
+          challenge_description?: string
+          challenge_name?: string
+          challenge_type?: string
+          created_at?: string | null
+          currency_reward?: number | null
+          end_date?: string
+          id?: string
+          is_active?: boolean | null
+          start_date?: string
+          target_section?: string | null
+          target_value?: number
+          xp_reward?: number
+        }
+        Relationships: []
+      }
       profile_history: {
         Row: {
           avatar_url: string | null
@@ -1043,6 +1088,44 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      profile_section_engagement: {
+        Row: {
+          created_at: string | null
+          id: string
+          interaction_count: number | null
+          last_viewed_at: string | null
+          profile_id: string
+          section_name: string
+          view_count: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          interaction_count?: number | null
+          last_viewed_at?: string | null
+          profile_id: string
+          section_name: string
+          view_count?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          interaction_count?: number | null
+          last_viewed_at?: string | null
+          profile_id?: string
+          section_name?: string
+          view_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_section_engagement_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profile_views: {
         Row: {
