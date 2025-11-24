@@ -173,6 +173,115 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
     return () => clearTimeout(timer);
   }, [displayName]);
 
+  // Real-time validation for country
+  useEffect(() => {
+    if (!country) {
+      setFieldStatus(prev => ({ ...prev, country: null }));
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      if (country.trim().length >= 2) {
+        setFieldStatus(prev => ({ ...prev, country: 'valid' }));
+        setValidationErrors(prev => {
+          const { country, ...rest } = prev;
+          return rest;
+        });
+      } else {
+        setFieldStatus(prev => ({ ...prev, country: 'invalid' }));
+        setValidationErrors(prev => ({
+          ...prev,
+          country: "Country is required"
+        }));
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [country]);
+
+  // Real-time validation for phone number (optional)
+  useEffect(() => {
+    if (!phoneNumber || phoneNumber === '') {
+      setFieldStatus(prev => ({ ...prev, phone_number: null }));
+      setValidationErrors(prev => {
+        const { phone_number, ...rest } = prev;
+        return rest;
+      });
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      const result = profileSchema.shape.phone_number.safeParse(phoneNumber);
+      setFieldStatus(prev => ({ 
+        ...prev, 
+        phone_number: result.success ? 'valid' : 'invalid' 
+      }));
+      
+      if (!result.success) {
+        setValidationErrors(prev => ({
+          ...prev,
+          phone_number: result.error.issues[0].message
+        }));
+      } else {
+        setValidationErrors(prev => {
+          const { phone_number, ...rest } = prev;
+          return rest;
+        });
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [phoneNumber]);
+
+  // Real-time validation for bio (optional)
+  useEffect(() => {
+    if (!bio || bio === '') {
+      setFieldStatus(prev => ({ ...prev, bio: null }));
+      setValidationErrors(prev => {
+        const { bio, ...rest } = prev;
+        return rest;
+      });
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      const result = profileSchema.shape.bio.safeParse(bio);
+      setFieldStatus(prev => ({ 
+        ...prev, 
+        bio: result.success ? 'valid' : 'invalid' 
+      }));
+      
+      if (!result.success) {
+        setValidationErrors(prev => ({
+          ...prev,
+          bio: result.error.issues[0].message
+        }));
+      } else {
+        setValidationErrors(prev => {
+          const { bio, ...rest } = prev;
+          return rest;
+        });
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [bio]);
+
+  // Calculate dynamic completion percentage
+  const calculateCompletion = () => {
+    let completed = 0;
+    let total = 4; // display_name, country, bio, phone (all fields including optional)
+    
+    if (displayName && fieldStatus.display_name === 'valid') completed++;
+    if (country && fieldStatus.country === 'valid') completed++;
+    if (bio && fieldStatus.bio !== 'invalid') completed++;
+    if (phoneNumber === '' || (phoneNumber && fieldStatus.phone_number !== 'invalid')) completed++;
+    
+    return Math.round((completed / total) * 100);
+  };
+
+  const dynamicCompletion = calculateCompletion();
+
   const completionPercentage = getProfileCompletionPercentage(existingProfile as Profile | null);
 
   const handleRestoreBackup = () => {
@@ -515,26 +624,44 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
         exit={{ opacity: 0, y: -20 }}
         className="fixed inset-0 z-40 flex items-center justify-center p-4 bg-background overflow-auto"
       >
-        <div className="w-full max-w-5xl py-8">
+        <div className="w-full max-w-5xl py-8 px-2 sm:px-4">
           <motion.div
-            className="p-8 rounded-2xl border border-primary/30 bg-card/90 backdrop-blur-xl"
+            className="p-4 sm:p-6 md:p-8 rounded-2xl border border-primary/30 bg-card/90 backdrop-blur-xl"
             initial={{ scale: 0.9 }}
             animate={{ scale: 1 }}
           >
             <h2 className="text-3xl font-bold text-center mb-2">
               {existingProfile ? 'Complete Your Profile' : 'Create Your Identity'}
             </h2>
-            <p className="text-center text-muted-foreground mb-6">
+            <p className="text-center text-muted-foreground mb-4">
               Your profile in the BTA Digital Republic
             </p>
 
+            {/* Dynamic Progress Bar */}
+            <div className="mb-6 px-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-foreground">Profile Completion</span>
+                <span className="text-sm font-bold text-primary">{dynamicCompletion}%</span>
+              </div>
+              <div className="w-full h-3 bg-muted rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r from-primary to-primary/80 transition-all duration-500 ease-out"
+                  style={{ width: `${dynamicCompletion}%` }}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground mt-1 text-center">
+                {dynamicCompletion === 100 ? '🎉 Profile complete!' : 'Fill in all fields to complete your profile'}
+              </p>
+            </div>
+
             {/* Action buttons */}
             {existingProfile && (
-              <div className="flex flex-wrap gap-2 mb-6">
+              <div className="flex flex-wrap gap-2 mb-6 overflow-x-auto">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setShowHistory(true)}
+                  className="flex-shrink-0"
                 >
                   <History className="w-4 h-4 mr-2" />
                   History
@@ -543,6 +670,7 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
                   variant="outline"
                   size="sm"
                   onClick={() => setShowAnalytics(true)}
+                  className="flex-shrink-0"
                 >
                   <BarChart3 className="w-4 h-4 mr-2" />
                   Analytics
@@ -551,6 +679,7 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
                   variant="outline"
                   size="sm"
                   onClick={() => setShowThemeCustomizer(true)}
+                  className="flex-shrink-0"
                 >
                   <Palette className="w-4 h-4 mr-2" />
                   Theme
@@ -559,6 +688,7 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
                   variant="outline"
                   size="sm"
                   onClick={() => setShowShareModal(true)}
+                  className="flex-shrink-0"
                 >
                   <Share2 className="w-4 h-4 mr-2" />
                   QR Code
@@ -567,6 +697,7 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
                   variant="outline"
                   size="sm"
                   onClick={() => setShowSocialShare(true)}
+                  className="flex-shrink-0"
                 >
                   <Download className="w-4 h-4 mr-2" />
                   Export Card
@@ -575,6 +706,7 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
                   variant="outline"
                   size="sm"
                   onClick={() => setShowComparison(true)}
+                  className="flex-shrink-0"
                 >
                   <Users className="w-4 h-4 mr-2" />
                   Compare
@@ -643,13 +775,13 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
                     {/* Form Fields */}
                     <div className="space-y-4">
                       <div>
-                        <label className="block text-sm font-medium mb-2">
-                          Display Name *
+                        <label className="block text-sm font-medium mb-2 flex items-center justify-between">
+                          <span>Display Name *</span>
                           {fieldStatus.display_name === 'valid' && (
-                            <CheckCircle2 className="inline ml-2 w-4 h-4 text-green-500" />
+                            <CheckCircle2 className="w-4 h-4 text-green-500" />
                           )}
                           {fieldStatus.display_name === 'invalid' && (
-                            <XCircle className="inline ml-2 w-4 h-4 text-red-500" />
+                            <XCircle className="w-4 h-4 text-red-500" />
                           )}
                         </label>
                         <Input
@@ -663,12 +795,23 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium mb-2">Country *</label>
+                        <label className="block text-sm font-medium mb-2 flex items-center justify-between">
+                          <span>Country *</span>
+                          {fieldStatus.country === 'valid' && (
+                            <CheckCircle2 className="w-4 h-4 text-green-500" />
+                          )}
+                          {fieldStatus.country === 'invalid' && (
+                            <XCircle className="w-4 h-4 text-red-500" />
+                          )}
+                        </label>
                         <Input
                           value={country}
                           onChange={(e) => setCountry(e.target.value)}
                           placeholder="Your country"
                         />
+                        {validationErrors.country && (
+                          <p className="text-sm text-red-500 mt-1">{validationErrors.country}</p>
+                        )}
                       </div>
 
                       {/* Toggle for Optional Fields */}
@@ -695,29 +838,52 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
                       {showOptionalFields && (
                         <>
                           <div>
-                            <label className="block text-sm font-medium mb-2">Bio</label>
+                            <label className="block text-sm font-medium mb-2 flex items-center justify-between">
+                              <span>Bio</span>
+                              {fieldStatus.bio === 'valid' && (
+                                <CheckCircle2 className="w-4 h-4 text-green-500" />
+                              )}
+                              {fieldStatus.bio === 'invalid' && (
+                                <XCircle className="w-4 h-4 text-red-500" />
+                              )}
+                            </label>
                             <Textarea
                               value={bio}
                               onChange={(e) => setBio(e.target.value)}
                               placeholder="Tell us about yourself"
                               rows={3}
+                              className="resize-none"
                             />
+                            {validationErrors.bio && (
+                              <p className="text-sm text-red-500 mt-1">{validationErrors.bio}</p>
+                            )}
                           </div>
 
                           <div>
-                            <label className="block text-sm font-medium mb-2">Phone Number</label>
+                            <label className="block text-sm font-medium mb-2 flex items-center justify-between">
+                              <span>Phone Number</span>
+                              {fieldStatus.phone_number === 'valid' && (
+                                <CheckCircle2 className="w-4 h-4 text-green-500" />
+                              )}
+                              {fieldStatus.phone_number === 'invalid' && (
+                                <XCircle className="w-4 h-4 text-red-500" />
+                              )}
+                            </label>
                             <Input
                               value={phoneNumber}
                               onChange={(e) => setPhoneNumber(e.target.value)}
                               placeholder="+234 XXX XXX XXXX"
                             />
+                            {validationErrors.phone_number && (
+                              <p className="text-sm text-red-500 mt-1">{validationErrors.phone_number}</p>
+                            )}
                           </div>
                         </>
                       )}
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="flex gap-3 pt-4">
+                    <div className="flex flex-wrap gap-2 pt-4">
                       {hasBackup && (
                         <>
                           <Button
@@ -725,6 +891,7 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
                             variant="outline"
                             size="sm"
                             onClick={handleRestoreBackup}
+                            className="flex-shrink-0"
                           >
                             <RotateCcw className="w-4 h-4 mr-2" />
                             Restore
@@ -734,8 +901,9 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
                             variant="outline"
                             size="sm"
                             onClick={handleClearBackup}
+                            className="flex-shrink-0"
                           >
-                            Clear Backup
+                            Clear
                           </Button>
                         </>
                       )}
@@ -743,14 +911,15 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
                         type="button"
                         variant="outline"
                         onClick={handlePreview}
-                        className="ml-auto"
+                        className="ml-auto flex-shrink-0"
                       >
                         <Eye className="w-4 h-4 mr-2" />
                         Preview
                       </Button>
                       <Button
                         onClick={handleSubmit}
-                        disabled={uploading}
+                        disabled={uploading || dynamicCompletion < 50}
+                        className="flex-shrink-0"
                       >
                         {uploading ? "Saving..." : "Continue"}
                       </Button>
