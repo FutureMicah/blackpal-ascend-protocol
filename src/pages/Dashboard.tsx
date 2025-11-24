@@ -155,7 +155,11 @@ export default function Dashboard() {
         >
           {/* Left Column - Profile Card */}
           <div className="col-span-12 lg:col-span-3">
-            <ProfileHeroCard profile={profile} user={user} />
+            <ProfileHeroCard 
+              profile={profile} 
+              user={user} 
+              onProfileUpdate={() => loadProfile(user.id)}
+            />
           </div>
 
           {/* Middle Column - Main Content */}
