@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Trophy, Award, Crown, Zap, Star } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { calculateProfileCompletion } from "@/lib/profile-utils";
 
 interface LeaderboardEntry {
   user_id: string;
@@ -25,6 +26,7 @@ interface LeaderboardEntry {
 
 const Leaderboard = () => {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [featuredProfiles, setFeaturedProfiles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("xp");
@@ -47,10 +49,20 @@ const Leaderboard = () => {
       // Get all users with their stats
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
-        .select("id, display_name, avatar_url, xp_points, streak_days, best_achievement_streak")
+        .select("*")
         .order("xp_points", { ascending: false });
 
       if (profilesError) throw profilesError;
+
+      // Calculate featured profiles (100% complete + custom theme)
+      const featured = profiles
+        ?.filter(profile => {
+          const completion = calculateProfileCompletion(profile);
+          return completion.isComplete && completion.hasCustomTheme;
+        })
+        .slice(0, 3) || [];
+      
+      setFeaturedProfiles(featured);
 
       // Get achievement counts
       const { data: achievementCounts, error: countsError } = await supabase
@@ -251,7 +263,79 @@ const Leaderboard = () => {
       </div>
 
       {/* Leaderboard Tabs */}
-      <div className="max-w-4xl mx-auto p-6">
+      <div className="max-w-4xl mx-auto p-6 space-y-6">
+        {/* Featured Profiles Section */}
+        {featuredProfiles.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <Card className="glass-card border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-accent/5">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Star className="w-6 h-6 text-amber-500 fill-current" />
+                  Featured Profiles This Week
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Exceptional profiles with 100% completion and custom themes
+                </p>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {featuredProfiles.map((profile, index) => {
+                    const completion = calculateProfileCompletion(profile);
+                    return (
+                      <motion.div
+                        key={profile.id}
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: index * 0.1 }}
+                      >
+                        <Card
+                          className="glass-card hover-scale cursor-pointer border-2 border-amber-500/30"
+                          onClick={() => navigate(`/profile/${profile.id}`)}
+                        >
+                          <CardContent className="p-4 text-center space-y-3">
+                            <div className="relative inline-block">
+                              <Avatar className="w-20 h-20 border-4 border-amber-500/50">
+                                <AvatarImage src={profile.avatar_url || undefined} />
+                                <AvatarFallback>
+                                  {profile.display_name?.substring(0, 2).toUpperCase()}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="absolute -top-2 -right-2 w-8 h-8 bg-amber-500 rounded-full flex items-center justify-center">
+                                <Crown className="w-5 h-5 text-white" />
+                              </div>
+                            </div>
+                            
+                            <div>
+                              <h3 className="font-bold truncate">{profile.display_name}</h3>
+                              <p className="text-xs text-muted-foreground">
+                                {profile.xp_points || 0} XP
+                              </p>
+                            </div>
+
+                            <div className="flex flex-wrap gap-1 justify-center">
+                              <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0 text-xs">
+                                100% Complete
+                              </Badge>
+                              {completion.hasCustomTheme && (
+                                <Badge className="bg-gradient-to-r from-violet-500 to-purple-500 text-white border-0 text-xs">
+                                  Themed
+                                </Badge>
+                              )}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+        
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-4 mb-6">
             <TabsTrigger value="xp" className="flex items-center gap-2">

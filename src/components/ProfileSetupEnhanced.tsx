@@ -28,6 +28,8 @@ import { ProfileAnalyticsDashboard } from "./ProfileAnalyticsDashboard";
 import { SocialShare } from "./SocialShare";
 import { ProfileComparison } from "./ProfileComparison";
 import { ProfileCompletion } from "./ProfileCompletion";
+import { ProfileSuggestions } from "./ProfileSuggestions";
+import { ProfileShowcase } from "./ProfileShowcase";
 import { AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -60,6 +62,8 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [showSocialShare, setShowSocialShare] = useState(false);
   const [showComparison, setShowComparison] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [showShowcase, setShowShowcase] = useState(false);
   const [profile, setProfile] = useState<any>(existingProfile);
   const [achievements, setAchievements] = useState<any[]>([]);
   const [stats, setStats] = useState({ totalXP: 0, totalAchievements: 0, rareAchievements: 0 });
@@ -730,9 +734,30 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
               </div>
 
               {/* Sidebar - Profile Completion */}
-              <div className="lg:col-span-1">
+              <div className="lg:col-span-1 space-y-6">
                 {existingProfile && (
-                  <ProfileCompletion profile={profile || existingProfile} onRefresh={loadProfile} />
+                  <>
+                    <ProfileCompletion profile={profile || existingProfile} onRefresh={loadProfile} />
+                    
+                    <ProfileSuggestions 
+                      profile={profile || existingProfile}
+                      onActionClick={(action) => {
+                        // Handle suggestion actions
+                        if (action === 'customize_theme') setShowThemeCustomizer(true);
+                        if (action === 'upload_photo') document.getElementById('avatar-input')?.click();
+                        toast({
+                          title: "Action Suggested",
+                          description: "Scroll up to complete this action in the form.",
+                        });
+                      }}
+                    />
+                    
+                    <ProfileShowcase 
+                      profile={profile || existingProfile}
+                      userId={userId}
+                      onUpdate={loadProfile}
+                    />
+                  </>
                 )}
               </div>
             </div>
