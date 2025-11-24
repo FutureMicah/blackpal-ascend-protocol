@@ -91,6 +91,28 @@ export default function PublicProfile() {
 
       setProfile(profileData);
 
+      // Track profile view (only if not viewing own profile)
+      if (user?.id !== userId) {
+        try {
+          // Detect viewer's geo data
+          const geoResponse = await fetch("https://ipapi.co/json/");
+          const geoData = await geoResponse.json();
+
+          await supabase.from("profile_views").insert({
+            profile_id: userId,
+            viewer_id: user?.id || null,
+            viewer_country: geoData.country_name || null,
+            viewer_continent: geoData.continent_code || null,
+            viewer_city: geoData.city || null,
+            referrer: document.referrer || null,
+            user_agent: navigator.userAgent,
+          });
+        } catch (viewError) {
+          console.error("Error tracking view:", viewError);
+          // Don't fail the page load if tracking fails
+        }
+      }
+
       // Load achievements
       const { data: achievementsData } = await supabase
         .from("user_achievements")
@@ -166,8 +188,31 @@ export default function PublicProfile() {
 
   const isOwnProfile = currentUserId === userId;
 
+  // Apply custom theme
+  const getBackgroundClass = (bg: string) => {
+    const backgrounds: Record<string, string> = {
+      default: "bg-background",
+      dark: "bg-gradient-to-br from-gray-900 to-black",
+      purple: "bg-gradient-to-br from-purple-900 to-indigo-900",
+      ocean: "bg-gradient-to-br from-blue-900 to-cyan-900",
+      sunset: "bg-gradient-to-br from-orange-900 to-red-900",
+      forest: "bg-gradient-to-br from-green-900 to-emerald-900",
+    };
+    return backgrounds[bg] || backgrounds.default;
+  };
+
+  const getFontClass = (font: string) => {
+    const fonts: Record<string, string> = {
+      inter: "font-sans",
+      playfair: "font-serif",
+      mono: "font-mono",
+      raleway: "font-raleway",
+    };
+    return fonts[font] || fonts.inter;
+  };
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className={`min-h-screen ${getBackgroundClass(profile?.theme_background || "default")} ${getFontClass(profile?.theme_font || "inter")}`}>
       <FloatingNav />
 
       {/* Background Effects */}

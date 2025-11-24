@@ -3,8 +3,9 @@ import { motion } from "framer-motion";
 import Cropper from "react-easy-crop";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
-import { X, Check, RotateCw, ZoomIn, Sparkles } from "lucide-react";
+import { X, Check, RotateCw, ZoomIn, Sparkles, Wand2 } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ImageEditorProps {
   imageSrc: string;
@@ -29,6 +30,7 @@ export const ImageEditor = ({ imageSrc, onSave, onCancel }: ImageEditorProps) =>
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
   const [selectedFilter, setSelectedFilter] = useState("none");
   const [processing, setProcessing] = useState(false);
+  const [enhancing, setEnhancing] = useState(false);
 
   const onCropComplete = useCallback((croppedArea: any, croppedAreaPixels: any) => {
     setCroppedAreaPixels(croppedAreaPixels);
@@ -113,6 +115,36 @@ export const ImageEditor = ({ imageSrc, onSave, onCancel }: ImageEditorProps) =>
       toast.error("Failed to edit image");
     } finally {
       setProcessing(false);
+    }
+  };
+
+  const handleAIEnhance = async () => {
+    setEnhancing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("enhance-image", {
+        body: { imageUrl: imageSrc },
+      });
+
+      if (error) {
+        if (error.message.includes("429")) {
+          toast.error("Rate limit exceeded. Please try again later.");
+        } else if (error.message.includes("402")) {
+          toast.error("AI credits needed. Please add credits to your workspace.");
+        } else {
+          toast.error("Failed to enhance image");
+        }
+        return;
+      }
+
+      if (data?.enhancedImageUrl) {
+        onSave(data.enhancedImageUrl);
+        toast.success("Image enhanced with AI!");
+      }
+    } catch (error) {
+      console.error("Error enhancing image:", error);
+      toast.error("Failed to enhance image");
+    } finally {
+      setEnhancing(false);
     }
   };
 
@@ -220,16 +252,23 @@ export const ImageEditor = ({ imageSrc, onSave, onCancel }: ImageEditorProps) =>
           <div className="flex gap-3 pt-2">
             <Button
               variant="outline"
-              onClick={onCancel}
+              onClick={handleAIEnhance}
               className="flex-1"
-              disabled={processing}
+              disabled={processing || enhancing}
+            >
+              <Wand2 className="w-4 h-4 mr-2" />
+              {enhancing ? "Enhancing..." : "AI Enhance"}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={onCancel}
+              disabled={processing || enhancing}
             >
               Cancel
             </Button>
             <Button
               onClick={handleSave}
-              className="flex-1"
-              disabled={processing}
+              disabled={processing || enhancing}
             >
               <Check className="w-4 h-4 mr-2" />
               {processing ? "Processing..." : "Save"}

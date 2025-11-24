@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { GeoData, detectGeo, calculatePaymentTier } from "@/lib/geo";
 import { profileSchema } from "@/lib/validations";
-import { Upload, CheckCircle2, XCircle, Camera, Eye, Download, RotateCcw, Share2, History } from "lucide-react";
+import { Upload, CheckCircle2, XCircle, Camera, Eye, Download, RotateCcw, Share2, History, Palette, TrendingUp } from "lucide-react";
 import { PremiumAvatar } from "./PremiumAvatar";
 import { useAchievements } from "@/hooks/use-achievements";
 import { 
@@ -23,6 +23,8 @@ import { ProfilePreview } from "./ProfilePreview";
 import { ImageEditor } from "./ImageEditor";
 import { ProfileShareModal } from "./ProfileShareModal";
 import { ProfileHistoryTimeline } from "./ProfileHistoryTimeline";
+import { ProfileThemeCustomizer } from "./ProfileThemeCustomizer";
+import { ProfileAnalyticsDashboard } from "./ProfileAnalyticsDashboard";
 import { AnimatePresence } from "framer-motion";
 
 interface ProfileSetupEnhancedProps {
@@ -50,6 +52,8 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
   const [tempImageForEdit, setTempImageForEdit] = useState<string | null>(null);
   const [showShareModal, setShowShareModal] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [showThemeCustomizer, setShowThemeCustomizer] = useState(false);
+  const [showAnalytics, setShowAnalytics] = useState(false);
   const { toast } = useToast();
   const { checkAndAwardAchievements } = useAchievements();
 
@@ -206,6 +210,34 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
       if (historyEntry.avatar_url) {
         setAvatarPreview(historyEntry.avatar_url);
       }
+    }
+  };
+
+  const handleThemeSave = async (theme: any) => {
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          theme_background: theme.background,
+          theme_font: theme.font,
+          theme_layout: theme.layout,
+          theme_accent_color: theme.accentColor,
+        })
+        .eq("id", userId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Theme saved!",
+        description: "Your profile theme has been updated",
+      });
+    } catch (error) {
+      console.error("Error saving theme:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to save theme",
+      });
     }
   };
 
@@ -372,14 +404,38 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
       </AnimatePresence>
 
       <AnimatePresence>
-        {showHistory && (
-          <ProfileHistoryTimeline
-            userId={userId}
-            onClose={() => setShowHistory(false)}
-            onRevert={handleHistoryRevert}
-          />
-        )}
-      </AnimatePresence>
+          {showHistory && (
+            <ProfileHistoryTimeline
+              userId={userId}
+              onClose={() => setShowHistory(false)}
+              onRevert={handleHistoryRevert}
+            />
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {showThemeCustomizer && existingProfile && (
+            <ProfileThemeCustomizer
+              currentTheme={{
+                background: existingProfile.theme_background || "default",
+                font: existingProfile.theme_font || "inter",
+                layout: existingProfile.theme_layout || "standard",
+                accentColor: existingProfile.theme_accent_color || "purple",
+              }}
+              onSave={handleThemeSave}
+              onClose={() => setShowThemeCustomizer(false)}
+            />
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {showAnalytics && (
+            <ProfileAnalyticsDashboard
+              userId={userId}
+              onClose={() => setShowAnalytics(false)}
+            />
+          )}
+        </AnimatePresence>
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -413,6 +469,26 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
                 >
                   <History className="w-4 h-4 mr-1" />
                   History
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowAnalytics(true)}
+                  className="flex-1"
+                >
+                  <TrendingUp className="w-4 h-4 mr-1" />
+                  Analytics
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowThemeCustomizer(true)}
+                  className="flex-1"
+                >
+                  <Palette className="w-4 h-4 mr-1" />
+                  Theme
                 </Button>
                 <Button
                   type="button"

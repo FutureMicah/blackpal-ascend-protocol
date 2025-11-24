@@ -1044,6 +1044,50 @@ export type Database = {
         }
         Relationships: []
       }
+      profile_views: {
+        Row: {
+          id: string
+          profile_id: string
+          referrer: string | null
+          user_agent: string | null
+          viewed_at: string
+          viewer_city: string | null
+          viewer_continent: string | null
+          viewer_country: string | null
+          viewer_id: string | null
+        }
+        Insert: {
+          id?: string
+          profile_id: string
+          referrer?: string | null
+          user_agent?: string | null
+          viewed_at?: string
+          viewer_city?: string | null
+          viewer_continent?: string | null
+          viewer_country?: string | null
+          viewer_id?: string | null
+        }
+        Update: {
+          id?: string
+          profile_id?: string
+          referrer?: string | null
+          user_agent?: string | null
+          viewed_at?: string
+          viewer_city?: string | null
+          viewer_continent?: string | null
+          viewer_country?: string | null
+          viewer_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_views_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           achievement_streak: number | null
@@ -1077,6 +1121,10 @@ export type Database = {
           rank_level: number | null
           show_email: boolean | null
           streak_days: number | null
+          theme_accent_color: string | null
+          theme_background: string | null
+          theme_font: string | null
+          theme_layout: string | null
           theme_preference: string | null
           timezone: string | null
           twitter_handle: string | null
@@ -1119,6 +1167,10 @@ export type Database = {
           rank_level?: number | null
           show_email?: boolean | null
           streak_days?: number | null
+          theme_accent_color?: string | null
+          theme_background?: string | null
+          theme_font?: string | null
+          theme_layout?: string | null
           theme_preference?: string | null
           timezone?: string | null
           twitter_handle?: string | null
@@ -1161,6 +1213,10 @@ export type Database = {
           rank_level?: number | null
           show_email?: boolean | null
           streak_days?: number | null
+          theme_accent_color?: string | null
+          theme_background?: string | null
+          theme_font?: string | null
+          theme_layout?: string | null
           theme_preference?: string | null
           timezone?: string | null
           twitter_handle?: string | null
@@ -1476,6 +1532,26 @@ export type Database = {
           unlock_percentage: number | null
         }
         Relationships: []
+      }
+      profile_analytics_summary: {
+        Row: {
+          countries_count: number | null
+          last_viewed_at: string | null
+          profile_id: string | null
+          total_views: number | null
+          unique_visitors: number | null
+          views_last_30_days: number | null
+          views_last_7_days: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_views_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Functions: {
