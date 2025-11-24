@@ -8,14 +8,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { GeoData, detectGeo, calculatePaymentTier } from "@/lib/geo";
 import { profileSchema } from "@/lib/validations";
-import { Upload, CheckCircle2, XCircle, Camera, Eye, Download, RotateCcw, Share2, History, Palette, TrendingUp } from "lucide-react";
+import { Upload, CheckCircle2, XCircle, Camera, Eye, Download, RotateCcw, Share2, History, Palette, TrendingUp, Users, BarChart3 } from "lucide-react";
 import { PremiumAvatar } from "./PremiumAvatar";
 import { useAchievements } from "@/hooks/use-achievements";
 import { 
   Profile, 
   getProfileCompletionPercentage, 
   saveProfileBackup, 
-  loadProfileBackup, 
+  loadProfileBackup,
   clearProfileBackup,
   hasProfileBackup 
 } from "@/lib/profile-utils";
@@ -25,7 +25,11 @@ import { ProfileShareModal } from "./ProfileShareModal";
 import { ProfileHistoryTimeline } from "./ProfileHistoryTimeline";
 import { ProfileThemeCustomizer } from "./ProfileThemeCustomizer";
 import { ProfileAnalyticsDashboard } from "./ProfileAnalyticsDashboard";
+import { SocialShare } from "./SocialShare";
+import { ProfileComparison } from "./ProfileComparison";
+import { ProfileCompletion } from "./ProfileCompletion";
 import { AnimatePresence } from "framer-motion";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface ProfileSetupEnhancedProps {
   userId: string;
@@ -54,6 +58,11 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
   const [showHistory, setShowHistory] = useState(false);
   const [showThemeCustomizer, setShowThemeCustomizer] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
+  const [showSocialShare, setShowSocialShare] = useState(false);
+  const [showComparison, setShowComparison] = useState(false);
+  const [profile, setProfile] = useState<any>(existingProfile);
+  const [achievements, setAchievements] = useState<any[]>([]);
+  const [stats, setStats] = useState({ totalXP: 0, totalAchievements: 0, rareAchievements: 0 });
   const { toast } = useToast();
   const { checkAndAwardAchievements } = useAchievements();
 
@@ -62,9 +71,57 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
     if (!geoData) {
       detectGeo().then(setGeoData);
     }
+    
+    // Load profile data for social share and comparison
+    loadProfile();
   }, [geoData]);
 
-  // Auto-save backup on field changes (debounced)
+  const loadProfile = async () => {
+    try {
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userId)
+        .single();
+      
+      if (profileData) {
+        setProfile(profileData);
+        
+        // Load achievements
+        const { data: achievementsData } = await supabase
+          .from("user_achievements")
+          .select(`
+            achievement_id,
+            achievements (
+              id,
+              name,
+              icon,
+              rarity,
+              description
+            )
+          `)
+          .eq("user_id", userId);
+        
+        const userAchievements = achievementsData?.map((ua: any) => ua.achievements).filter(Boolean) || [];
+        setAchievements(userAchievements);
+        
+        const totalXP = profileData.xp_points || 0;
+        const totalAchievements = userAchievements.length;
+        const rareAchievements = userAchievements.filter(
+          (a: any) => a.rarity === "rare" || a.rarity === "epic" || a.rarity === "legendary"
+        ).length;
+        
+        setStats({
+          totalXP,
+          totalAchievements,
+          rareAchievements,
+        });
+      }
+    } catch (error) {
+      console.error("Error loading profile:", error);
+    }
+  };
+
   useEffect(() => {
     if (!displayName) return;
 
@@ -82,7 +139,6 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
     return () => clearTimeout(timer);
   }, [displayName, bio, country, phoneNumber, avatarPreview]);
 
-  // Real-time validation for display name
   useEffect(() => {
     if (!displayName) {
       setFieldStatus(prev => ({ ...prev, display_name: null }));
@@ -156,7 +212,6 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
       const reader = new FileReader();
       reader.onloadend = () => {
         const imageUrl = reader.result as string;
-        // Open image editor instead of directly setting
         setTempImageForEdit(imageUrl);
         setShowImageEditor(true);
       };
@@ -179,7 +234,6 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
       const reader = new FileReader();
       reader.onloadend = () => {
         const imageUrl = reader.result as string;
-        // Open image editor for gallery uploads too
         setTempImageForEdit(imageUrl);
         setShowImageEditor(true);
       };
@@ -189,7 +243,6 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
 
   const handleImageEdited = (editedImageUrl: string) => {
     setAvatarPreview(editedImageUrl);
-    // Convert base64 to file for upload
     fetch(editedImageUrl)
       .then((res) => res.blob())
       .then((blob) => {
@@ -201,7 +254,6 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
   };
 
   const handleHistoryRevert = (historyEntry: any) => {
-    // Reload the current profile data after revert
     if (existingProfile) {
       setDisplayName(historyEntry.display_name || "");
       setBio(historyEntry.bio || "");
@@ -231,6 +283,8 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
         title: "Theme saved!",
         description: "Your profile theme has been updated",
       });
+      
+      loadProfile(); // Reload to trigger gamification
     } catch (error) {
       console.error("Error saving theme:", error);
       toast({
@@ -244,7 +298,6 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
   const handlePreview = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Basic validation before showing preview
     if (!displayName.trim()) {
       toast({
         variant: "destructive",
@@ -267,7 +320,6 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
     setValidationErrors({});
 
     try {
-      // Validate input
       const result = profileSchema.safeParse({
         display_name: displayName,
         bio,
@@ -289,7 +341,6 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
 
       let avatarUrl = null;
 
-      // Upload avatar if provided
       if (avatarFile) {
         const fileExt = avatarFile.name.split('.').pop();
         const filePath = `${userId}/avatar.${fileExt}`;
@@ -307,14 +358,12 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
         avatarUrl = publicUrl;
       }
 
-      // Finalize geo data (allow manual country override)
       const finalGeoData = country && geoData 
         ? calculatePaymentTier({ countryCode: country, country, continent: geoData.continent })
         : geoData;
 
       if (!finalGeoData) throw new Error("Unable to detect location");
 
-      // Update profile with geo data (use upsert to handle existing profile)
       const { error: profileError } = await supabase
         .from('profiles')
         .upsert({
@@ -334,13 +383,11 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
 
       if (profileError) throw profileError;
 
-      // Award profile completion achievement
       await checkAndAwardAchievements({
         user_id: userId,
         event_type: 'profile_complete'
       });
 
-      // Clear backup after successful profile creation
       clearProfileBackup();
       
       toast({
@@ -351,7 +398,6 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
       if (onComplete) {
         onComplete(finalGeoData);
       } else {
-        // Navigate to dashboard
         navigate("/dashboard");
       }
     } catch (err) {
@@ -404,297 +450,295 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
       </AnimatePresence>
 
       <AnimatePresence>
-          {showHistory && (
-            <ProfileHistoryTimeline
-              userId={userId}
-              onClose={() => setShowHistory(false)}
-              onRevert={handleHistoryRevert}
-            />
-          )}
-        </AnimatePresence>
+        {showHistory && (
+          <ProfileHistoryTimeline
+            userId={userId}
+            onClose={() => setShowHistory(false)}
+            onRevert={handleHistoryRevert}
+          />
+        )}
+      </AnimatePresence>
 
-        <AnimatePresence>
-          {showThemeCustomizer && existingProfile && (
-            <ProfileThemeCustomizer
-              currentTheme={{
-                background: existingProfile.theme_background || "default",
-                font: existingProfile.theme_font || "inter",
-                layout: existingProfile.theme_layout || "standard",
-                accentColor: existingProfile.theme_accent_color || "purple",
-              }}
-              onSave={handleThemeSave}
-              onClose={() => setShowThemeCustomizer(false)}
-            />
-          )}
-        </AnimatePresence>
+      <AnimatePresence>
+        {showThemeCustomizer && existingProfile && (
+          <ProfileThemeCustomizer
+            currentTheme={{
+              background: existingProfile.theme_background || "default",
+              font: existingProfile.theme_font || "inter",
+              layout: existingProfile.theme_layout || "standard",
+              accentColor: existingProfile.theme_accent_color || "purple",
+            }}
+            onSave={handleThemeSave}
+            onClose={() => setShowThemeCustomizer(false)}
+          />
+        )}
+      </AnimatePresence>
 
-        <AnimatePresence>
-          {showAnalytics && (
-            <ProfileAnalyticsDashboard
-              userId={userId}
-              onClose={() => setShowAnalytics(false)}
-            />
-          )}
-        </AnimatePresence>
+      <AnimatePresence>
+        {showAnalytics && (
+          <ProfileAnalyticsDashboard
+            userId={userId}
+            onClose={() => setShowAnalytics(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showSocialShare && profile && (
+          <SocialShare
+            profile={profile}
+            achievements={achievements}
+            stats={stats}
+            onClose={() => setShowSocialShare(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showComparison && profile && (
+          <ProfileComparison
+            currentProfile={profile}
+            currentStats={stats}
+            onClose={() => setShowComparison(false)}
+          />
+        )}
+      </AnimatePresence>
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -20 }}
-        className="fixed inset-0 z-40 flex items-center justify-center p-4 bg-background"
+        className="fixed inset-0 z-40 flex items-center justify-center p-4 bg-background overflow-auto"
       >
-        <div className="w-full max-w-lg">
-        <motion.div
-          className="p-8 rounded-2xl border border-primary/30 bg-card/90 backdrop-blur-xl"
-          initial={{ scale: 0.9 }}
-          animate={{ scale: 1 }}
-        >
-          <h2 className="text-3xl font-bold text-center mb-2">
-            {existingProfile ? 'Complete Your Profile' : 'Create Your Identity'}
-          </h2>
-          <p className="text-center text-muted-foreground mb-2">
-            Your profile in the BTA Digital Republic
-          </p>
+        <div className="w-full max-w-5xl py-8">
+          <motion.div
+            className="p-8 rounded-2xl border border-primary/30 bg-card/90 backdrop-blur-xl"
+            initial={{ scale: 0.9 }}
+            animate={{ scale: 1 }}
+          >
+            <h2 className="text-3xl font-bold text-center mb-2">
+              {existingProfile ? 'Complete Your Profile' : 'Create Your Identity'}
+            </h2>
+            <p className="text-center text-muted-foreground mb-6">
+              Your profile in the BTA Digital Republic
+            </p>
 
-          {/* Action buttons row */}
-          <div className="flex gap-2 mb-4">
+            {/* Action buttons */}
             {existingProfile && (
-              <>
+              <div className="flex flex-wrap gap-2 mb-6">
                 <Button
-                  type="button"
                   variant="outline"
                   size="sm"
                   onClick={() => setShowHistory(true)}
-                  className="flex-1"
                 >
-                  <History className="w-4 h-4 mr-1" />
+                  <History className="w-4 h-4 mr-2" />
                   History
                 </Button>
                 <Button
-                  type="button"
                   variant="outline"
                   size="sm"
                   onClick={() => setShowAnalytics(true)}
-                  className="flex-1"
                 >
-                  <TrendingUp className="w-4 h-4 mr-1" />
+                  <BarChart3 className="w-4 h-4 mr-2" />
                   Analytics
                 </Button>
                 <Button
-                  type="button"
                   variant="outline"
                   size="sm"
                   onClick={() => setShowThemeCustomizer(true)}
-                  className="flex-1"
                 >
-                  <Palette className="w-4 h-4 mr-1" />
+                  <Palette className="w-4 h-4 mr-2" />
                   Theme
                 </Button>
                 <Button
-                  type="button"
                   variant="outline"
                   size="sm"
                   onClick={() => setShowShareModal(true)}
-                  className="flex-1"
-                  disabled={!displayName.trim()}
                 >
-                  <Share2 className="w-4 h-4 mr-1" />
-                  Share
+                  <Share2 className="w-4 h-4 mr-2" />
+                  QR Code
                 </Button>
-              </>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowSocialShare(true)}
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Export Card
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowComparison(true)}
+                >
+                  <Users className="w-4 h-4 mr-2" />
+                  Compare
+                </Button>
+              </div>
             )}
-          </div>
 
-          {/* Backup restore banner */}
-          {hasBackup && !existingProfile && (
-            <div className="mb-4 p-3 rounded-lg bg-accent/10 border border-accent/30 flex items-center justify-between">
-              <div className="flex items-center gap-2 text-sm">
-                <Download className="w-4 h-4 text-accent" />
-                <span className="text-accent">Saved data found</span>
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleRestoreBackup}
-                  className="h-7 text-xs"
-                >
-                  <RotateCcw className="w-3 h-3 mr-1" />
-                  Restore
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleClearBackup}
-                  className="h-7 text-xs text-muted-foreground"
-                >
-                  <XCircle className="w-3 h-3 mr-1" />
-                  Clear
-                </Button>
-              </div>
-            </div>
-          )}
-          {existingProfile && (
-            <div className="mb-6">
-              <div className="flex items-center justify-between text-sm text-muted-foreground mb-2">
-                <span>Profile Completion</span>
-                <span className="font-semibold">{completionPercentage}%</span>
-              </div>
-              <div className="h-2 bg-muted rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-gradient-to-r from-primary to-accent transition-all duration-500"
-                  style={{ width: `${completionPercentage}%` }}
-                />
-              </div>
-              {completionPercentage < 100 && (
-                <p className="text-xs text-center text-muted-foreground mt-2">
-                  Fill out the required fields below to continue
-                </p>
-              )}
-            </div>
-          )}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Main Profile Form */}
+              <div className="lg:col-span-2">
+                <Card className="glass-card">
+                  <CardHeader>
+                    <CardTitle>Profile Information</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    {/* Avatar Upload */}
+                    <div className="flex flex-col items-center gap-4">
+                      <div className="relative">
+                        {avatarPreview ? (
+                          <PremiumAvatar src={avatarPreview} size="xl" />
+                        ) : (
+                          <div className="w-32 h-32 rounded-full bg-muted flex items-center justify-center text-4xl">
+                            👤
+                          </div>
+                        )}
+                      </div>
 
-          <form onSubmit={handlePreview} className="space-y-6">
-            {/* Avatar Upload */}
-            <div className="flex flex-col items-center gap-4">
-              <PremiumAvatar 
-                src={avatarPreview || undefined}
-                alt="Avatar preview"
-                size={140}
-              />
-              <div className="flex gap-2">
-                {/* Camera Capture (mobile) */}
-                <label htmlFor="camera-capture" className="cursor-pointer">
-                  <Button type="button" variant="outline" size="sm" asChild>
-                    <span className="flex items-center gap-2">
-                      <Camera className="w-4 h-4" />
-                      Take Photo
-                    </span>
-                  </Button>
-                  <input
-                    id="camera-capture"
-                    type="file"
-                    accept="image/*"
-                    capture="user"
-                    className="hidden"
-                    onChange={handleCameraCapture}
-                    disabled={uploading}
-                  />
-                </label>
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => document.getElementById('camera-input')?.click()}
+                        >
+                          <Camera className="w-4 h-4 mr-2" />
+                          Camera
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => document.getElementById('avatar-input')?.click()}
+                        >
+                          <Upload className="w-4 h-4 mr-2" />
+                          Gallery
+                        </Button>
+                      </div>
 
-                {/* File Upload */}
-                <label htmlFor="avatar-upload" className="cursor-pointer">
-                  <Button type="button" variant="outline" size="sm" asChild>
-                    <span className="flex items-center gap-2">
-                      <Upload className="w-4 h-4" />
-                      {avatarPreview ? "Change" : "Upload"}
-                    </span>
-                  </Button>
-                  <input
-                    id="avatar-upload"
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleAvatarChange}
-                    disabled={uploading}
-                  />
-                </label>
+                      <input
+                        id="camera-input"
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        onChange={handleCameraCapture}
+                        className="hidden"
+                      />
+                      <input
+                        id="avatar-input"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleAvatarChange}
+                        className="hidden"
+                      />
+                    </div>
+
+                    {/* Form Fields */}
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          Display Name *
+                          {fieldStatus.display_name === 'valid' && (
+                            <CheckCircle2 className="inline ml-2 w-4 h-4 text-green-500" />
+                          )}
+                          {fieldStatus.display_name === 'invalid' && (
+                            <XCircle className="inline ml-2 w-4 h-4 text-red-500" />
+                          )}
+                        </label>
+                        <Input
+                          value={displayName}
+                          onChange={(e) => setDisplayName(e.target.value)}
+                          placeholder="Enter your name"
+                        />
+                        {validationErrors.display_name && (
+                          <p className="text-sm text-red-500 mt-1">{validationErrors.display_name}</p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Bio</label>
+                        <Textarea
+                          value={bio}
+                          onChange={(e) => setBio(e.target.value)}
+                          placeholder="Tell us about yourself"
+                          rows={3}
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Country *</label>
+                        <Input
+                          value={country}
+                          onChange={(e) => setCountry(e.target.value)}
+                          placeholder="Your country"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Phone Number</label>
+                        <Input
+                          value={phoneNumber}
+                          onChange={(e) => setPhoneNumber(e.target.value)}
+                          placeholder="+234 XXX XXX XXXX"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-3 pt-4">
+                      {hasBackup && (
+                        <>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={handleRestoreBackup}
+                          >
+                            <RotateCcw className="w-4 h-4 mr-2" />
+                            Restore
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={handleClearBackup}
+                          >
+                            Clear Backup
+                          </Button>
+                        </>
+                      )}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handlePreview}
+                        className="ml-auto"
+                      >
+                        <Eye className="w-4 h-4 mr-2" />
+                        Preview
+                      </Button>
+                      <Button
+                        onClick={handleSubmit}
+                        disabled={uploading}
+                      >
+                        {uploading ? "Saving..." : "Continue"}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
-            </div>
 
-            {/* Display Name */}
-            <div className="relative">
-              <div className="relative">
-                <Input
-                  placeholder="Display Name *"
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  disabled={uploading}
-                  required
-                  className="h-12 pr-10"
-                />
-                {fieldStatus.display_name && (
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                    {fieldStatus.display_name === 'valid' ? (
-                      <CheckCircle2 className="w-5 h-5 text-green-500" />
-                    ) : (
-                      <XCircle className="w-5 h-5 text-red-500" />
-                    )}
-                  </div>
+              {/* Sidebar - Profile Completion */}
+              <div className="lg:col-span-1">
+                {existingProfile && (
+                  <ProfileCompletion profile={profile || existingProfile} onRefresh={loadProfile} />
                 )}
               </div>
-              {validationErrors.display_name && (
-                <p className="text-red-400 text-xs mt-1 flex items-center gap-1">
-                  <XCircle className="w-3 h-3" />
-                  {validationErrors.display_name}
-                </p>
-              )}
             </div>
-
-            {/* Bio */}
-            <div>
-              <Textarea
-                placeholder="Bio (optional)"
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
-                disabled={uploading}
-                className="min-h-[80px]"
-              />
-              {validationErrors.bio && (
-                <p className="text-red-400 text-xs mt-1">{validationErrors.bio}</p>
-              )}
-            </div>
-
-            {/* Country */}
-            <div>
-              <Input
-                placeholder={geoData ? `Country (detected: ${geoData.country})` : "Country"}
-                value={country}
-                onChange={(e) => setCountry(e.target.value)}
-                disabled={uploading}
-                className="h-12"
-              />
-            </div>
-
-            {/* Phone Number */}
-            <div>
-              <Input
-                placeholder="Phone Number (optional)"
-                value={phoneNumber}
-                onChange={(e) => setPhoneNumber(e.target.value)}
-                disabled={uploading}
-                className="h-12"
-              />
-              {validationErrors.phone_number && (
-                <p className="text-red-400 text-xs mt-1">{validationErrors.phone_number}</p>
-              )}
-            </div>
-
-            <div className="flex gap-3">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handlePreview}
-                className="flex-1 h-12 text-lg font-semibold"
-                disabled={uploading || !displayName.trim()}
-              >
-                <Eye className="w-5 h-5 mr-2" />
-                Preview
-              </Button>
-              <Button
-                type="submit"
-                className="flex-1 h-12 text-lg font-semibold"
-                disabled={uploading}
-              >
-                {uploading ? "Creating..." : "Continue"}
-              </Button>
-            </div>
-          </form>
-        </motion.div>
-      </div>
-    </motion.div>
+          </motion.div>
+        </div>
+      </motion.div>
     </>
   );
 };
