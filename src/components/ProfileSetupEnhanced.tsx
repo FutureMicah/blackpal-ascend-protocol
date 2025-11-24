@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { GeoData, detectGeo, calculatePaymentTier } from "@/lib/geo";
 import { profileSchema } from "@/lib/validations";
-import { Upload, CheckCircle2, XCircle, Camera, Eye, Download, RotateCcw, Share2, History, Palette, TrendingUp, Users, BarChart3 } from "lucide-react";
+import { Upload, CheckCircle2, XCircle, Camera, Eye, EyeOff, Download, RotateCcw, Share2, History, Palette, TrendingUp, Users, BarChart3 } from "lucide-react";
 import { PremiumAvatar } from "./PremiumAvatar";
 import { useAchievements } from "@/hooks/use-achievements";
 import { 
@@ -67,6 +67,7 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
   const [profile, setProfile] = useState<any>(existingProfile);
   const [achievements, setAchievements] = useState<any[]>([]);
   const [stats, setStats] = useState({ totalXP: 0, totalAchievements: 0, rareAchievements: 0 });
+  const [showOptionalFields, setShowOptionalFields] = useState(false);
   const { toast } = useToast();
   const { checkAndAwardAchievements } = useAchievements();
 
@@ -662,16 +663,6 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium mb-2">Bio</label>
-                        <Textarea
-                          value={bio}
-                          onChange={(e) => setBio(e.target.value)}
-                          placeholder="Tell us about yourself"
-                          rows={3}
-                        />
-                      </div>
-
-                      <div>
                         <label className="block text-sm font-medium mb-2">Country *</label>
                         <Input
                           value={country}
@@ -680,14 +671,49 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
                         />
                       </div>
 
-                      <div>
-                        <label className="block text-sm font-medium mb-2">Phone Number</label>
-                        <Input
-                          value={phoneNumber}
-                          onChange={(e) => setPhoneNumber(e.target.value)}
-                          placeholder="+234 XXX XXX XXXX"
-                        />
-                      </div>
+                      {/* Toggle for Optional Fields */}
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setShowOptionalFields(!showOptionalFields)}
+                        className="w-full justify-center gap-2"
+                      >
+                        {showOptionalFields ? (
+                          <>
+                            <EyeOff className="w-4 h-4" />
+                            Hide Optional Fields
+                          </>
+                        ) : (
+                          <>
+                            <Eye className="w-4 h-4" />
+                            Show Optional Fields
+                          </>
+                        )}
+                      </Button>
+
+                      {showOptionalFields && (
+                        <>
+                          <div>
+                            <label className="block text-sm font-medium mb-2">Bio</label>
+                            <Textarea
+                              value={bio}
+                              onChange={(e) => setBio(e.target.value)}
+                              placeholder="Tell us about yourself"
+                              rows={3}
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium mb-2">Phone Number</label>
+                            <Input
+                              value={phoneNumber}
+                              onChange={(e) => setPhoneNumber(e.target.value)}
+                              placeholder="+234 XXX XXX XXXX"
+                            />
+                          </div>
+                        </>
+                      )}
                     </div>
 
                     {/* Action Buttons */}

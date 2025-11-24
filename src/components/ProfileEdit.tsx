@@ -29,6 +29,7 @@ export const ProfileEdit = ({ profile, onUpdate, children }: ProfileEditProps) =
   const [open, setOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(profile?.avatar_url);
+  const [showOptionalFields, setShowOptionalFields] = useState(false);
   const { toast } = useToast();
 
   const {
@@ -256,119 +257,158 @@ export const ProfileEdit = ({ profile, onUpdate, children }: ProfileEditProps) =
             )}
           </div>
 
-          {/* Website */}
-          <div className="space-y-2">
-            <Label htmlFor="website_url">Website</Label>
-            <Input
-              id="website_url"
-              {...register("website_url")}
-              placeholder="https://yourwebsite.com"
-            />
-            {errors.website_url && (
-              <p className="text-sm text-destructive">{errors.website_url.message}</p>
+          {/* Toggle for Optional Fields */}
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowOptionalFields(!showOptionalFields)}
+            className="w-full justify-center gap-2"
+          >
+            {showOptionalFields ? (
+              <>
+                <EyeOff className="w-4 h-4" />
+                Hide Optional Fields
+              </>
+            ) : (
+              <>
+                <Eye className="w-4 h-4" />
+                Show Optional Fields
+              </>
             )}
-          </div>
+          </Button>
 
-          {/* Phone */}
-          <div className="space-y-2">
-            <Label htmlFor="phone_number">Phone Number</Label>
-            <Input
-              id="phone_number"
-              {...register("phone_number")}
-              placeholder="+1234567890"
-            />
-            {errors.phone_number && (
-              <p className="text-sm text-destructive">{errors.phone_number.message}</p>
-            )}
-          </div>
+          {showOptionalFields && (
+            <>
+              {/* Bio */}
+              <div className="space-y-2">
+                <Label htmlFor="bio">Bio</Label>
+                <Textarea
+                  id="bio"
+                  {...register("bio")}
+                  placeholder="Tell us about yourself"
+                  rows={3}
+                />
+                {errors.bio && (
+                  <p className="text-sm text-destructive">{errors.bio.message}</p>
+                )}
+              </div>
 
-          {/* Profile Visibility */}
-          <div className="space-y-2">
-            <Label htmlFor="profile_visibility">Profile Visibility</Label>
-            <select
-              id="profile_visibility"
-              {...register("profile_visibility")}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-            >
-              <option value="public">🌍 Public - Anyone can view</option>
-              <option value="friends_only">👥 Friends Only</option>
-              <option value="private">🔒 Private - Only you can view</option>
-            </select>
-            {errors.profile_visibility && (
-              <p className="text-sm text-destructive">{errors.profile_visibility.message}</p>
-            )}
-          </div>
+              {/* Website */}
+              <div className="space-y-2">
+                <Label htmlFor="website_url">Website</Label>
+                <Input
+                  id="website_url"
+                  {...register("website_url")}
+                  placeholder="https://yourwebsite.com"
+                />
+                {errors.website_url && (
+                  <p className="text-sm text-destructive">{errors.website_url.message}</p>
+                )}
+              </div>
 
-          {/* Social Media Section */}
-          <div className="pt-4 border-t border-border">
-            <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">
-              Social Media Links
-            </h3>
+              {/* Phone */}
+              <div className="space-y-2">
+                <Label htmlFor="phone_number">Phone Number</Label>
+                <Input
+                  id="phone_number"
+                  {...register("phone_number")}
+                  placeholder="+1234567890"
+                />
+                {errors.phone_number && (
+                  <p className="text-sm text-destructive">{errors.phone_number.message}</p>
+                )}
+              </div>
 
-            {/* Twitter */}
-            <div className="space-y-2 mb-4">
-              <Label htmlFor="twitter_handle" className="flex items-center gap-2">
-                <Twitter className="w-4 h-4 text-[#1DA1F2]" />
-                Twitter Handle
-              </Label>
-              <Input
-                id="twitter_handle"
-                {...register("twitter_handle")}
-                placeholder="username (without @)"
-              />
-              {errors.twitter_handle && (
-                <p className="text-sm text-destructive">{errors.twitter_handle.message}</p>
-              )}
-            </div>
+              {/* Profile Visibility */}
+              <div className="space-y-2">
+                <Label htmlFor="profile_visibility">Profile Visibility</Label>
+                <select
+                  id="profile_visibility"
+                  {...register("profile_visibility")}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                  <option value="public">🌍 Public - Anyone can view</option>
+                  <option value="friends_only">👥 Friends Only</option>
+                  <option value="private">🔒 Private - Only you can view</option>
+                </select>
+                {errors.profile_visibility && (
+                  <p className="text-sm text-destructive">{errors.profile_visibility.message}</p>
+                )}
+              </div>
 
-            {/* LinkedIn */}
-            <div className="space-y-2 mb-4">
-              <Label htmlFor="linkedin_url" className="flex items-center gap-2">
-                <Linkedin className="w-4 h-4 text-[#0A66C2]" />
-                LinkedIn URL
-              </Label>
-              <Input
-                id="linkedin_url"
-                {...register("linkedin_url")}
-                placeholder="https://linkedin.com/in/username"
-              />
-              {errors.linkedin_url && (
-                <p className="text-sm text-destructive">{errors.linkedin_url.message}</p>
-              )}
-            </div>
+              {/* Social Media Section */}
+              <div className="pt-4 border-t border-border">
+                <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">
+                  Social Media Links
+                </h3>
 
-            {/* GitHub */}
-            <div className="space-y-2 mb-4">
-              <Label htmlFor="github_handle" className="flex items-center gap-2">
-                <Github className="w-4 h-4" />
-                GitHub Handle
-              </Label>
-              <Input
-                id="github_handle"
-                {...register("github_handle")}
-                placeholder="username"
-              />
-              {errors.github_handle && (
-                <p className="text-sm text-destructive">{errors.github_handle.message}</p>
-              )}
-            </div>
+                {/* Twitter */}
+                <div className="space-y-2 mb-4">
+                  <Label htmlFor="twitter_handle" className="flex items-center gap-2">
+                    <Twitter className="w-4 h-4 text-[#1DA1F2]" />
+                    Twitter Handle
+                  </Label>
+                  <Input
+                    id="twitter_handle"
+                    {...register("twitter_handle")}
+                    placeholder="username (without @)"
+                  />
+                  {errors.twitter_handle && (
+                    <p className="text-sm text-destructive">{errors.twitter_handle.message}</p>
+                  )}
+                </div>
 
-            {/* Instagram */}
-            <div className="space-y-2">
-              <Label htmlFor="instagram_handle" className="flex items-center gap-2">
-                <Instagram className="w-4 h-4 text-[#E4405F]" />
-                Instagram Handle
-              </Label>
-              <Input
-                id="instagram_handle"
-                {...register("instagram_handle")}
-                placeholder="username (without @)"
-              />
-              {errors.instagram_handle && (
-                <p className="text-sm text-destructive">{errors.instagram_handle.message}</p>
-              )}
-            </div>
-          </div>
+                {/* LinkedIn */}
+                <div className="space-y-2 mb-4">
+                  <Label htmlFor="linkedin_url" className="flex items-center gap-2">
+                    <Linkedin className="w-4 h-4 text-[#0A66C2]" />
+                    LinkedIn URL
+                  </Label>
+                  <Input
+                    id="linkedin_url"
+                    {...register("linkedin_url")}
+                    placeholder="https://linkedin.com/in/username"
+                  />
+                  {errors.linkedin_url && (
+                    <p className="text-sm text-destructive">{errors.linkedin_url.message}</p>
+                  )}
+                </div>
+
+                {/* GitHub */}
+                <div className="space-y-2 mb-4">
+                  <Label htmlFor="github_handle" className="flex items-center gap-2">
+                    <Github className="w-4 h-4" />
+                    GitHub Handle
+                  </Label>
+                  <Input
+                    id="github_handle"
+                    {...register("github_handle")}
+                    placeholder="username"
+                  />
+                  {errors.github_handle && (
+                    <p className="text-sm text-destructive">{errors.github_handle.message}</p>
+                  )}
+                </div>
+
+                {/* Instagram */}
+                <div className="space-y-2">
+                  <Label htmlFor="instagram_handle" className="flex items-center gap-2">
+                    <Instagram className="w-4 h-4 text-[#E4405F]" />
+                    Instagram Handle
+                  </Label>
+                  <Input
+                    id="instagram_handle"
+                    {...register("instagram_handle")}
+                    placeholder="username (without @)"
+                  />
+                  {errors.instagram_handle && (
+                    <p className="text-sm text-destructive">{errors.instagram_handle.message}</p>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
 
           <div className="flex gap-2 pt-4">
             <Button
