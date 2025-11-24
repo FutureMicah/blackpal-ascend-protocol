@@ -124,3 +124,73 @@ export function clearProfileBackup(): void {
 export function hasProfileBackup(): boolean {
   return loadProfileBackup() !== null;
 }
+
+// Enhanced profile completion for gamification
+export interface EnhancedProfileCompletion {
+  percentage: number;
+  completedFields: string[];
+  missingFields: string[];
+  isComplete: boolean;
+  hasCustomTheme: boolean;
+}
+
+export function calculateProfileCompletion(profile: Profile | null): EnhancedProfileCompletion {
+  if (!profile) {
+    return {
+      percentage: 0,
+      completedFields: [],
+      missingFields: [],
+      isComplete: false,
+      hasCustomTheme: false,
+    };
+  }
+
+  const requiredFields = [
+    { key: "display_name", label: "Display Name" },
+    { key: "avatar_url", label: "Profile Photo" },
+    { key: "bio", label: "Bio" },
+    { key: "country", label: "Country" },
+    { key: "username", label: "Username" },
+  ];
+
+  const optionalFields = [
+    { key: "phone_number", label: "Phone Number" },
+    { key: "date_of_birth", label: "Date of Birth" },
+    { key: "website_url", label: "Website" },
+    { key: "twitter_handle", label: "Twitter" },
+    { key: "linkedin_url", label: "LinkedIn" },
+    { key: "github_handle", label: "GitHub" },
+    { key: "instagram_handle", label: "Instagram" },
+  ];
+
+  const allFields = [...requiredFields, ...optionalFields];
+  
+  const completedFields: string[] = [];
+  const missingFields: string[] = [];
+
+  allFields.forEach((field) => {
+    const value = profile[field.key as keyof Profile];
+    if (value && value !== "") {
+      completedFields.push(field.label);
+    } else {
+      missingFields.push(field.label);
+    }
+  });
+
+  const percentage = Math.round((completedFields.length / allFields.length) * 100);
+  const isComplete = percentage === 100;
+
+  // Check if user has customized their theme
+  const hasCustomTheme =
+    (profile.theme_background && profile.theme_background !== "default") ||
+    (profile.theme_font && profile.theme_font !== "inter") ||
+    (profile.theme_accent_color && profile.theme_accent_color !== "purple");
+
+  return {
+    percentage,
+    completedFields,
+    missingFields,
+    isComplete,
+    hasCustomTheme,
+  };
+}

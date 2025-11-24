@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowLeft, Lock, Play, Award, Search, Filter, BarChart3, GitBranch } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { CinematicModal } from "@/components/CinematicModal";
-import { SocialShare } from "@/components/SocialShare";
+import { AchievementShare as SocialShare } from "@/components/AchievementShare";
 
 interface Achievement {
   id: string;
