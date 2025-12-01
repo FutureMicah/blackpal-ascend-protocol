@@ -4,7 +4,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { profileSchema, ProfileFormData } from "@/lib/validations";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Upload, User, Twitter, Linkedin, Github, Instagram, Eye, EyeOff, CheckCircle2, XCircle } from "lucide-react";
+import { Loader2, Upload, User, Twitter, Linkedin, Github, Instagram, Eye, EyeOff, CheckCircle2, XCircle, HelpCircle } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Dialog,
   DialogContent,
@@ -76,6 +78,16 @@ export const ProfileEdit = ({ profile, onUpdate, children }: ProfileEditProps) =
     
     setDynamicCompletion(Math.round((completed / total) * 100));
   }, [watchedFields]);
+
+  // Get profile strength label
+  const getProfileStrength = (completion: number): { label: string; color: string } => {
+    if (completion < 30) return { label: "Weak", color: "text-red-500" };
+    if (completion < 60) return { label: "Good", color: "text-yellow-500" };
+    if (completion < 90) return { label: "Strong", color: "text-blue-500" };
+    return { label: "Excellent", color: "text-green-500" };
+  };
+
+  const profileStrength = getProfileStrength(dynamicCompletion);
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -201,19 +213,36 @@ export const ProfileEdit = ({ profile, onUpdate, children }: ProfileEditProps) =
           </DialogDescription>
         </DialogHeader>
 
-        {/* Progress Bar */}
-        <div className="mb-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium">Profile Completion</span>
-            <span className="text-sm font-bold text-primary">{dynamicCompletion}%</span>
+        {/* Progress Bar with Strength Indicator */}
+        <TooltipProvider>
+          <div className="mb-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">Profile Completion</span>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <HelpCircle className="w-4 h-4 text-muted-foreground cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-xs">Complete more fields to strengthen your profile</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-bold text-primary">{dynamicCompletion}%</span>
+                <span className={`text-xs font-semibold ${profileStrength.color}`}>
+                  {profileStrength.label}
+                </span>
+              </div>
+            </div>
+            <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-gradient-to-r from-primary to-primary/80 transition-all duration-500"
+                style={{ width: `${dynamicCompletion}%` }}
+              />
+            </div>
           </div>
-          <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
-            <div 
-              className="h-full bg-gradient-to-r from-primary to-primary/80 transition-all duration-500"
-              style={{ width: `${dynamicCompletion}%` }}
-            />
-          </div>
-        </div>
+        </TooltipProvider>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           {/* Avatar Upload */}
@@ -258,13 +287,39 @@ export const ProfileEdit = ({ profile, onUpdate, children }: ProfileEditProps) =
           {/* Display Name */}
           <div className="space-y-2">
             <Label htmlFor="display_name" className="flex items-center justify-between">
-              <span>Display Name *</span>
-              {watchedFields.display_name && watchedFields.display_name.length >= 2 && !errors.display_name && (
-                <CheckCircle2 className="w-4 h-4 text-green-500" />
-              )}
-              {errors.display_name && (
-                <XCircle className="w-4 h-4 text-red-500" />
-              )}
+              <div className="flex items-center gap-2">
+                <span>Display Name *</span>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <HelpCircle className="w-3 h-3 text-muted-foreground cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-xs">Minimum 2 characters required</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+              <AnimatePresence mode="wait">
+                {watchedFields.display_name && watchedFields.display_name.length >= 2 && !errors.display_name && (
+                  <motion.div
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <CheckCircle2 className="w-4 h-4 text-green-500" />
+                  </motion.div>
+                )}
+                {errors.display_name && (
+                  <motion.div
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <XCircle className="w-4 h-4 text-red-500" />
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </Label>
             <Input
               id="display_name"
@@ -279,13 +334,39 @@ export const ProfileEdit = ({ profile, onUpdate, children }: ProfileEditProps) =
           {/* Country */}
           <div className="space-y-2">
             <Label htmlFor="country" className="flex items-center justify-between">
-              <span>Country</span>
-              {watchedFields.country && !errors.country && (
-                <CheckCircle2 className="w-4 h-4 text-green-500" />
-              )}
-              {errors.country && (
-                <XCircle className="w-4 h-4 text-red-500" />
-              )}
+              <div className="flex items-center gap-2">
+                <span>Country</span>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <HelpCircle className="w-3 h-3 text-muted-foreground cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-xs">Enter your country name</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+              <AnimatePresence mode="wait">
+                {watchedFields.country && !errors.country && (
+                  <motion.div
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <CheckCircle2 className="w-4 h-4 text-green-500" />
+                  </motion.div>
+                )}
+                {errors.country && (
+                  <motion.div
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <XCircle className="w-4 h-4 text-red-500" />
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </Label>
             <Input
               id="country"
