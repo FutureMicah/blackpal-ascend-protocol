@@ -1,12 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { profileSchema, ProfileFormData } from "@/lib/validations";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Upload, User, Twitter, Linkedin, Github, Instagram, Eye, EyeOff, CheckCircle2, XCircle, HelpCircle } from "lucide-react";
+import { Loader2, Upload, User, Twitter, Linkedin, Github, Instagram, Eye, EyeOff, CheckCircle2, XCircle, HelpCircle, Save } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { motion, AnimatePresence } from "framer-motion";
+import confetti from "canvas-confetti";
 import {
   Dialog,
   DialogContent,
@@ -33,6 +34,8 @@ export const ProfileEdit = ({ profile, onUpdate, children }: ProfileEditProps) =
   const [avatarPreview, setAvatarPreview] = useState<string | null>(profile?.avatar_url);
   const [showOptionalFields, setShowOptionalFields] = useState(false);
   const [dynamicCompletion, setDynamicCompletion] = useState(0);
+  const [saveStatus, setSaveStatus] = useState<'saving' | 'saved' | null>(null);
+  const [hasReached100, setHasReached100] = useState(false);
   const { toast } = useToast();
 
   const {
@@ -62,6 +65,7 @@ export const ProfileEdit = ({ profile, onUpdate, children }: ProfileEditProps) =
 
   // Calculate completion percentage dynamically
   useEffect(() => {
+    setSaveStatus('saving');
     let completed = 0;
     let total = 10; // All fields including optional
     
@@ -76,7 +80,15 @@ export const ProfileEdit = ({ profile, onUpdate, children }: ProfileEditProps) =
     if (!watchedFields.github_handle || watchedFields.github_handle.length <= 39) completed++;
     if (!watchedFields.instagram_handle || watchedFields.instagram_handle.length <= 30) completed++;
     
-    setDynamicCompletion(Math.round((completed / total) * 100));
+    const newCompletion = Math.round((completed / total) * 100);
+    setDynamicCompletion(newCompletion);
+    
+    const timer = setTimeout(() => {
+      setSaveStatus('saved');
+      setTimeout(() => setSaveStatus(null), 2000);
+    }, 500);
+
+    return () => clearTimeout(timer);
   }, [watchedFields]);
 
   // Get profile strength label
@@ -88,6 +100,68 @@ export const ProfileEdit = ({ profile, onUpdate, children }: ProfileEditProps) =
   };
 
   const profileStrength = getProfileStrength(dynamicCompletion);
+
+  // Trigger confetti when reaching 100% for the first time
+  useEffect(() => {
+    if (dynamicCompletion === 100 && !hasReached100) {
+      setHasReached100(true);
+      
+      const duration = 3000;
+      const animationEnd = Date.now() + duration;
+      const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 9999 };
+
+      const randomInRange = (min: number, max: number) => Math.random() * (max - min) + min;
+
+      const interval = setInterval(() => {
+        const timeLeft = animationEnd - Date.now();
+
+        if (timeLeft <= 0) {
+          return clearInterval(interval);
+        }
+
+        const particleCount = 50 * (timeLeft / duration);
+        
+        confetti({
+          ...defaults,
+          particleCount,
+          origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 }
+        });
+        confetti({
+          ...defaults,
+          particleCount,
+          origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 }
+        });
+      }, 250);
+
+      toast({
+        title: "🎉 Profile Complete!",
+        description: "Congratulations! You've completed your profile 100%",
+      });
+    }
+  }, [dynamicCompletion, hasReached100, toast]);
+
+  // Keyboard shortcuts
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (!open) return;
+    
+    // Escape to close dialog
+    if (e.key === 'Escape') {
+      setOpen(false);
+    }
+    
+    // Ctrl/Cmd + Enter to submit
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      if (!isSubmitting && dynamicCompletion >= 20) {
+        e.preventDefault();
+        handleSubmit(onSubmit)();
+      }
+    }
+  }, [open, isSubmitting, dynamicCompletion]);
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleKeyDown]);
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -228,7 +302,32 @@ export const ProfileEdit = ({ profile, onUpdate, children }: ProfileEditProps) =
                   </TooltipContent>
                 </Tooltip>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
+                {/* Autosave Status Indicator */}
+                <AnimatePresence mode="wait">
+                  {saveStatus === 'saving' && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.8 }}
+                      className="flex items-center gap-1 text-xs text-muted-foreground"
+                    >
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                      <span>Saving...</span>
+                    </motion.div>
+                  )}
+                  {saveStatus === 'saved' && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.8 }}
+                      className="flex items-center gap-1 text-xs text-green-500"
+                    >
+                      <Save className="w-3 h-3" />
+                      <span>Saved</span>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
                 <span className="text-sm font-bold text-primary">{dynamicCompletion}%</span>
                 <span className={`text-xs font-semibold ${profileStrength.color}`}>
                   {profileStrength.label}
@@ -236,10 +335,20 @@ export const ProfileEdit = ({ profile, onUpdate, children }: ProfileEditProps) =
               </div>
             </div>
             <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-gradient-to-r from-primary to-primary/80 transition-all duration-500"
-                style={{ width: `${dynamicCompletion}%` }}
+              <motion.div 
+                className="h-full bg-gradient-to-r from-primary to-primary/80"
+                initial={{ width: 0 }}
+                animate={{ width: `${dynamicCompletion}%` }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
               />
+            </div>
+            <div className="flex items-center justify-between mt-1">
+              <p className="text-xs text-muted-foreground">
+                {dynamicCompletion === 100 ? '🎉 Complete!' : `${100 - dynamicCompletion}% remaining`}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                <kbd className="px-1 py-0.5 bg-muted rounded text-xs">Ctrl+Enter</kbd> to save
+              </p>
             </div>
           </div>
         </TooltipProvider>

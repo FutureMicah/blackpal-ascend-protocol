@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,8 +8,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { GeoData, detectGeo, calculatePaymentTier } from "@/lib/geo";
 import { profileSchema } from "@/lib/validations";
-import { Upload, CheckCircle2, XCircle, Camera, Eye, EyeOff, Download, RotateCcw, Share2, History, Palette, TrendingUp, Users, BarChart3, HelpCircle } from "lucide-react";
+import { Upload, CheckCircle2, XCircle, Camera, Eye, EyeOff, Download, RotateCcw, Share2, History, Palette, TrendingUp, Users, BarChart3, HelpCircle, Save, Loader2 as LoaderIcon } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import confetti from "canvas-confetti";
 import { PremiumAvatar } from "./PremiumAvatar";
 import { useAchievements } from "@/hooks/use-achievements";
 import { 
@@ -69,6 +70,8 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
   const [achievements, setAchievements] = useState<any[]>([]);
   const [stats, setStats] = useState({ totalXP: 0, totalAchievements: 0, rareAchievements: 0 });
   const [showOptionalFields, setShowOptionalFields] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<'saving' | 'saved' | null>(null);
+  const [hasReached100, setHasReached100] = useState(false);
   const { toast } = useToast();
   const { checkAndAwardAchievements } = useAchievements();
 
@@ -131,6 +134,7 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
   useEffect(() => {
     if (!displayName) return;
 
+    setSaveStatus('saving');
     const timer = setTimeout(() => {
       saveProfileBackup({
         displayName,
@@ -140,6 +144,10 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
         avatarPreview: avatarPreview || undefined
       });
       setHasBackup(true);
+      setSaveStatus('saved');
+      
+      // Hide saved status after 2 seconds
+      setTimeout(() => setSaveStatus(null), 2000);
     }, 1000);
 
     return () => clearTimeout(timer);
@@ -292,6 +300,77 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
   };
 
   const profileStrength = getProfileStrength(dynamicCompletion);
+
+  // Trigger confetti when reaching 100% for the first time
+  useEffect(() => {
+    if (dynamicCompletion === 100 && !hasReached100) {
+      setHasReached100(true);
+      
+      // Trigger confetti celebration
+      const duration = 3000;
+      const animationEnd = Date.now() + duration;
+      const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 9999 };
+
+      const randomInRange = (min: number, max: number) => Math.random() * (max - min) + min;
+
+      const interval = setInterval(() => {
+        const timeLeft = animationEnd - Date.now();
+
+        if (timeLeft <= 0) {
+          return clearInterval(interval);
+        }
+
+        const particleCount = 50 * (timeLeft / duration);
+        
+        confetti({
+          ...defaults,
+          particleCount,
+          origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 }
+        });
+        confetti({
+          ...defaults,
+          particleCount,
+          origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 }
+        });
+      }, 250);
+
+      toast({
+        title: "🎉 Profile Complete!",
+        description: "Congratulations! You've completed your profile 100%",
+      });
+    }
+  }, [dynamicCompletion, hasReached100, toast]);
+
+  // Keyboard shortcuts
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    // Escape to close modals or cancel
+    if (e.key === 'Escape') {
+      if (showPreview) setShowPreview(false);
+      else if (showImageEditor) {
+        setShowImageEditor(false);
+        setTempImageForEdit(null);
+      } else if (showShareModal) setShowShareModal(false);
+      else if (showHistory) setShowHistory(false);
+      else if (showThemeCustomizer) setShowThemeCustomizer(false);
+      else if (showAnalytics) setShowAnalytics(false);
+      else if (showSocialShare) setShowSocialShare(false);
+      else if (showComparison) setShowComparison(false);
+    }
+    
+    // Ctrl/Cmd + Enter to submit
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      if (!uploading && dynamicCompletion >= 50) {
+        e.preventDefault();
+        handleSubmit();
+      }
+    }
+  }, [showPreview, showImageEditor, showShareModal, showHistory, showThemeCustomizer, 
+      showAnalytics, showSocialShare, showComparison, uploading, dynamicCompletion]);
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleKeyDown]);
 
   const completionPercentage = getProfileCompletionPercentage(existingProfile as Profile | null);
 
@@ -663,7 +742,32 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
                       </TooltipContent>
                     </Tooltip>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-3">
+                    {/* Autosave Status Indicator */}
+                    <AnimatePresence mode="wait">
+                      {saveStatus === 'saving' && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.8 }}
+                          className="flex items-center gap-1 text-xs text-muted-foreground"
+                        >
+                          <LoaderIcon className="w-3 h-3 animate-spin" />
+                          <span>Saving...</span>
+                        </motion.div>
+                      )}
+                      {saveStatus === 'saved' && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.8 }}
+                          className="flex items-center gap-1 text-xs text-green-500"
+                        >
+                          <Save className="w-3 h-3" />
+                          <span>Saved</span>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                     <span className="text-sm font-bold text-primary">{dynamicCompletion}%</span>
                     <span className={`text-xs font-semibold ${profileStrength.color}`}>
                       {profileStrength.label}
@@ -678,9 +782,14 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
                     transition={{ duration: 0.5, ease: "easeOut" }}
                   />
                 </div>
-                <p className="text-xs text-muted-foreground mt-1 text-center">
-                  {dynamicCompletion === 100 ? '🎉 Profile complete!' : 'Fill in all fields to complete your profile'}
-                </p>
+                <div className="flex items-center justify-between mt-1">
+                  <p className="text-xs text-muted-foreground">
+                    {dynamicCompletion === 100 ? '🎉 Profile complete!' : 'Fill in all fields to complete your profile'}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    <kbd className="px-1 py-0.5 bg-muted rounded text-xs">Ctrl+Enter</kbd> to submit
+                  </p>
+                </div>
               </div>
             </TooltipProvider>
 
