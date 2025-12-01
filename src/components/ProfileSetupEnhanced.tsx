@@ -8,7 +8,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { GeoData, detectGeo, calculatePaymentTier } from "@/lib/geo";
 import { profileSchema } from "@/lib/validations";
-import { Upload, CheckCircle2, XCircle, Camera, Eye, EyeOff, Download, RotateCcw, Share2, History, Palette, TrendingUp, Users, BarChart3 } from "lucide-react";
+import { Upload, CheckCircle2, XCircle, Camera, Eye, EyeOff, Download, RotateCcw, Share2, History, Palette, TrendingUp, Users, BarChart3, HelpCircle } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { PremiumAvatar } from "./PremiumAvatar";
 import { useAchievements } from "@/hooks/use-achievements";
 import { 
@@ -281,6 +282,16 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
   };
 
   const dynamicCompletion = calculateCompletion();
+
+  // Get profile strength label
+  const getProfileStrength = (completion: number): { label: string; color: string } => {
+    if (completion < 30) return { label: "Weak", color: "text-red-500" };
+    if (completion < 60) return { label: "Good", color: "text-yellow-500" };
+    if (completion < 90) return { label: "Strong", color: "text-blue-500" };
+    return { label: "Excellent", color: "text-green-500" };
+  };
+
+  const profileStrength = getProfileStrength(dynamicCompletion);
 
   const completionPercentage = getProfileCompletionPercentage(existingProfile as Profile | null);
 
@@ -622,9 +633,9 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -20 }}
-        className="fixed inset-0 z-40 flex items-center justify-center p-4 bg-background overflow-auto"
+        className="min-h-screen flex items-start justify-center p-4 bg-background overflow-y-auto py-8"
       >
-        <div className="w-full max-w-5xl py-8 px-2 sm:px-4">
+        <div className="w-full max-w-5xl px-2 sm:px-4">
           <motion.div
             className="p-4 sm:p-6 md:p-8 rounded-2xl border border-primary/30 bg-card/90 backdrop-blur-xl"
             initial={{ scale: 0.9 }}
@@ -637,22 +648,41 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
               Your profile in the BTA Digital Republic
             </p>
 
-            {/* Dynamic Progress Bar */}
-            <div className="mb-6 px-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-foreground">Profile Completion</span>
-                <span className="text-sm font-bold text-primary">{dynamicCompletion}%</span>
+            {/* Dynamic Progress Bar with Strength Indicator */}
+            <TooltipProvider>
+              <div className="mb-6 px-4">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-foreground">Profile Completion</span>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <HelpCircle className="w-4 h-4 text-muted-foreground cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="text-xs">Complete more fields to strengthen your profile</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-bold text-primary">{dynamicCompletion}%</span>
+                    <span className={`text-xs font-semibold ${profileStrength.color}`}>
+                      {profileStrength.label}
+                    </span>
+                  </div>
+                </div>
+                <div className="w-full h-3 bg-muted rounded-full overflow-hidden">
+                  <motion.div 
+                    className="h-full bg-gradient-to-r from-primary to-primary/80"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${dynamicCompletion}%` }}
+                    transition={{ duration: 0.5, ease: "easeOut" }}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground mt-1 text-center">
+                  {dynamicCompletion === 100 ? '🎉 Profile complete!' : 'Fill in all fields to complete your profile'}
+                </p>
               </div>
-              <div className="w-full h-3 bg-muted rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-gradient-to-r from-primary to-primary/80 transition-all duration-500 ease-out"
-                  style={{ width: `${dynamicCompletion}%` }}
-                />
-              </div>
-              <p className="text-xs text-muted-foreground mt-1 text-center">
-                {dynamicCompletion === 100 ? '🎉 Profile complete!' : 'Fill in all fields to complete your profile'}
-              </p>
-            </div>
+            </TooltipProvider>
 
             {/* Action buttons */}
             {existingProfile && (
@@ -776,13 +806,39 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
                     <div className="space-y-4">
                       <div>
                         <label className="block text-sm font-medium mb-2 flex items-center justify-between">
-                          <span>Display Name *</span>
-                          {fieldStatus.display_name === 'valid' && (
-                            <CheckCircle2 className="w-4 h-4 text-green-500" />
-                          )}
-                          {fieldStatus.display_name === 'invalid' && (
-                            <XCircle className="w-4 h-4 text-red-500" />
-                          )}
+                          <div className="flex items-center gap-2">
+                            <span>Display Name *</span>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <HelpCircle className="w-3 h-3 text-muted-foreground cursor-help" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="text-xs">Minimum 2 characters required</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </div>
+                          <AnimatePresence mode="wait">
+                            {fieldStatus.display_name === 'valid' && (
+                              <motion.div
+                                initial={{ scale: 0, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                exit={{ scale: 0, opacity: 0 }}
+                                transition={{ duration: 0.2 }}
+                              >
+                                <CheckCircle2 className="w-4 h-4 text-green-500" />
+                              </motion.div>
+                            )}
+                            {fieldStatus.display_name === 'invalid' && (
+                              <motion.div
+                                initial={{ scale: 0, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                exit={{ scale: 0, opacity: 0 }}
+                                transition={{ duration: 0.2 }}
+                              >
+                                <XCircle className="w-4 h-4 text-red-500" />
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
                         </label>
                         <Input
                           value={displayName}
@@ -796,13 +852,39 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
 
                       <div>
                         <label className="block text-sm font-medium mb-2 flex items-center justify-between">
-                          <span>Country *</span>
-                          {fieldStatus.country === 'valid' && (
-                            <CheckCircle2 className="w-4 h-4 text-green-500" />
-                          )}
-                          {fieldStatus.country === 'invalid' && (
-                            <XCircle className="w-4 h-4 text-red-500" />
-                          )}
+                          <div className="flex items-center gap-2">
+                            <span>Country *</span>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <HelpCircle className="w-3 h-3 text-muted-foreground cursor-help" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="text-xs">Enter your country name</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </div>
+                          <AnimatePresence mode="wait">
+                            {fieldStatus.country === 'valid' && (
+                              <motion.div
+                                initial={{ scale: 0, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                exit={{ scale: 0, opacity: 0 }}
+                                transition={{ duration: 0.2 }}
+                              >
+                                <CheckCircle2 className="w-4 h-4 text-green-500" />
+                              </motion.div>
+                            )}
+                            {fieldStatus.country === 'invalid' && (
+                              <motion.div
+                                initial={{ scale: 0, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                exit={{ scale: 0, opacity: 0 }}
+                                transition={{ duration: 0.2 }}
+                              >
+                                <XCircle className="w-4 h-4 text-red-500" />
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
                         </label>
                         <Input
                           value={country}
@@ -839,13 +921,39 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
                         <>
                           <div>
                             <label className="block text-sm font-medium mb-2 flex items-center justify-between">
-                              <span>Bio</span>
-                              {fieldStatus.bio === 'valid' && (
-                                <CheckCircle2 className="w-4 h-4 text-green-500" />
-                              )}
-                              {fieldStatus.bio === 'invalid' && (
-                                <XCircle className="w-4 h-4 text-red-500" />
-                              )}
+                              <div className="flex items-center gap-2">
+                                <span>Bio</span>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <HelpCircle className="w-3 h-3 text-muted-foreground cursor-help" />
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p className="text-xs">Tell others about yourself (optional)</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </div>
+                              <AnimatePresence mode="wait">
+                                {fieldStatus.bio === 'valid' && (
+                                  <motion.div
+                                    initial={{ scale: 0, opacity: 0 }}
+                                    animate={{ scale: 1, opacity: 1 }}
+                                    exit={{ scale: 0, opacity: 0 }}
+                                    transition={{ duration: 0.2 }}
+                                  >
+                                    <CheckCircle2 className="w-4 h-4 text-green-500" />
+                                  </motion.div>
+                                )}
+                                {fieldStatus.bio === 'invalid' && (
+                                  <motion.div
+                                    initial={{ scale: 0, opacity: 0 }}
+                                    animate={{ scale: 1, opacity: 1 }}
+                                    exit={{ scale: 0, opacity: 0 }}
+                                    transition={{ duration: 0.2 }}
+                                  >
+                                    <XCircle className="w-4 h-4 text-red-500" />
+                                  </motion.div>
+                                )}
+                              </AnimatePresence>
                             </label>
                             <Textarea
                               value={bio}
@@ -861,13 +969,39 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
 
                           <div>
                             <label className="block text-sm font-medium mb-2 flex items-center justify-between">
-                              <span>Phone Number</span>
-                              {fieldStatus.phone_number === 'valid' && (
-                                <CheckCircle2 className="w-4 h-4 text-green-500" />
-                              )}
-                              {fieldStatus.phone_number === 'invalid' && (
-                                <XCircle className="w-4 h-4 text-red-500" />
-                              )}
+                              <div className="flex items-center gap-2">
+                                <span>Phone Number</span>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <HelpCircle className="w-3 h-3 text-muted-foreground cursor-help" />
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p className="text-xs">Format: +[country code][number] (optional)</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </div>
+                              <AnimatePresence mode="wait">
+                                {fieldStatus.phone_number === 'valid' && (
+                                  <motion.div
+                                    initial={{ scale: 0, opacity: 0 }}
+                                    animate={{ scale: 1, opacity: 1 }}
+                                    exit={{ scale: 0, opacity: 0 }}
+                                    transition={{ duration: 0.2 }}
+                                  >
+                                    <CheckCircle2 className="w-4 h-4 text-green-500" />
+                                  </motion.div>
+                                )}
+                                {fieldStatus.phone_number === 'invalid' && (
+                                  <motion.div
+                                    initial={{ scale: 0, opacity: 0 }}
+                                    animate={{ scale: 1, opacity: 1 }}
+                                    exit={{ scale: 0, opacity: 0 }}
+                                    transition={{ duration: 0.2 }}
+                                  >
+                                    <XCircle className="w-4 h-4 text-red-500" />
+                                  </motion.div>
+                                )}
+                              </AnimatePresence>
                             </label>
                             <Input
                               value={phoneNumber}
