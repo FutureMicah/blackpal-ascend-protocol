@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Trophy } from "lucide-react";
+import { Loader2, Trophy, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FloatingNav } from "@/components/FloatingNav";
 import { ProfileHeroCard } from "@/components/dashboard/ProfileHeroCard";
@@ -15,6 +15,7 @@ import { AchievementNotification } from "@/components/AchievementNotification";
 import { NotificationCenter } from "@/components/NotificationCenter";
 import { StreakTracker } from "@/components/StreakTracker";
 import { useAchievements, AwardedAchievement } from "@/hooks/use-achievements";
+import { FriendActivityFeed } from "@/components/social/FriendActivityFeed";
 
 export default function Dashboard() {
   const [user, setUser] = useState<any>(null);
@@ -172,6 +173,7 @@ export default function Dashboard() {
           {/* Right Column - Sidebar */}
           <div className="col-span-12 lg:col-span-3 space-y-6">
             <StreakTracker userId={profile.id} />
+            <FriendActivityFeed userId={profile.id} maxItems={10} />
             <WalletSnapshot userId={profile.id} />
             
             {/* Quick Access to Hub */}

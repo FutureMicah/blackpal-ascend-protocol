@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useFriendActivity } from "@/hooks/use-friend-activity";
 
 export interface AwardAchievementParams {
   user_id: string;
@@ -31,6 +32,7 @@ export interface AwardedAchievement {
 
 export const useAchievements = () => {
   const { toast } = useToast();
+  const { postAchievementActivity } = useFriendActivity();
 
   const checkAndAwardAchievements = async (params: AwardAchievementParams): Promise<AwardedAchievement[]> => {
     try {
@@ -51,6 +53,15 @@ export const useAchievements = () => {
           description: `${firstAchievement.icon} ${firstAchievement.name}`,
           duration: 5000,
         });
+
+        // Post activity for each achievement earned
+        for (const achievement of data.achievements) {
+          await postAchievementActivity(
+            params.user_id,
+            achievement.name,
+            achievement.xp_reward
+          );
+        }
 
         console.log(`Awarded ${data.achievements.length} achievements:`, data.achievements);
       }
