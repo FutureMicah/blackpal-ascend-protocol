@@ -8,6 +8,7 @@ import { PaymentTierCard } from "@/components/PaymentTierCard";
 import { PaymentGateway } from "@/pages/PaymentGateway";
 import { ParticleField } from "@/components/ParticleField";
 import { CursorTrail } from "@/components/CursorTrail";
+import { FloatingCandlesticks } from "@/components/FloatingCandlesticks";
 import { supabase } from "@/integrations/supabase/client";
 import type { User } from "@supabase/supabase-js";
 import { GeoData, detectGeo } from "@/lib/geo";
@@ -125,6 +126,9 @@ const Index = () => {
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-background">
+      {/* Candlestick animation - only on this page */}
+      <FloatingCandlesticks />
+      
       {/* Ambient effects */}
       {stage !== "arrival" && <ParticleField />}
       <CursorTrail />
