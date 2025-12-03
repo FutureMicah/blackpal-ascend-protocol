@@ -1,12 +1,35 @@
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import { Wallet, ArrowDownToLine, ArrowUpFromLine, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface WalletSnapshotProps {
   userId: string;
 }
 
 export const WalletSnapshot = ({ userId }: WalletSnapshotProps) => {
+  const navigate = useNavigate();
+  const [balance, setBalance] = useState(0);
+
+  useEffect(() => {
+    const loadBalance = async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("virtual_currency")
+        .eq("id", userId)
+        .single();
+      
+      if (data) {
+        setBalance(data.virtual_currency || 0);
+      }
+    };
+    loadBalance();
+  }, [userId]);
+
+  const usdEquivalent = (balance * 0.001).toFixed(2);
+
   return (
     <motion.div
       className="glass-card p-6 space-y-4"
@@ -46,27 +69,42 @@ export const WalletSnapshot = ({ userId }: WalletSnapshotProps) => {
             ease: "linear",
           }}
         >
-          <span className="text-xl font-bold text-white">₦</span>
+          <span className="text-xl font-bold text-white">₿</span>
         </motion.div>
       </div>
 
       {/* Balance */}
       <div className="text-center space-y-1">
-        <div className="text-3xl font-bold text-foreground">₦0.00</div>
-        <div className="text-sm text-muted-foreground">~$0.00 USD</div>
+        <div className="text-3xl font-bold text-foreground">{balance.toLocaleString()} BTC</div>
+        <div className="text-sm text-muted-foreground">~${usdEquivalent} USD</div>
       </div>
 
-      {/* Quick Actions */}
+      {/* Quick Actions - Functional buttons */}
       <div className="grid grid-cols-3 gap-2">
-        <Button variant="outline" size="sm" className="flex-col h-auto py-3 gap-1">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="flex-col h-auto py-3 gap-1"
+          onClick={() => navigate("/blackcoin?action=deposit")}
+        >
           <ArrowDownToLine className="w-4 h-4" />
           <span className="text-xs">Deposit</span>
         </Button>
-        <Button variant="outline" size="sm" className="flex-col h-auto py-3 gap-1">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="flex-col h-auto py-3 gap-1"
+          onClick={() => navigate("/blackcoin?action=convert")}
+        >
           <RefreshCw className="w-4 h-4" />
           <span className="text-xs">Convert</span>
         </Button>
-        <Button variant="outline" size="sm" className="flex-col h-auto py-3 gap-1">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="flex-col h-auto py-3 gap-1"
+          onClick={() => navigate("/blackcoin?action=withdraw")}
+        >
           <ArrowUpFromLine className="w-4 h-4" />
           <span className="text-xs">Withdraw</span>
         </Button>
