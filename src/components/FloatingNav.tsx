@@ -1,4 +1,4 @@
-import { Home, Trophy, BarChart3, BookOpen, Vault, Users, CreditCard, Hammer, Coins, Bell, Menu, X } from "lucide-react";
+import { Home, Trophy, BarChart3, BookOpen, Vault, Users, CreditCard, Hammer, Coins, Bell, Menu, X, Search } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -14,6 +14,7 @@ import {
 
 const navItems = [
   { name: "Dashboard", path: "/dashboard", icon: Home },
+  { name: "Discover", path: "/discover", icon: Search },
   { name: "Achievements", path: "/achievements", icon: Trophy },
   { name: "Leaderboard", path: "/leaderboard", icon: BarChart3 },
   { name: "BlackBoard", path: "/blackboard", icon: BookOpen },

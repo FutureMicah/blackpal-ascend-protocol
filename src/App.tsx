@@ -21,6 +21,7 @@ import BlackCoin from "./pages/BlackCoin";
 import BlackNotify from "./pages/BlackNotify";
 import PublicProfile from "./pages/PublicProfile";
 import ProfileEdit from "./pages/ProfileEdit";
+import Discover from "./pages/Discover";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +35,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/discover" element={<Discover />} />
           <Route path="/achievements" element={<Achievements />} />
           <Route path="/achievements/stats" element={<AchievementStats />} />
           <Route path="/achievements/paths" element={<AchievementPathsPage />} />
