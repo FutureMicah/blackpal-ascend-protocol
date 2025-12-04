@@ -242,44 +242,44 @@ const Discover = () => {
     <div className="min-h-screen bg-background">
       <FloatingNav />
       
-      <div className="max-w-6xl mx-auto px-4 py-24">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-20 sm:py-24">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold gradient-text-cyber flex items-center justify-center gap-3">
-            <Users className="w-10 h-10" />
+        <div className="text-center mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-4xl font-bold gradient-text-cyber flex items-center justify-center gap-2 sm:gap-3">
+            <Users className="w-7 h-7 sm:w-10 sm:h-10" />
             Discover Traders
           </h1>
-          <p className="text-muted-foreground mt-2">
+          <p className="text-sm sm:text-base text-muted-foreground mt-2">
             Connect with traders from around the world
           </p>
         </div>
 
         {/* Pending Requests */}
         {pendingRequests.length > 0 && (
-          <Card className="glass-card p-6 mb-6">
-            <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
-              <Clock className="w-5 h-5 text-yellow-500" />
+          <Card className="glass-card p-4 sm:p-6 mb-4 sm:mb-6">
+            <h2 className="text-base sm:text-lg font-bold mb-3 sm:mb-4 flex items-center gap-2">
+              <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-500" />
               Pending Requests ({pendingRequests.length})
             </h2>
-            <div className="space-y-3">
+            <div className="space-y-2 sm:space-y-3">
               {pendingRequests.map((request) => (
-                <div key={request.id} className="flex items-center justify-between p-3 bg-background/50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <Avatar>
+                <div key={request.id} className="flex items-center justify-between p-2 sm:p-3 bg-background/50 rounded-lg gap-2">
+                  <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                    <Avatar className="w-8 h-8 sm:w-10 sm:h-10 flex-shrink-0">
                       <AvatarImage src={request.profiles?.avatar_url} />
                       <AvatarFallback>{request.profiles?.display_name?.[0]}</AvatarFallback>
                     </Avatar>
-                    <div>
-                      <p className="font-medium">{request.profiles?.display_name}</p>
-                      <p className="text-sm text-muted-foreground">{request.profiles?.country}</p>
+                    <div className="min-w-0">
+                      <p className="font-medium text-sm sm:text-base truncate">{request.profiles?.display_name}</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground truncate">{request.profiles?.country}</p>
                     </div>
                   </div>
-                  <div className="flex gap-2">
-                    <Button size="sm" onClick={() => handleRequest(request.id, true)}>
-                      <Check className="w-4 h-4 mr-1" />
-                      Accept
+                  <div className="flex gap-1 sm:gap-2 flex-shrink-0">
+                    <Button size="sm" onClick={() => handleRequest(request.id, true)} className="h-8 px-2 sm:px-3">
+                      <Check className="w-4 h-4" />
+                      <span className="hidden sm:inline ml-1">Accept</span>
                     </Button>
-                    <Button size="sm" variant="outline" onClick={() => handleRequest(request.id, false)}>
+                    <Button size="sm" variant="outline" onClick={() => handleRequest(request.id, false)} className="h-8 px-2">
                       <X className="w-4 h-4" />
                     </Button>
                   </div>
@@ -290,21 +290,21 @@ const Discover = () => {
         )}
 
         {/* Search & Filters */}
-        <Card className="glass-card p-4 mb-6">
-          <div className="flex flex-col md:flex-row gap-4">
+        <Card className="glass-card p-3 sm:p-4 mb-4 sm:mb-6">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
-                placeholder="Search by name or username..."
+                placeholder="Search by name..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
               />
             </div>
             <Select value={countryFilter} onValueChange={setCountryFilter}>
-              <SelectTrigger className="w-full md:w-48">
+              <SelectTrigger className="w-full sm:w-48">
                 <Globe className="w-4 h-4 mr-2" />
-                <SelectValue placeholder="Filter by country" />
+                <SelectValue placeholder="Country" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Countries</SelectItem>
@@ -322,44 +322,46 @@ const Discover = () => {
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
           </div>
         ) : filteredUsers.length === 0 ? (
-          <Card className="glass-card p-12 text-center">
-            <Users className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-xl font-bold mb-2">No users found</h3>
-            <p className="text-muted-foreground">Try adjusting your search or filters</p>
+          <Card className="glass-card p-8 sm:p-12 text-center">
+            <Users className="w-12 h-12 sm:w-16 sm:h-16 mx-auto text-muted-foreground mb-4" />
+            <h3 className="text-lg sm:text-xl font-bold mb-2">No users found</h3>
+            <p className="text-sm sm:text-base text-muted-foreground">Try adjusting your search or filters</p>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {filteredUsers.map((user) => (
               <Card 
                 key={user.id} 
-                className="glass-card p-4 hover:border-primary/40 transition-all cursor-pointer"
+                className="glass-card p-3 sm:p-4 hover:border-primary/40 transition-all"
               >
-                <div className="flex items-start justify-between mb-3">
+                <div className="flex items-start justify-between mb-2 sm:mb-3 gap-2">
                   <div 
-                    className="flex items-center gap-3 cursor-pointer"
+                    className="flex items-center gap-2 sm:gap-3 cursor-pointer min-w-0"
                     onClick={() => navigate(`/profile/${user.id}`)}
                   >
-                    <Avatar className="w-12 h-12 ring-2 ring-primary/30">
+                    <Avatar className="w-10 h-10 sm:w-12 sm:h-12 ring-2 ring-primary/30 flex-shrink-0">
                       <AvatarImage src={user.avatar_url || undefined} />
-                      <AvatarFallback className="bg-gradient-to-br from-primary to-purple-600 text-white">
+                      <AvatarFallback className="bg-gradient-to-br from-primary to-purple-600 text-white text-sm">
                         {user.display_name?.[0]?.toUpperCase() || "?"}
                       </AvatarFallback>
                     </Avatar>
-                    <div>
-                      <h3 className="font-semibold">{user.display_name}</h3>
+                    <div className="min-w-0">
+                      <h3 className="font-semibold text-sm sm:text-base truncate">{user.display_name}</h3>
                       {user.username && (
-                        <p className="text-sm text-muted-foreground">@{user.username}</p>
+                        <p className="text-xs sm:text-sm text-muted-foreground truncate">@{user.username}</p>
                       )}
                     </div>
                   </div>
-                  {getConnectionButton(user)}
+                  <div className="flex-shrink-0">
+                    {getConnectionButton(user)}
+                  </div>
                 </div>
 
                 {user.bio && (
-                  <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{user.bio}</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-3 line-clamp-2">{user.bio}</p>
                 )}
 
-                <div className="flex items-center gap-4 text-sm">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm">
                   {user.country && (
                     <span className="flex items-center gap-1 text-muted-foreground">
                       <Globe className="w-3 h-3" />

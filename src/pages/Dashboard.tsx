@@ -135,7 +135,7 @@ export default function Dashboard() {
       <FloatingNav />
 
       {/* Main content */}
-      <div className="relative max-w-[1400px] mx-auto px-8 py-24">
+      <div className="relative max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-24">
         {/* Header with Leaderboard and Notifications */}
         <div className="flex justify-end gap-2 mb-4">
           {user && <NotificationCenter userId={user.id} />}
@@ -143,19 +143,20 @@ export default function Dashboard() {
             variant="outline"
             onClick={() => navigate("/leaderboard")}
             className="flex items-center gap-2"
+            size="sm"
           >
-            <Trophy className="h-5 w-5" />
-            Leaderboard
+            <Trophy className="h-4 w-4 sm:h-5 sm:w-5" />
+            <span className="hidden sm:inline">Leaderboard</span>
           </Button>
         </div>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="grid grid-cols-12 gap-6"
+          className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6"
         >
           {/* Left Column - Profile Card */}
-          <div className="col-span-12 lg:col-span-3">
+          <div className="lg:col-span-3 order-1">
             <ProfileHeroCard 
               profile={profile} 
               user={user} 
@@ -164,14 +165,14 @@ export default function Dashboard() {
           </div>
 
           {/* Middle Column - Main Content */}
-          <div className="col-span-12 lg:col-span-6 space-y-6">
+          <div className="lg:col-span-6 space-y-4 sm:space-y-6 order-3 lg:order-2">
             <XPReactor profile={profile} />
             <AchievementsCarousel userId={profile.id} />
             <ActivityFeed userId={profile.id} />
           </div>
 
           {/* Right Column - Sidebar */}
-          <div className="col-span-12 lg:col-span-3 space-y-6">
+          <div className="lg:col-span-3 space-y-4 sm:space-y-6 order-2 lg:order-3">
             <StreakTracker userId={profile.id} />
             <FriendActivityFeed userId={profile.id} maxItems={10} />
             <WalletSnapshot userId={profile.id} />

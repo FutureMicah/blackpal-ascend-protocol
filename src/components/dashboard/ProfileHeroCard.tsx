@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { PremiumAvatar } from "@/components/PremiumAvatar";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Calendar, LogOut, ExternalLink } from "lucide-react";
+import { MapPin, Calendar, LogOut, ExternalLink, Share2, QrCode, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -9,6 +9,9 @@ import { useToast } from "@/hooks/use-toast";
 import { PremiumBadges } from "@/components/PremiumBadges";
 import { ProfileEdit } from "@/components/ProfileEdit";
 import { useState, useEffect } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { QRCodeSVG } from "qrcode.react";
+import { Input } from "@/components/ui/input";
 
 interface ProfileHeroCardProps {
   profile: any;
@@ -20,6 +23,37 @@ export const ProfileHeroCard = ({ profile, user, onProfileUpdate }: ProfileHeroC
   const navigate = useNavigate();
   const { toast } = useToast();
   const [featuredAchievements, setFeaturedAchievements] = useState<any[]>([]);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [copied, setCopied] = useState(false);
+  
+  const profileUrl = `${window.location.origin}/profile/${user.id}`;
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(profileUrl);
+      setCopied(true);
+      toast({ title: "Link copied!", description: "Profile link copied to clipboard" });
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      toast({ variant: "destructive", title: "Failed to copy link" });
+    }
+  };
+
+  const handleNativeShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `${profile.display_name}'s BlackPal Profile`,
+          text: `Check out ${profile.display_name}'s profile on BlackPal`,
+          url: profileUrl,
+        });
+      } catch (error) {
+        console.log("Share cancelled");
+      }
+    } else {
+      handleCopyLink();
+    }
+  };
 
   useEffect(() => {
     loadFeaturedAchievements();
@@ -128,6 +162,59 @@ export const ProfileHeroCard = ({ profile, user, onProfileUpdate }: ProfileHeroC
         profile={profile} 
         onUpdate={() => onProfileUpdate?.()} 
       />
+
+      {/* Share Profile Button */}
+      <Dialog open={showShareModal} onOpenChange={setShowShareModal}>
+        <DialogTrigger asChild>
+          <Button variant="outline" className="w-full">
+            <Share2 className="w-4 h-4 mr-2" />
+            Share Profile
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Share Your Profile</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {/* QR Code */}
+            <div className="flex justify-center p-4 bg-background rounded-lg border">
+              <QRCodeSVG
+                value={profileUrl}
+                size={180}
+                level="H"
+                includeMargin
+                className="rounded-lg"
+              />
+            </div>
+            <p className="text-center text-sm text-muted-foreground">
+              Scan to view profile
+            </p>
+            
+            {/* Shareable Link */}
+            <div className="flex gap-2">
+              <Input
+                value={profileUrl}
+                readOnly
+                className="flex-1 text-sm"
+                onClick={(e) => e.currentTarget.select()}
+              />
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handleCopyLink}
+              >
+                {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+              </Button>
+            </div>
+            
+            {/* Native Share */}
+            <Button onClick={handleNativeShare} className="w-full">
+              <Share2 className="w-4 h-4 mr-2" />
+              Share
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Meta Info */}
       <div className="space-y-2 text-sm">

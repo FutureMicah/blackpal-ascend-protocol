@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
-import { Loader2, ArrowLeft, MapPin, Calendar, ExternalLink, Twitter, Linkedin, Github, Instagram, Globe, Lock } from "lucide-react";
+import { Loader2, ArrowLeft, MapPin, Calendar, ExternalLink, Twitter, Linkedin, Github, Instagram, Globe, Lock, Share2, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,9 @@ import { FloatingNav } from "@/components/FloatingNav";
 import { PremiumBadges } from "@/components/PremiumBadges";
 import { ProfileMilestoneBadges } from "@/components/ProfileMilestoneBadges";
 import { ProfileShowcaseDisplay } from "@/components/ProfileShowcaseDisplay";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { QRCodeSVG } from "qrcode.react";
+import { Input } from "@/components/ui/input";
 
 export default function PublicProfile() {
   const { userId } = useParams<{ userId: string }>();
@@ -189,6 +192,33 @@ export default function PublicProfile() {
   }
 
   const isOwnProfile = currentUserId === userId;
+  const [copied, setCopied] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const profileUrl = `${window.location.origin}/profile/${userId}`;
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(profileUrl);
+      setCopied(true);
+      toast({ title: "Link copied!" });
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      toast({ variant: "destructive", title: "Failed to copy" });
+    }
+  };
+
+  const handleNativeShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `${profile.display_name}'s Profile`,
+          url: profileUrl,
+        });
+      } catch (error) {}
+    } else {
+      handleCopyLink();
+    }
+  };
 
   // Apply custom theme
   const getBackgroundClass = (bg: string) => {
@@ -222,18 +252,49 @@ export default function PublicProfile() {
         <div className="absolute inset-0 bg-gradient-radial from-primary/5 via-transparent to-transparent" />
       </div>
 
-      <div className="relative max-w-5xl mx-auto px-4 py-24">
-        {/* Back Button */}
-        <Button
-          variant="ghost"
-          onClick={() => navigate(-1)}
-          className="mb-6"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back
-        </Button>
+      <div className="relative max-w-5xl mx-auto px-4 sm:px-6 py-20 sm:py-24">
+        {/* Back & Share Buttons */}
+        <div className="flex items-center justify-between mb-4 sm:mb-6">
+          <Button
+            variant="ghost"
+            onClick={() => navigate(-1)}
+            size="sm"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back
+          </Button>
+          
+          <Dialog open={showShareModal} onOpenChange={setShowShareModal}>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Share2 className="w-4 h-4 mr-2" />
+                <span className="hidden sm:inline">Share</span>
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Share Profile</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="flex justify-center p-4 bg-background rounded-lg border">
+                  <QRCodeSVG value={profileUrl} size={160} level="H" includeMargin />
+                </div>
+                <div className="flex gap-2">
+                  <Input value={profileUrl} readOnly className="flex-1 text-sm" onClick={(e) => e.currentTarget.select()} />
+                  <Button variant="outline" size="icon" onClick={handleCopyLink}>
+                    {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                  </Button>
+                </div>
+                <Button onClick={handleNativeShare} className="w-full">
+                  <Share2 className="w-4 h-4 mr-2" />
+                  Share
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           {/* Left Column - Profile Info */}
           <motion.div
             className="lg:col-span-1"
@@ -245,9 +306,9 @@ export default function PublicProfile() {
               <CardContent className="p-6 space-y-6">
                 {/* Avatar */}
                 <div className="flex justify-center">
-                  <Avatar className="w-32 h-32 border-4 border-primary/20">
+                  <Avatar className="w-24 h-24 sm:w-32 sm:h-32 border-4 border-primary/20">
                     <AvatarImage src={profile.avatar_url} />
-                    <AvatarFallback className="text-3xl">
+                    <AvatarFallback className="text-2xl sm:text-3xl">
                       {profile.display_name?.substring(0, 2).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
@@ -255,9 +316,9 @@ export default function PublicProfile() {
 
                 {/* Name & Username */}
                 <div className="text-center space-y-1">
-                  <h1 className="text-2xl font-bold">{profile.display_name}</h1>
+                  <h1 className="text-xl sm:text-2xl font-bold">{profile.display_name}</h1>
                   {profile.username && (
-                    <p className="text-sm text-muted-foreground">@{profile.username}</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">@{profile.username}</p>
                   )}
                 </div>
 
@@ -391,28 +452,28 @@ export default function PublicProfile() {
           >
             {/* Stats Grid */}
             <Card className="glass-card">
-              <CardHeader>
-                <CardTitle>Statistics</CardTitle>
+              <CardHeader className="pb-2 sm:pb-4">
+                <CardTitle className="text-base sm:text-lg">Statistics</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-3 gap-2 sm:gap-4">
                   <div className="text-center">
-                    <div className="text-3xl font-bold text-primary">
+                    <div className="text-xl sm:text-3xl font-bold text-primary">
                       {stats.totalXP}
                     </div>
-                    <div className="text-sm text-muted-foreground">Total XP</div>
+                    <div className="text-xs sm:text-sm text-muted-foreground">Total XP</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-3xl font-bold text-primary">
+                    <div className="text-xl sm:text-3xl font-bold text-primary">
                       {stats.totalAchievements}
                     </div>
-                    <div className="text-sm text-muted-foreground">Achievements</div>
+                    <div className="text-xs sm:text-sm text-muted-foreground">Achievements</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-3xl font-bold text-primary">
+                    <div className="text-xl sm:text-3xl font-bold text-primary">
                       {profile.streak_days || 0}
                     </div>
-                    <div className="text-sm text-muted-foreground">Day Streak</div>
+                    <div className="text-xs sm:text-sm text-muted-foreground">Day Streak</div>
                   </div>
                 </div>
               </CardContent>
