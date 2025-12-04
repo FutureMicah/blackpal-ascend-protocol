@@ -979,28 +979,63 @@ export type Database = {
         Row: {
           content: string
           created_at: string | null
+          duration_seconds: number | null
+          gif_url: string | null
           id: string
           is_read: boolean | null
+          media_type: string | null
+          media_url: string | null
+          message_type: string | null
           receiver_id: string
+          reply_to_id: string | null
           sender_id: string
+          sticker_id: string | null
+          video_url: string | null
+          voice_url: string | null
         }
         Insert: {
           content: string
           created_at?: string | null
+          duration_seconds?: number | null
+          gif_url?: string | null
           id?: string
           is_read?: boolean | null
+          media_type?: string | null
+          media_url?: string | null
+          message_type?: string | null
           receiver_id: string
+          reply_to_id?: string | null
           sender_id: string
+          sticker_id?: string | null
+          video_url?: string | null
+          voice_url?: string | null
         }
         Update: {
           content?: string
           created_at?: string | null
+          duration_seconds?: number | null
+          gif_url?: string | null
           id?: string
           is_read?: boolean | null
+          media_type?: string | null
+          media_url?: string | null
+          message_type?: string | null
           receiver_id?: string
+          reply_to_id?: string | null
           sender_id?: string
+          sticker_id?: string | null
+          video_url?: string | null
+          voice_url?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "messages_reply_to_id_fkey"
+            columns: ["reply_to_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       payments: {
         Row: {
@@ -1416,6 +1451,71 @@ export type Database = {
           },
         ]
       }
+      sticker_packs: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          is_premium: boolean | null
+          name: string
+          price_coins: number | null
+          thumbnail_url: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_premium?: boolean | null
+          name: string
+          price_coins?: number | null
+          thumbnail_url?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_premium?: boolean | null
+          name?: string
+          price_coins?: number | null
+          thumbnail_url?: string | null
+        }
+        Relationships: []
+      }
+      stickers: {
+        Row: {
+          created_at: string | null
+          emoji_shortcode: string | null
+          id: string
+          image_url: string
+          name: string
+          pack_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          emoji_shortcode?: string | null
+          id?: string
+          image_url: string
+          name: string
+          pack_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          emoji_shortcode?: string | null
+          id?: string
+          image_url?: string
+          name?: string
+          pack_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stickers_pack_id_fkey"
+            columns: ["pack_id"]
+            isOneToOne: false
+            referencedRelation: "sticker_packs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_achievement_evolution: {
         Row: {
           base_achievement_id: string
@@ -1665,6 +1765,35 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_sticker_packs: {
+        Row: {
+          id: string
+          pack_id: string | null
+          purchased_at: string | null
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          pack_id?: string | null
+          purchased_at?: string | null
+          user_id: string
+        }
+        Update: {
+          id?: string
+          pack_id?: string | null
+          purchased_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_sticker_packs_pack_id_fkey"
+            columns: ["pack_id"]
+            isOneToOne: false
+            referencedRelation: "sticker_packs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

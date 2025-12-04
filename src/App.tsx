@@ -22,6 +22,7 @@ import BlackNotify from "./pages/BlackNotify";
 import PublicProfile from "./pages/PublicProfile";
 import ProfileEdit from "./pages/ProfileEdit";
 import Discover from "./pages/Discover";
+import Friends from "./pages/Friends";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +37,7 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/discover" element={<Discover />} />
+          <Route path="/friends" element={<Friends />} />
           <Route path="/achievements" element={<Achievements />} />
           <Route path="/achievements/stats" element={<AchievementStats />} />
           <Route path="/achievements/paths" element={<AchievementPathsPage />} />
