@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Trophy, Users } from "lucide-react";
+import { Loader2, Trophy, Users, GitCompare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FloatingNav } from "@/components/FloatingNav";
 import { ProfileHeroCard } from "@/components/dashboard/ProfileHeroCard";
@@ -16,15 +16,51 @@ import { NotificationCenter } from "@/components/NotificationCenter";
 import { StreakTracker } from "@/components/StreakTracker";
 import { useAchievements, AwardedAchievement } from "@/hooks/use-achievements";
 import { FriendActivityFeed } from "@/components/social/FriendActivityFeed";
+import { ProfileComparison } from "@/components/ProfileComparison";
 
 export default function Dashboard() {
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [notification, setNotification] = useState<AwardedAchievement | null>(null);
+  const [showComparison, setShowComparison] = useState(false);
+  const [userStats, setUserStats] = useState({ totalXP: 0, totalAchievements: 0, rareAchievements: 0 });
   const navigate = useNavigate();
   const { toast } = useToast();
   const { checkAndAwardAchievements } = useAchievements();
+
+  // Load user stats for comparison
+  const loadUserStats = async (userId: string) => {
+    try {
+      const { data: achievementsData } = await supabase
+        .from("user_achievements")
+        .select(`
+          achievement_id,
+          achievements (id, rarity)
+        `)
+        .eq("user_id", userId);
+
+      const achievements = achievementsData?.map((ua: any) => ua.achievements).filter(Boolean) || [];
+      const totalAchievements = achievements.length;
+      const rareAchievements = achievements.filter(
+        (a: any) => a.rarity === "rare" || a.rarity === "epic" || a.rarity === "legendary"
+      ).length;
+
+      setUserStats({
+        totalXP: profile?.xp_points || 0,
+        totalAchievements,
+        rareAchievements,
+      });
+    } catch (error) {
+      console.error("Error loading user stats:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (profile) {
+      loadUserStats(profile.id);
+    }
+  }, [profile]);
 
   useEffect(() => {
     const initAuth = async () => {
@@ -136,9 +172,18 @@ export default function Dashboard() {
 
       {/* Main content */}
       <div className="relative max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-24">
-        {/* Header with Leaderboard and Notifications */}
+        {/* Header with Leaderboard, Compare, and Notifications */}
         <div className="flex justify-end gap-2 mb-4">
           {user && <NotificationCenter userId={user.id} />}
+          <Button
+            variant="outline"
+            onClick={() => setShowComparison(true)}
+            className="flex items-center gap-2"
+            size="sm"
+          >
+            <GitCompare className="h-4 w-4 sm:h-5 sm:w-5" />
+            <span className="hidden sm:inline">Compare</span>
+          </Button>
           <Button
             variant="outline"
             onClick={() => navigate("/leaderboard")}
@@ -149,6 +194,15 @@ export default function Dashboard() {
             <span className="hidden sm:inline">Leaderboard</span>
           </Button>
         </div>
+
+        {/* Profile Comparison Modal */}
+        {showComparison && profile && (
+          <ProfileComparison
+            currentProfile={profile}
+            currentStats={userStats}
+            onClose={() => setShowComparison(false)}
+          />
+        )}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
