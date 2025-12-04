@@ -975,6 +975,33 @@ export type Database = {
           },
         ]
       }
+      messages: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          receiver_id: string
+          sender_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          receiver_id: string
+          sender_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          receiver_id?: string
+          sender_id?: string
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           amount_local: number | null
@@ -1215,6 +1242,9 @@ export type Database = {
           instagram_handle: string | null
           is_africa: boolean | null
           is_nigeria: boolean | null
+          is_verified: boolean | null
+          kyc_status: string | null
+          kyc_verified_at: string | null
           language: string | null
           last_achievement_date: string | null
           last_login_at: string | null
@@ -1238,6 +1268,7 @@ export type Database = {
           unlocked_titles: string[] | null
           updated_at: string
           username: string | null
+          verification_badge: string | null
           virtual_currency: number | null
           website_url: string | null
           xp_points: number | null
@@ -1261,6 +1292,9 @@ export type Database = {
           instagram_handle?: string | null
           is_africa?: boolean | null
           is_nigeria?: boolean | null
+          is_verified?: boolean | null
+          kyc_status?: string | null
+          kyc_verified_at?: string | null
           language?: string | null
           last_achievement_date?: string | null
           last_login_at?: string | null
@@ -1284,6 +1318,7 @@ export type Database = {
           unlocked_titles?: string[] | null
           updated_at?: string
           username?: string | null
+          verification_badge?: string | null
           virtual_currency?: number | null
           website_url?: string | null
           xp_points?: number | null
@@ -1307,6 +1342,9 @@ export type Database = {
           instagram_handle?: string | null
           is_africa?: boolean | null
           is_nigeria?: boolean | null
+          is_verified?: boolean | null
+          kyc_status?: string | null
+          kyc_verified_at?: string | null
           language?: string | null
           last_achievement_date?: string | null
           last_login_at?: string | null
@@ -1330,6 +1368,7 @@ export type Database = {
           unlocked_titles?: string[] | null
           updated_at?: string
           username?: string | null
+          verification_badge?: string | null
           virtual_currency?: number | null
           website_url?: string | null
           xp_points?: number | null
