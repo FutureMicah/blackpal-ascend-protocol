@@ -82,7 +82,7 @@ export const MediaPicker = ({ onUpload, onClose }: MediaPickerProps) => {
   ];
 
   return (
-    <div className="p-4 bg-card">
+    <div className="p-3 sm:p-4 bg-card">
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-semibold">Upload Media</h3>
         <Button variant="ghost" size="icon" onClick={onClose}>
@@ -105,9 +105,9 @@ export const MediaPicker = ({ onUpload, onClose }: MediaPickerProps) => {
                     fileInputRef.current.click();
                   }
                 }}
-                className="flex flex-col items-center gap-2 p-4 rounded-xl border border-border hover:border-primary hover:bg-primary/5 transition-colors"
+                className="flex flex-col items-center gap-1 sm:gap-2 p-3 sm:p-4 rounded-xl border border-border hover:border-primary hover:bg-primary/5 transition-colors"
               >
-                <Icon className="h-8 w-8 text-primary" />
+                <Icon className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
                 <span className="text-sm">{label}</span>
               </motion.button>
             ))}

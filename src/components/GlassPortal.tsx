@@ -91,17 +91,17 @@ export const GlassPortal = ({ onSuccess }: GlassPortalProps) => {
   };
 
   return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-40 flex items-center justify-center p-4 overflow-y-auto">
       <motion.div
         initial={{ scale: 0.9, opacity: 0, y: 20 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
-        className="relative w-full max-w-md"
+        className="relative w-full max-w-md my-auto"
         style={{ perspective: "1000px" }}
       >
         {/* Glass card with 3D effect */}
         <motion.div
-          className="relative overflow-hidden rounded-2xl border border-white/10 p-8 backdrop-blur-xl"
+          className="relative overflow-hidden rounded-2xl border border-white/10 p-6 sm:p-8 backdrop-blur-xl max-h-[90vh] overflow-y-auto"
           style={{
             background: "linear-gradient(135deg, hsl(var(--glass-blur) / 0.6), hsl(var(--glass-blur) / 0.4))",
             boxShadow: "var(--shadow-glass), inset 0 0 60px hsl(var(--primary) / 0.05)",

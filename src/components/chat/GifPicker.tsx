@@ -61,7 +61,7 @@ export const GifPicker = ({ onSelect, onClose }: GifPickerProps) => {
     : displayGifs;
 
   return (
-    <div className="p-4 bg-card max-h-[350px]">
+    <div className="p-3 sm:p-4 bg-card max-h-[300px] sm:max-h-[350px]">
       <div className="flex items-center justify-between mb-3">
         <h3 className="font-semibold">GIFs</h3>
         <Button variant="ghost" size="icon" onClick={onClose}>
@@ -105,7 +105,7 @@ export const GifPicker = ({ onSelect, onClose }: GifPickerProps) => {
       </div>
 
       {/* GIFs Grid */}
-      <div className="grid grid-cols-3 gap-2 max-h-[200px] overflow-y-auto">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-[160px] sm:max-h-[200px] overflow-y-auto">
         {filteredGifs.map((gif, index) => (
           <motion.button
             key={gif.id}
