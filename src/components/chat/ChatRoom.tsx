@@ -294,15 +294,16 @@ export const ChatRoom = ({ friend, currentUserId }: ChatRoomProps) => {
       </AnimatePresence>
 
       {/* Input Area */}
-      <div className="p-4 border-t border-border">
+      <div className="p-2 sm:p-4 border-t border-border">
         {isRecording ? (
           <VoiceRecorder
             onComplete={handleVoiceNote}
             onCancel={() => setIsRecording(false)}
           />
         ) : (
-          <div className="flex items-center gap-2">
-            <div className="flex gap-1">
+          <div className="flex items-center gap-1 sm:gap-2">
+            {/* Mobile: condensed buttons, Desktop: full buttons */}
+            <div className="flex gap-0.5 sm:gap-1">
               <Button
                 variant="ghost"
                 size="icon"
@@ -310,9 +311,9 @@ export const ChatRoom = ({ friend, currentUserId }: ChatRoomProps) => {
                   closeAllPickers();
                   setShowEmojiPicker(!showEmojiPicker);
                 }}
-                className={showEmojiPicker ? "bg-primary/20" : ""}
+                className={`h-8 w-8 sm:h-10 sm:w-10 ${showEmojiPicker ? "bg-primary/20" : ""}`}
               >
-                <Smile className="h-5 w-5" />
+                <Smile className="h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
               <Button
                 variant="ghost"
@@ -321,9 +322,9 @@ export const ChatRoom = ({ friend, currentUserId }: ChatRoomProps) => {
                   closeAllPickers();
                   setShowStickerPicker(!showStickerPicker);
                 }}
-                className={showStickerPicker ? "bg-primary/20" : ""}
+                className={`h-8 w-8 sm:h-10 sm:w-10 ${showStickerPicker ? "bg-primary/20" : ""}`}
               >
-                <Sticker className="h-5 w-5" />
+                <Sticker className="h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
               <Button
                 variant="ghost"
@@ -332,9 +333,9 @@ export const ChatRoom = ({ friend, currentUserId }: ChatRoomProps) => {
                   closeAllPickers();
                   setShowGifPicker(!showGifPicker);
                 }}
-                className={showGifPicker ? "bg-primary/20" : ""}
+                className={`h-8 w-8 sm:h-10 sm:w-10 hidden sm:flex ${showGifPicker ? "bg-primary/20" : ""}`}
               >
-                <ImageIcon className="h-5 w-5" />
+                <ImageIcon className="h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
               <Button
                 variant="ghost"
@@ -343,9 +344,9 @@ export const ChatRoom = ({ friend, currentUserId }: ChatRoomProps) => {
                   closeAllPickers();
                   setShowMediaPicker(!showMediaPicker);
                 }}
-                className={showMediaPicker ? "bg-primary/20" : ""}
+                className={`h-8 w-8 sm:h-10 sm:w-10 ${showMediaPicker ? "bg-primary/20" : ""}`}
               >
-                <Paperclip className="h-5 w-5" />
+                <Paperclip className="h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
             </div>
 
@@ -354,22 +355,28 @@ export const ChatRoom = ({ friend, currentUserId }: ChatRoomProps) => {
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               onKeyPress={handleKeyPress}
-              className="flex-1"
+              className="flex-1 text-sm sm:text-base"
             />
 
-            {newMessage.trim() ? (
-              <Button onClick={handleSendText} size="icon">
-                <Send className="h-5 w-5" />
-              </Button>
-            ) : (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setIsRecording(true)}
-              >
-                <Mic className="h-5 w-5" />
-              </Button>
-            )}
+            {/* Always show send button on mobile, or when there's text */}
+            <Button 
+              onClick={handleSendText} 
+              size="icon"
+              disabled={!newMessage.trim()}
+              className={`h-8 w-8 sm:h-10 sm:w-10 ${!newMessage.trim() ? 'opacity-50' : ''}`}
+            >
+              <Send className="h-4 w-4 sm:h-5 sm:w-5" />
+            </Button>
+            
+            {/* Voice recording button - hidden on mobile when there's text */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsRecording(true)}
+              className={`h-8 w-8 sm:h-10 sm:w-10 ${newMessage.trim() ? 'hidden sm:flex' : ''}`}
+            >
+              <Mic className="h-4 w-4 sm:h-5 sm:w-5" />
+            </Button>
           </div>
         )}
       </div>

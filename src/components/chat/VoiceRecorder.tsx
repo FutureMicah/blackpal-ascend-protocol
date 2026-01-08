@@ -154,19 +154,19 @@ export const VoiceRecorder = ({ onComplete, onCancel }: VoiceRecorderProps) => {
             <span className="font-mono text-sm">{formatDuration(duration)}</span>
 
             {/* Waveform visualization */}
-            <div className="flex-1 flex items-center gap-0.5 h-8">
-              {[...Array(30)].map((_, i) => (
+            <div className="flex-1 flex items-center gap-0.5 h-6 sm:h-8">
+              {[...Array(20)].map((_, i) => (
                 <motion.div
                   key={i}
                   animate={{
-                    height: isPaused ? 4 : [4, Math.random() * 24 + 4, 4]
+                    height: isPaused ? 4 : [4, Math.random() * 20 + 4, 4]
                   }}
                   transition={{
                     repeat: Infinity,
                     duration: 0.3 + Math.random() * 0.2,
                     delay: i * 0.02
                   }}
-                  className="w-1 bg-primary rounded-full"
+                  className="w-0.5 sm:w-1 bg-primary rounded-full"
                 />
               ))}
             </div>
@@ -220,12 +220,12 @@ export const VoiceRecorder = ({ onComplete, onCancel }: VoiceRecorderProps) => {
             <span className="font-mono text-sm">{formatDuration(duration)}</span>
 
             {/* Static waveform */}
-            <div className="flex-1 flex items-center gap-0.5 h-8">
-              {[...Array(30)].map((_, i) => (
+            <div className="flex-1 flex items-center gap-0.5 h-6 sm:h-8">
+              {[...Array(20)].map((_, i) => (
                 <div
                   key={i}
-                  className="w-1 bg-primary/50 rounded-full"
-                  style={{ height: `${Math.random() * 20 + 4}px` }}
+                  className="w-0.5 sm:w-1 bg-primary/50 rounded-full"
+                  style={{ height: `${Math.random() * 16 + 4}px` }}
                 />
               ))}
             </div>

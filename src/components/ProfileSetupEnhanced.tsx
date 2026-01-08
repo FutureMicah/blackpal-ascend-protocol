@@ -786,7 +786,7 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
                   <p className="text-xs text-muted-foreground">
                     {dynamicCompletion === 100 ? '🎉 Profile complete!' : 'Fill in all fields to complete your profile'}
                   </p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-muted-foreground hidden sm:block">
                     <kbd className="px-1 py-0.5 bg-muted rounded text-xs">Ctrl+Enter</kbd> to submit
                   </p>
                 </div>

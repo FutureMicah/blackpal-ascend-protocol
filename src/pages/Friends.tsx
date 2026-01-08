@@ -135,30 +135,31 @@ const Friends = () => {
     <div className="min-h-screen bg-background">
       <FloatingNav />
       
-      <div className="pt-20 pb-8 px-4 max-w-6xl mx-auto">
+      <div className="pt-16 sm:pt-20 pb-4 sm:pb-8 px-2 sm:px-4 max-w-6xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-6"
         >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 sm:gap-3">
               {view === 'chat' && (
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => setView('list')}
-                  className="md:hidden"
+                  className="md:hidden h-8 w-8"
                 >
                   <ArrowLeft className="h-5 w-5" />
                 </Button>
               )}
-              <Users className="h-8 w-8 text-primary" />
-              <h1 className="text-3xl font-bold">Friends</h1>
+              <Users className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
+              <h1 className="text-xl sm:text-3xl font-bold">Friends</h1>
             </div>
-            <Button onClick={() => navigate('/discover')} variant="outline">
-              <Search className="h-4 w-4 mr-2" />
-              Find Friends
+            <Button onClick={() => navigate('/discover')} variant="outline" size="sm" className="text-xs sm:text-sm">
+              <Search className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Find Friends</span>
+              <span className="sm:hidden">Find</span>
             </Button>
           </div>
         </motion.div>
@@ -181,13 +182,13 @@ const Friends = () => {
                     key={request.id}
                     className="flex items-center justify-between p-4 rounded-xl bg-card border border-border"
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary/20 flex items-center justify-center">
                         {request.profile?.avatar_url ? (
                           <img
                             src={request.profile.avatar_url}
                             alt=""
-                            className="w-10 h-10 rounded-full object-cover"
+                            className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover"
                           />
                         ) : (
                           <span className="text-primary font-bold">
@@ -195,7 +196,7 @@ const Friends = () => {
                           </span>
                         )}
                       </div>
-                      <span className="font-medium">{request.profile?.display_name}</span>
+                      <span className="font-medium text-sm sm:text-base">{request.profile?.display_name}</span>
                     </div>
                     <div className="flex gap-2">
                       <Button
@@ -220,7 +221,7 @@ const Friends = () => {
         </AnimatePresence>
 
         {/* Main Content */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-[calc(100vh-220px)]">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-6 h-[calc(100vh-180px)] sm:h-[calc(100vh-220px)]">
           {/* Friends List */}
           <div className={`md:col-span-1 ${view === 'chat' ? 'hidden md:block' : ''}`}>
             <FriendsList
