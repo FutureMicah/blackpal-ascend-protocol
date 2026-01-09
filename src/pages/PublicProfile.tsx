@@ -434,7 +434,7 @@ export default function PublicProfile() {
                   <Button
                     variant="outline"
                     className="w-full"
-                    onClick={() => navigate("/dashboard")}
+                    onClick={() => navigate("/profile/edit")}
                   >
                     Edit Profile
                   </Button>
