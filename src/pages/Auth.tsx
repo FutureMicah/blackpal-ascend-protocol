@@ -266,7 +266,13 @@ const Auth = () => {
             <Button
               type="button"
               variant="outline"
-              onClick={() => navigate("/signup")}
+              onClick={() => {
+                setIsSignUp(true);
+                toast({
+                  title: "Premium Sign-Up",
+                  description: "Create your account to access Investor & Student paths",
+                });
+              }}
               className="w-full border-primary/30 hover:bg-primary/10"
             >
               <Sparkles className="w-4 h-4 mr-2" />

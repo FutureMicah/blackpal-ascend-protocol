@@ -341,6 +341,17 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
     }
   }, [dynamicCompletion, hasReached100, toast]);
 
+  // Handle form submission with Enter key
+  const handleFormKeyDown = useCallback((e: React.KeyboardEvent) => {
+    // Enter key submits (but not in textarea)
+    if (e.key === 'Enter' && e.target instanceof HTMLInputElement) {
+      if (!uploading && dynamicCompletion >= 50) {
+        e.preventDefault();
+        handleSubmit();
+      }
+    }
+  }, [uploading, dynamicCompletion]);
+
   // Keyboard shortcuts
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     // Escape to close modals or cancel
@@ -357,7 +368,7 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
       else if (showComparison) setShowComparison(false);
     }
     
-    // Ctrl/Cmd + Enter to submit
+    // Ctrl/Cmd + Enter to submit (backup shortcut)
     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
       if (!uploading && dynamicCompletion >= 50) {
         e.preventDefault();
@@ -712,11 +723,11 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -20 }}
-        className="min-h-screen flex items-start justify-center p-4 bg-background overflow-y-auto py-8"
+        className="relative z-10 min-h-screen flex items-start justify-center p-4 bg-background overflow-y-auto py-8"
       >
         <div className="w-full max-w-5xl px-2 sm:px-4">
           <motion.div
-            className="p-4 sm:p-6 md:p-8 rounded-2xl border border-primary/30 bg-card/90 backdrop-blur-xl"
+            className="relative z-20 p-4 sm:p-6 md:p-8 rounded-2xl border border-primary/30 bg-card/90 backdrop-blur-xl"
             initial={{ scale: 0.9 }}
             animate={{ scale: 1 }}
           >
@@ -787,20 +798,26 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
                     {dynamicCompletion === 100 ? '🎉 Profile complete!' : 'Fill in all fields to complete your profile'}
                   </p>
                   <p className="text-xs text-muted-foreground hidden sm:block">
-                    <kbd className="px-1 py-0.5 bg-muted rounded text-xs">Ctrl+Enter</kbd> to submit
+                    Press <kbd className="px-1 py-0.5 bg-muted rounded text-xs">Enter</kbd> or tap Continue
                   </p>
                 </div>
               </div>
             </TooltipProvider>
 
-            {/* Action buttons */}
+            {/* Action buttons - with explicit touch handling for mobile */}
             {existingProfile && (
-              <div className="flex flex-wrap gap-2 mb-6 overflow-x-auto">
+              <div className="flex flex-wrap gap-2 mb-6 overflow-x-auto relative z-30">
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setShowHistory(true)}
-                  className="flex-shrink-0"
+                  type="button"
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setShowHistory(true);
+                  }}
+                  className="flex-shrink-0 touch-manipulation"
                 >
                   <History className="w-4 h-4 mr-2" />
                   History
@@ -808,8 +825,14 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setShowAnalytics(true)}
-                  className="flex-shrink-0"
+                  type="button"
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setShowAnalytics(true);
+                  }}
+                  className="flex-shrink-0 touch-manipulation"
                 >
                   <BarChart3 className="w-4 h-4 mr-2" />
                   Analytics
@@ -817,8 +840,14 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setShowThemeCustomizer(true)}
-                  className="flex-shrink-0"
+                  type="button"
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setShowThemeCustomizer(true);
+                  }}
+                  className="flex-shrink-0 touch-manipulation"
                 >
                   <Palette className="w-4 h-4 mr-2" />
                   Theme
@@ -826,8 +855,14 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setShowShareModal(true)}
-                  className="flex-shrink-0"
+                  type="button"
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setShowShareModal(true);
+                  }}
+                  className="flex-shrink-0 touch-manipulation"
                 >
                   <Share2 className="w-4 h-4 mr-2" />
                   QR Code
@@ -835,8 +870,14 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setShowSocialShare(true)}
-                  className="flex-shrink-0"
+                  type="button"
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setShowSocialShare(true);
+                  }}
+                  className="flex-shrink-0 touch-manipulation"
                 >
                   <Download className="w-4 h-4 mr-2" />
                   Export Card
@@ -844,8 +885,14 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setShowComparison(true)}
-                  className="flex-shrink-0"
+                  type="button"
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setShowComparison(true);
+                  }}
+                  className="flex-shrink-0 touch-manipulation"
                 >
                   <Users className="w-4 h-4 mr-2" />
                   Compare
@@ -952,6 +999,7 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
                         <Input
                           value={displayName}
                           onChange={(e) => setDisplayName(e.target.value)}
+                          onKeyDown={handleFormKeyDown}
                           placeholder="Enter your name"
                         />
                         {validationErrors.display_name && (
@@ -998,6 +1046,7 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
                         <Input
                           value={country}
                           onChange={(e) => setCountry(e.target.value)}
+                          onKeyDown={handleFormKeyDown}
                           placeholder="Your country"
                         />
                         {validationErrors.country && (
@@ -1115,6 +1164,7 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
                             <Input
                               value={phoneNumber}
                               onChange={(e) => setPhoneNumber(e.target.value)}
+                              onKeyDown={handleFormKeyDown}
                               placeholder="+234 XXX XXX XXXX"
                             />
                             {validationErrors.phone_number && (

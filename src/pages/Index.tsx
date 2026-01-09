@@ -126,12 +126,12 @@ const Index = () => {
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-background">
-      {/* Candlestick animation - only on this page */}
-      <FloatingCandlesticks />
-      
-      {/* Ambient effects */}
-      {stage !== "arrival" && <ParticleField />}
-      <CursorTrail />
+      {/* Background effects layer - always behind content */}
+      <div className="fixed inset-0 -z-10 pointer-events-none">
+        <FloatingCandlesticks />
+        {stage !== "arrival" && <ParticleField />}
+        <CursorTrail />
+      </div>
 
       {/* Stage-based rendering */}
       {stage === "arrival" && (
