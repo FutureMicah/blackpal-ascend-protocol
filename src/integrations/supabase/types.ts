@@ -1410,6 +1410,69 @@ export type Database = {
         }
         Relationships: []
       }
+      referral_codes: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          is_active: boolean | null
+          max_uses: number | null
+          user_id: string
+          uses_count: number | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          max_uses?: number | null
+          user_id: string
+          uses_count?: number | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          max_uses?: number | null
+          user_id?: string
+          uses_count?: number | null
+        }
+        Relationships: []
+      }
+      referrals: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          id: string
+          referral_code: string
+          referred_id: string
+          referrer_id: string
+          reward_claimed: boolean | null
+          status: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          referral_code: string
+          referred_id: string
+          referrer_id: string
+          reward_claimed?: boolean | null
+          status?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          referral_code?: string
+          referred_id?: string
+          referrer_id?: string
+          reward_claimed?: boolean | null
+          status?: string
+        }
+        Relationships: []
+      }
       season_leaderboard: {
         Row: {
           created_at: string

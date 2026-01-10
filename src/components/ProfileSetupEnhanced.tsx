@@ -804,9 +804,9 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
               </div>
             </TooltipProvider>
 
-            {/* Action buttons - with explicit touch handling for mobile */}
+            {/* Action buttons - Mobile responsive grid */}
             {existingProfile && (
-              <div className="flex flex-wrap gap-2 mb-6 overflow-x-auto relative z-30">
+              <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mb-6 relative z-30">
                 <Button
                   variant="outline"
                   size="sm"
@@ -817,10 +817,10 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
                     e.stopPropagation();
                     setShowHistory(true);
                   }}
-                  className="flex-shrink-0 touch-manipulation"
+                  className="touch-manipulation flex flex-col items-center justify-center h-16 sm:h-auto sm:flex-row gap-1 sm:gap-2 text-xs sm:text-sm"
                 >
-                  <History className="w-4 h-4 mr-2" />
-                  History
+                  <History className="w-4 h-4" />
+                  <span>History</span>
                 </Button>
                 <Button
                   variant="outline"
@@ -832,10 +832,10 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
                     e.stopPropagation();
                     setShowAnalytics(true);
                   }}
-                  className="flex-shrink-0 touch-manipulation"
+                  className="touch-manipulation flex flex-col items-center justify-center h-16 sm:h-auto sm:flex-row gap-1 sm:gap-2 text-xs sm:text-sm"
                 >
-                  <BarChart3 className="w-4 h-4 mr-2" />
-                  Analytics
+                  <BarChart3 className="w-4 h-4" />
+                  <span>Analytics</span>
                 </Button>
                 <Button
                   variant="outline"
@@ -847,10 +847,10 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
                     e.stopPropagation();
                     setShowThemeCustomizer(true);
                   }}
-                  className="flex-shrink-0 touch-manipulation"
+                  className="touch-manipulation flex flex-col items-center justify-center h-16 sm:h-auto sm:flex-row gap-1 sm:gap-2 text-xs sm:text-sm"
                 >
-                  <Palette className="w-4 h-4 mr-2" />
-                  Theme
+                  <Palette className="w-4 h-4" />
+                  <span>Theme</span>
                 </Button>
                 <Button
                   variant="outline"
@@ -862,10 +862,10 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
                     e.stopPropagation();
                     setShowShareModal(true);
                   }}
-                  className="flex-shrink-0 touch-manipulation"
+                  className="touch-manipulation flex flex-col items-center justify-center h-16 sm:h-auto sm:flex-row gap-1 sm:gap-2 text-xs sm:text-sm"
                 >
-                  <Share2 className="w-4 h-4 mr-2" />
-                  QR Code
+                  <Share2 className="w-4 h-4" />
+                  <span>QR Code</span>
                 </Button>
                 <Button
                   variant="outline"
@@ -877,10 +877,10 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
                     e.stopPropagation();
                     setShowSocialShare(true);
                   }}
-                  className="flex-shrink-0 touch-manipulation"
+                  className="touch-manipulation flex flex-col items-center justify-center h-16 sm:h-auto sm:flex-row gap-1 sm:gap-2 text-xs sm:text-sm"
                 >
-                  <Download className="w-4 h-4 mr-2" />
-                  Export Card
+                  <Download className="w-4 h-4" />
+                  <span>Export</span>
                 </Button>
                 <Button
                   variant="outline"
@@ -892,10 +892,10 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
                     e.stopPropagation();
                     setShowComparison(true);
                   }}
-                  className="flex-shrink-0 touch-manipulation"
+                  className="touch-manipulation flex flex-col items-center justify-center h-16 sm:h-auto sm:flex-row gap-1 sm:gap-2 text-xs sm:text-sm"
                 >
-                  <Users className="w-4 h-4 mr-2" />
-                  Compare
+                  <Users className="w-4 h-4" />
+                  <span>Compare</span>
                 </Button>
               </div>
             )}
@@ -1175,16 +1175,16 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
                       )}
                     </div>
 
-                    {/* Action Buttons */}
-                    <div className="flex flex-wrap gap-2 pt-4">
+                    {/* Action Buttons - Mobile responsive */}
+                    <div className="flex flex-col sm:flex-row gap-2 pt-4">
                       {hasBackup && (
-                        <>
+                        <div className="flex gap-2">
                           <Button
                             type="button"
                             variant="outline"
                             size="sm"
                             onClick={handleRestoreBackup}
-                            className="flex-shrink-0"
+                            className="flex-1 sm:flex-none"
                           >
                             <RotateCcw className="w-4 h-4 mr-2" />
                             Restore
@@ -1194,28 +1194,30 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
                             variant="outline"
                             size="sm"
                             onClick={handleClearBackup}
-                            className="flex-shrink-0"
+                            className="flex-1 sm:flex-none"
                           >
                             Clear
                           </Button>
-                        </>
+                        </div>
                       )}
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={handlePreview}
-                        className="ml-auto flex-shrink-0"
-                      >
-                        <Eye className="w-4 h-4 mr-2" />
-                        Preview
-                      </Button>
-                      <Button
-                        onClick={handleSubmit}
-                        disabled={uploading || dynamicCompletion < 50}
-                        className="flex-shrink-0"
-                      >
-                        {uploading ? "Saving..." : "Continue"}
-                      </Button>
+                      <div className="flex gap-2 sm:ml-auto">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={handlePreview}
+                          className="flex-1 sm:flex-none"
+                        >
+                          <Eye className="w-4 h-4 mr-2" />
+                          Preview
+                        </Button>
+                        <Button
+                          onClick={handleSubmit}
+                          disabled={uploading || dynamicCompletion < 50}
+                          className="flex-1 sm:flex-none min-w-[100px]"
+                        >
+                          {uploading ? "Saving..." : "Continue"}
+                        </Button>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>

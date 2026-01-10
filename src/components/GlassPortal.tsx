@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
+import { AccountCreatedCelebration } from "./AccountCreatedCelebration";
 
 interface GlassPortalProps {
   onSuccess: () => void;
@@ -19,6 +20,7 @@ export const GlassPortal = ({ onSuccess }: GlassPortalProps) => {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showCelebration, setShowCelebration] = useState(false);
   const { toast } = useToast();
 
   const handleGoogleSignIn = async () => {
@@ -46,6 +48,11 @@ export const GlassPortal = ({ onSuccess }: GlassPortalProps) => {
     }
   };
 
+  const handleCelebrationComplete = () => {
+    setShowCelebration(false);
+    onSuccess();
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -66,7 +73,8 @@ export const GlassPortal = ({ onSuccess }: GlassPortalProps) => {
 
         if (signUpError) throw signUpError;
         
-        // Auth state change will trigger onSuccess
+        // Show celebration for new signups
+        setShowCelebration(true);
       } else {
         const { error: signInError } = await supabase.auth.signInWithPassword({
           email,
@@ -75,7 +83,8 @@ export const GlassPortal = ({ onSuccess }: GlassPortalProps) => {
 
         if (signInError) throw signInError;
         
-        // Auth state change will trigger onSuccess
+        // Direct login without celebration
+        onSuccess();
       }
     } catch (err: any) {
       // Normalize error messages to prevent user enumeration
@@ -91,7 +100,12 @@ export const GlassPortal = ({ onSuccess }: GlassPortalProps) => {
   };
 
   return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center p-4 overflow-y-auto">
+    <>
+      <AccountCreatedCelebration 
+        show={showCelebration} 
+        onComplete={handleCelebrationComplete} 
+      />
+      <div className="fixed inset-0 z-40 flex items-center justify-center p-4 overflow-y-auto">
       <motion.div
         initial={{ scale: 0.9, opacity: 0, y: 20 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
@@ -313,6 +327,7 @@ export const GlassPortal = ({ onSuccess }: GlassPortalProps) => {
           </motion.div>
         </motion.div>
       </motion.div>
-    </div>
+      </div>
+    </>
   );
 };
