@@ -8,7 +8,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { GeoData, detectGeo, calculatePaymentTier } from "@/lib/geo";
 import { profileSchema } from "@/lib/validations";
-import { Upload, CheckCircle2, XCircle, Camera, Eye, EyeOff, Download, RotateCcw, Share2, History, Palette, TrendingUp, Users, BarChart3, HelpCircle, Save, Loader2 as LoaderIcon } from "lucide-react";
+import { Upload, CheckCircle2, XCircle, Camera, Eye, EyeOff, Download, RotateCcw, Share2, History, Palette, TrendingUp, Users, BarChart3, HelpCircle, Save, Loader2 as LoaderIcon, Diamond } from "lucide-react";
+import { NFTProfileCard } from "./NFTProfileCard";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import confetti from "canvas-confetti";
 import { PremiumAvatar } from "./PremiumAvatar";
@@ -66,6 +67,7 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
   const [showComparison, setShowComparison] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [showShowcase, setShowShowcase] = useState(false);
+  const [showNFTCard, setShowNFTCard] = useState(false);
   const [profile, setProfile] = useState<any>(existingProfile);
   const [achievements, setAchievements] = useState<any[]>([]);
   const [stats, setStats] = useState({ totalXP: 0, totalAchievements: 0, rareAchievements: 0 });
@@ -366,6 +368,7 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
       else if (showAnalytics) setShowAnalytics(false);
       else if (showSocialShare) setShowSocialShare(false);
       else if (showComparison) setShowComparison(false);
+      else if (showNFTCard) setShowNFTCard(false);
     }
     
     // Ctrl/Cmd + Enter to submit (backup shortcut)
@@ -376,7 +379,7 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
       }
     }
   }, [showPreview, showImageEditor, showShareModal, showHistory, showThemeCustomizer, 
-      showAnalytics, showSocialShare, showComparison, uploading, dynamicCompletion]);
+      showAnalytics, showSocialShare, showComparison, showNFTCard, uploading, dynamicCompletion]);
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
@@ -719,6 +722,15 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
         )}
       </AnimatePresence>
 
+      <AnimatePresence>
+        {showNFTCard && (
+          <NFTProfileCard
+            userId={userId}
+            onClose={() => setShowNFTCard(false)}
+          />
+        )}
+      </AnimatePresence>
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -804,9 +816,9 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
               </div>
             </TooltipProvider>
 
-            {/* Action buttons - Mobile responsive grid */}
+            {/* Action buttons - Mobile responsive grid with scroll protection */}
             {existingProfile && (
-              <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mb-6 relative z-30">
+              <div className="grid grid-cols-4 gap-1.5 sm:grid-cols-7 sm:gap-2 mb-4 sm:mb-6 relative z-30 px-1">
                 <Button
                   variant="outline"
                   size="sm"
@@ -817,10 +829,10 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
                     e.stopPropagation();
                     setShowHistory(true);
                   }}
-                  className="touch-manipulation flex flex-col items-center justify-center h-16 sm:h-auto sm:flex-row gap-1 sm:gap-2 text-xs sm:text-sm"
+                  className="touch-manipulation flex flex-col items-center justify-center h-14 sm:h-auto sm:flex-row gap-0.5 sm:gap-2 text-[10px] sm:text-sm p-1 sm:p-2"
                 >
-                  <History className="w-4 h-4" />
-                  <span>History</span>
+                  <History className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <span className="leading-tight">History</span>
                 </Button>
                 <Button
                   variant="outline"
@@ -832,10 +844,10 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
                     e.stopPropagation();
                     setShowAnalytics(true);
                   }}
-                  className="touch-manipulation flex flex-col items-center justify-center h-16 sm:h-auto sm:flex-row gap-1 sm:gap-2 text-xs sm:text-sm"
+                  className="touch-manipulation flex flex-col items-center justify-center h-14 sm:h-auto sm:flex-row gap-0.5 sm:gap-2 text-[10px] sm:text-sm p-1 sm:p-2"
                 >
-                  <BarChart3 className="w-4 h-4" />
-                  <span>Analytics</span>
+                  <BarChart3 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <span className="leading-tight">Analytics</span>
                 </Button>
                 <Button
                   variant="outline"
@@ -847,10 +859,10 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
                     e.stopPropagation();
                     setShowThemeCustomizer(true);
                   }}
-                  className="touch-manipulation flex flex-col items-center justify-center h-16 sm:h-auto sm:flex-row gap-1 sm:gap-2 text-xs sm:text-sm"
+                  className="touch-manipulation flex flex-col items-center justify-center h-14 sm:h-auto sm:flex-row gap-0.5 sm:gap-2 text-[10px] sm:text-sm p-1 sm:p-2"
                 >
-                  <Palette className="w-4 h-4" />
-                  <span>Theme</span>
+                  <Palette className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <span className="leading-tight">Theme</span>
                 </Button>
                 <Button
                   variant="outline"
@@ -862,10 +874,10 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
                     e.stopPropagation();
                     setShowShareModal(true);
                   }}
-                  className="touch-manipulation flex flex-col items-center justify-center h-16 sm:h-auto sm:flex-row gap-1 sm:gap-2 text-xs sm:text-sm"
+                  className="touch-manipulation flex flex-col items-center justify-center h-14 sm:h-auto sm:flex-row gap-0.5 sm:gap-2 text-[10px] sm:text-sm p-1 sm:p-2"
                 >
-                  <Share2 className="w-4 h-4" />
-                  <span>QR Code</span>
+                  <Share2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <span className="leading-tight">QR</span>
                 </Button>
                 <Button
                   variant="outline"
@@ -877,10 +889,10 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
                     e.stopPropagation();
                     setShowSocialShare(true);
                   }}
-                  className="touch-manipulation flex flex-col items-center justify-center h-16 sm:h-auto sm:flex-row gap-1 sm:gap-2 text-xs sm:text-sm"
+                  className="touch-manipulation flex flex-col items-center justify-center h-14 sm:h-auto sm:flex-row gap-0.5 sm:gap-2 text-[10px] sm:text-sm p-1 sm:p-2"
                 >
-                  <Download className="w-4 h-4" />
-                  <span>Export</span>
+                  <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <span className="leading-tight">Export</span>
                 </Button>
                 <Button
                   variant="outline"
@@ -892,10 +904,25 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
                     e.stopPropagation();
                     setShowComparison(true);
                   }}
-                  className="touch-manipulation flex flex-col items-center justify-center h-16 sm:h-auto sm:flex-row gap-1 sm:gap-2 text-xs sm:text-sm"
+                  className="touch-manipulation flex flex-col items-center justify-center h-14 sm:h-auto sm:flex-row gap-0.5 sm:gap-2 text-[10px] sm:text-sm p-1 sm:p-2"
                 >
-                  <Users className="w-4 h-4" />
-                  <span>Compare</span>
+                  <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <span className="leading-tight">Compare</span>
+                </Button>
+                <Button
+                  variant="default"
+                  size="sm"
+                  type="button"
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setShowNFTCard(true);
+                  }}
+                  className="touch-manipulation flex flex-col items-center justify-center h-14 sm:h-auto sm:flex-row gap-0.5 sm:gap-2 text-[10px] sm:text-sm p-1 sm:p-2 bg-gradient-to-r from-primary to-secondary col-span-4 sm:col-span-1"
+                >
+                  <Diamond className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <span className="leading-tight">NFT Card</span>
                 </Button>
               </div>
             )}
