@@ -588,6 +588,125 @@ export type Database = {
         }
         Relationships: []
       }
+      certificates: {
+        Row: {
+          certificate_hash: string | null
+          certificate_name: string
+          certificate_type: string
+          course_id: string | null
+          id: string
+          is_verified: boolean | null
+          issued_at: string
+          metadata: Json | null
+          user_id: string
+        }
+        Insert: {
+          certificate_hash?: string | null
+          certificate_name: string
+          certificate_type: string
+          course_id?: string | null
+          id?: string
+          is_verified?: boolean | null
+          issued_at?: string
+          metadata?: Json | null
+          user_id: string
+        }
+        Update: {
+          certificate_hash?: string | null
+          certificate_name?: string
+          certificate_type?: string
+          course_id?: string | null
+          id?: string
+          is_verified?: boolean | null
+          issued_at?: string
+          metadata?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      collectibles: {
+        Row: {
+          created_at: string
+          current_supply: number | null
+          description: string | null
+          id: string
+          image_url: string | null
+          max_supply: number | null
+          metadata: Json | null
+          name: string
+          rarity: string
+          tier: string
+          token_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          current_supply?: number | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          max_supply?: number | null
+          metadata?: Json | null
+          name: string
+          rarity?: string
+          tier?: string
+          token_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          current_supply?: number | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          max_supply?: number | null
+          metadata?: Json | null
+          name?: string
+          rarity?: string
+          tier?: string
+          token_id?: string | null
+        }
+        Relationships: []
+      }
+      competition_participants: {
+        Row: {
+          competition_id: string
+          current_balance: number
+          id: string
+          joined_at: string
+          pnl_percentage: number | null
+          rank: number | null
+          starting_balance: number
+          user_id: string
+        }
+        Insert: {
+          competition_id: string
+          current_balance?: number
+          id?: string
+          joined_at?: string
+          pnl_percentage?: number | null
+          rank?: number | null
+          starting_balance?: number
+          user_id: string
+        }
+        Update: {
+          competition_id?: string
+          current_balance?: number
+          id?: string
+          joined_at?: string
+          pnl_percentage?: number | null
+          rank?: number | null
+          starting_balance?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "competition_participants_competition_id_fkey"
+            columns: ["competition_id"]
+            isOneToOne: false
+            referencedRelation: "trading_competitions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       crafted_achievements: {
         Row: {
           achievement_id: string
@@ -1037,6 +1156,36 @@ export type Database = {
           },
         ]
       }
+      mining_sessions: {
+        Row: {
+          hash_rate: number | null
+          id: string
+          is_active: boolean | null
+          session_end: string | null
+          session_start: string
+          tokens_earned: number | null
+          user_id: string
+        }
+        Insert: {
+          hash_rate?: number | null
+          id?: string
+          is_active?: boolean | null
+          session_end?: string | null
+          session_start?: string
+          tokens_earned?: number | null
+          user_id: string
+        }
+        Update: {
+          hash_rate?: number | null
+          id?: string
+          is_active?: boolean | null
+          session_end?: string | null
+          session_start?: string
+          tokens_earned?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           amount_local: number | null
@@ -1284,11 +1433,13 @@ export type Database = {
           last_achievement_date: string | null
           last_login_at: string | null
           linkedin_url: string | null
+          mining_level: number | null
           payment_completed: boolean | null
           payment_required: boolean | null
           payment_tier: Database["public"]["Enums"]["payment_tier"] | null
           phone_number: string | null
           profile_badge: string | null
+          profile_tier: string | null
           profile_visibility: string | null
           rank_level: number | null
           show_email: boolean | null
@@ -1299,6 +1450,7 @@ export type Database = {
           theme_layout: string | null
           theme_preference: string | null
           timezone: string | null
+          total_trades: number | null
           twitter_handle: string | null
           unlocked_titles: string[] | null
           updated_at: string
@@ -1306,6 +1458,7 @@ export type Database = {
           verification_badge: string | null
           virtual_currency: number | null
           website_url: string | null
+          win_rate: number | null
           xp_points: number | null
         }
         Insert: {
@@ -1334,11 +1487,13 @@ export type Database = {
           last_achievement_date?: string | null
           last_login_at?: string | null
           linkedin_url?: string | null
+          mining_level?: number | null
           payment_completed?: boolean | null
           payment_required?: boolean | null
           payment_tier?: Database["public"]["Enums"]["payment_tier"] | null
           phone_number?: string | null
           profile_badge?: string | null
+          profile_tier?: string | null
           profile_visibility?: string | null
           rank_level?: number | null
           show_email?: boolean | null
@@ -1349,6 +1504,7 @@ export type Database = {
           theme_layout?: string | null
           theme_preference?: string | null
           timezone?: string | null
+          total_trades?: number | null
           twitter_handle?: string | null
           unlocked_titles?: string[] | null
           updated_at?: string
@@ -1356,6 +1512,7 @@ export type Database = {
           verification_badge?: string | null
           virtual_currency?: number | null
           website_url?: string | null
+          win_rate?: number | null
           xp_points?: number | null
         }
         Update: {
@@ -1384,11 +1541,13 @@ export type Database = {
           last_achievement_date?: string | null
           last_login_at?: string | null
           linkedin_url?: string | null
+          mining_level?: number | null
           payment_completed?: boolean | null
           payment_required?: boolean | null
           payment_tier?: Database["public"]["Enums"]["payment_tier"] | null
           phone_number?: string | null
           profile_badge?: string | null
+          profile_tier?: string | null
           profile_visibility?: string | null
           rank_level?: number | null
           show_email?: boolean | null
@@ -1399,6 +1558,7 @@ export type Database = {
           theme_layout?: string | null
           theme_preference?: string | null
           timezone?: string | null
+          total_trades?: number | null
           twitter_handle?: string | null
           unlocked_titles?: string[] | null
           updated_at?: string
@@ -1406,6 +1566,7 @@ export type Database = {
           verification_badge?: string | null
           virtual_currency?: number | null
           website_url?: string | null
+          win_rate?: number | null
           xp_points?: number | null
         }
         Relationships: []
@@ -1579,6 +1740,48 @@ export type Database = {
           },
         ]
       }
+      trading_competitions: {
+        Row: {
+          competition_name: string
+          created_at: string
+          description: string | null
+          end_date: string
+          entry_fee: number | null
+          id: string
+          max_participants: number | null
+          prize_pool: number | null
+          rules: Json | null
+          start_date: string
+          status: string
+        }
+        Insert: {
+          competition_name: string
+          created_at?: string
+          description?: string | null
+          end_date: string
+          entry_fee?: number | null
+          id?: string
+          max_participants?: number | null
+          prize_pool?: number | null
+          rules?: Json | null
+          start_date: string
+          status?: string
+        }
+        Update: {
+          competition_name?: string
+          created_at?: string
+          description?: string | null
+          end_date?: string
+          entry_fee?: number | null
+          id?: string
+          max_participants?: number | null
+          prize_pool?: number | null
+          rules?: Json | null
+          start_date?: string
+          status?: string
+        }
+        Relationships: []
+      }
       user_achievement_evolution: {
         Row: {
           base_achievement_id: string
@@ -1714,6 +1917,41 @@ export type Database = {
             columns: ["challenge_id"]
             isOneToOne: false
             referencedRelation: "achievement_challenges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_collectibles: {
+        Row: {
+          acquired_at: string
+          collectible_id: string
+          id: string
+          is_equipped: boolean | null
+          serial_number: number | null
+          user_id: string
+        }
+        Insert: {
+          acquired_at?: string
+          collectible_id: string
+          id?: string
+          is_equipped?: boolean | null
+          serial_number?: number | null
+          user_id: string
+        }
+        Update: {
+          acquired_at?: string
+          collectible_id?: string
+          id?: string
+          is_equipped?: boolean | null
+          serial_number?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_collectibles_collectible_id_fkey"
+            columns: ["collectible_id"]
+            isOneToOne: false
+            referencedRelation: "collectibles"
             referencedColumns: ["id"]
           },
         ]
