@@ -50,10 +50,10 @@ export const PaymentTierCard = ({ geoData, onContinue }: PaymentTierCardProps) =
         <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-primary/40 to-primary/20 blur-3xl opacity-50" />
 
         {/* Main Card */}
-        <div className="relative p-8 md:p-12 rounded-3xl border border-primary/30 bg-card/90 backdrop-blur-xl">
+        <div className="relative p-6 md:p-8 rounded-3xl border border-primary/30 bg-card/90 backdrop-blur-xl">
           {/* Tier Icon */}
           <motion.div
-            className="flex justify-center mb-6"
+            className="flex justify-center mb-4"
             animate={{
               scale: [1, 1.1, 1],
               rotate: [0, 5, -5, 0]
@@ -64,79 +64,59 @@ export const PaymentTierCard = ({ geoData, onContinue }: PaymentTierCardProps) =
               ease: "easeInOut"
             }}
           >
-            <div className="p-6 rounded-2xl bg-primary/10 text-primary">
+            <div className="p-4 rounded-2xl bg-primary/10 text-primary">
               {getTierIcon()}
             </div>
           </motion.div>
 
           {/* Tier Name */}
-          <h2 className="text-4xl md:text-5xl font-bold text-center mb-4">
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-2">
             {geoData.paymentTier}
-            <span className="block text-xl md:text-2xl text-primary font-light mt-2">
+            <span className="block text-lg md:text-xl text-primary font-light mt-1">
               Tier Access
             </span>
           </h2>
 
           {/* Description */}
-          <p className="text-center text-lg text-muted-foreground mb-8">
+          <p className="text-center text-base text-muted-foreground mb-4">
             {getTierDescription()}
           </p>
 
           {/* Price Display */}
-          <div className="p-6 rounded-2xl border border-border bg-background/50 mb-8">
+          <div className="p-4 rounded-2xl border border-border bg-background/50 mb-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Activation Fee</p>
-                <p className="text-3xl font-bold">
+                <p className="text-xs text-muted-foreground">Activation Fee</p>
+                <p className="text-2xl font-bold">
                   ${geoData.amountUSD}
                   {geoData.localCurrency && (
-                    <span className="text-lg text-muted-foreground ml-2">
+                    <span className="text-sm text-muted-foreground ml-2">
                       ({geoData.localCurrency})
                     </span>
                   )}
                 </p>
               </div>
               <div className="text-right">
-                <p className="text-sm text-muted-foreground">XP Reward</p>
-                <p className="text-3xl font-bold text-primary">
+                <p className="text-xs text-muted-foreground">XP Reward</p>
+                <p className="text-2xl font-bold text-primary">
                   +{xpReward} XP
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Features List */}
-          <div className="space-y-3 mb-8">
-            <div className="flex items-center gap-3 text-sm">
-              <div className="w-2 h-2 rounded-full bg-primary" />
-              <span>Full Access to BlackBoard Trading Academy</span>
-            </div>
-            <div className="flex items-center gap-3 text-sm">
-              <div className="w-2 h-2 rounded-full bg-primary" />
-              <span>Real-time Market Analysis Tools</span>
-            </div>
-            <div className="flex items-center gap-3 text-sm">
-              <div className="w-2 h-2 rounded-full bg-primary" />
-              <span>Citizenship in BTA Digital Republic</span>
-            </div>
-            <div className="flex items-center gap-3 text-sm">
-              <div className="w-2 h-2 rounded-full bg-primary" />
-              <span>Global Leaderboard Participation</span>
-            </div>
-          </div>
-
           {/* Continue Button */}
           <Button
             onClick={onContinue}
-            className="w-full h-14 text-lg font-semibold"
+            className="w-full h-12 text-lg font-semibold"
             size="lg"
           >
             Continue to Payment
           </Button>
 
           {/* Security Notice */}
-          <p className="text-xs text-center text-muted-foreground mt-4">
-            🔒 Secure payment processing • All transactions encrypted
+          <p className="text-xs text-center text-muted-foreground mt-3">
+            🔒 Secure payment • Encrypted
           </p>
         </div>
       </motion.div>
