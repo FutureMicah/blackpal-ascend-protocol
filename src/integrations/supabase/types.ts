@@ -391,6 +391,51 @@ export type Database = {
         }
         Relationships: []
       }
+      achievement_nfts: {
+        Row: {
+          achievement_id: string
+          blockchain: string | null
+          contract_address: string | null
+          created_at: string
+          id: string
+          image_uri: string | null
+          metadata_uri: string | null
+          mint_status: string | null
+          mint_transaction_hash: string | null
+          minted_at: string | null
+          token_id: string | null
+          user_id: string
+        }
+        Insert: {
+          achievement_id: string
+          blockchain?: string | null
+          contract_address?: string | null
+          created_at?: string
+          id?: string
+          image_uri?: string | null
+          metadata_uri?: string | null
+          mint_status?: string | null
+          mint_transaction_hash?: string | null
+          minted_at?: string | null
+          token_id?: string | null
+          user_id: string
+        }
+        Update: {
+          achievement_id?: string
+          blockchain?: string | null
+          contract_address?: string | null
+          created_at?: string
+          id?: string
+          image_uri?: string | null
+          metadata_uri?: string | null
+          mint_status?: string | null
+          mint_transaction_hash?: string | null
+          minted_at?: string | null
+          token_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       achievement_seasons: {
         Row: {
           created_at: string
@@ -526,6 +571,74 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_chat_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          metadata: Json | null
+          role: string
+          session_id: string | null
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          role: string
+          session_id?: string | null
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          role?: string
+          session_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_chat_messages_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "ai_chat_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_chat_sessions: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean | null
+          session_type: string | null
+          title: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          session_type?: string | null
+          title?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          session_type?: string | null
+          title?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       auction_bids: {
         Row: {
           auction_id: string
@@ -585,6 +698,98 @@ export type Database = {
           preset_name?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      battle_pass_rewards: {
+        Row: {
+          battle_pass_id: string | null
+          created_at: string
+          id: string
+          is_premium: boolean | null
+          level_required: number
+          reward_description: string | null
+          reward_icon: string | null
+          reward_name: string
+          reward_type: string
+          reward_value: Json
+        }
+        Insert: {
+          battle_pass_id?: string | null
+          created_at?: string
+          id?: string
+          is_premium?: boolean | null
+          level_required: number
+          reward_description?: string | null
+          reward_icon?: string | null
+          reward_name: string
+          reward_type: string
+          reward_value: Json
+        }
+        Update: {
+          battle_pass_id?: string | null
+          created_at?: string
+          id?: string
+          is_premium?: boolean | null
+          level_required?: number
+          reward_description?: string | null
+          reward_icon?: string | null
+          reward_name?: string
+          reward_type?: string
+          reward_value?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "battle_pass_rewards_battle_pass_id_fkey"
+            columns: ["battle_pass_id"]
+            isOneToOne: false
+            referencedRelation: "battle_passes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      battle_passes: {
+        Row: {
+          banner_image: string | null
+          created_at: string
+          description: string | null
+          end_date: string
+          id: string
+          is_active: boolean | null
+          max_level: number | null
+          premium_price: number | null
+          season_name: string
+          season_number: number
+          start_date: string
+          theme_color: string | null
+        }
+        Insert: {
+          banner_image?: string | null
+          created_at?: string
+          description?: string | null
+          end_date: string
+          id?: string
+          is_active?: boolean | null
+          max_level?: number | null
+          premium_price?: number | null
+          season_name: string
+          season_number: number
+          start_date: string
+          theme_color?: string | null
+        }
+        Update: {
+          banner_image?: string | null
+          created_at?: string
+          description?: string | null
+          end_date?: string
+          id?: string
+          is_active?: boolean | null
+          max_level?: number | null
+          premium_price?: number | null
+          season_name?: string
+          season_number?: number
+          start_date?: string
+          theme_color?: string | null
         }
         Relationships: []
       }
@@ -1055,6 +1260,74 @@ export type Database = {
           },
         ]
       }
+      journal_trades: {
+        Row: {
+          chart_screenshot: string | null
+          created_at: string
+          entry_price: number
+          entry_reason: string | null
+          exit_price: number | null
+          exit_reason: string | null
+          id: string
+          journal_id: string | null
+          mistakes: string | null
+          profit_loss: number | null
+          quantity: number
+          setup_type: string | null
+          symbol: string
+          timeframe: string | null
+          trade_type: string
+          user_id: string
+          what_went_well: string | null
+        }
+        Insert: {
+          chart_screenshot?: string | null
+          created_at?: string
+          entry_price: number
+          entry_reason?: string | null
+          exit_price?: number | null
+          exit_reason?: string | null
+          id?: string
+          journal_id?: string | null
+          mistakes?: string | null
+          profit_loss?: number | null
+          quantity: number
+          setup_type?: string | null
+          symbol: string
+          timeframe?: string | null
+          trade_type: string
+          user_id: string
+          what_went_well?: string | null
+        }
+        Update: {
+          chart_screenshot?: string | null
+          created_at?: string
+          entry_price?: number
+          entry_reason?: string | null
+          exit_price?: number | null
+          exit_reason?: string | null
+          id?: string
+          journal_id?: string | null
+          mistakes?: string | null
+          profit_loss?: number | null
+          quantity?: number
+          setup_type?: string | null
+          symbol?: string
+          timeframe?: string | null
+          trade_type?: string
+          user_id?: string
+          what_went_well?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journal_trades_journal_id_fkey"
+            columns: ["journal_id"]
+            isOneToOne: false
+            referencedRelation: "trading_journal"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lottery_prizes: {
         Row: {
           achievement_id: string
@@ -1090,6 +1363,119 @@ export type Database = {
             columns: ["achievement_id"]
             isOneToOne: false
             referencedRelation: "achievements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mentors: {
+        Row: {
+          availability_schedule: Json | null
+          average_rating: number | null
+          bio: string | null
+          created_at: string
+          hourly_rate: number | null
+          id: string
+          is_available: boolean | null
+          is_verified: boolean | null
+          languages: string[] | null
+          specialty: string[] | null
+          total_sessions: number | null
+          updated_at: string
+          user_id: string
+          years_experience: number | null
+        }
+        Insert: {
+          availability_schedule?: Json | null
+          average_rating?: number | null
+          bio?: string | null
+          created_at?: string
+          hourly_rate?: number | null
+          id?: string
+          is_available?: boolean | null
+          is_verified?: boolean | null
+          languages?: string[] | null
+          specialty?: string[] | null
+          total_sessions?: number | null
+          updated_at?: string
+          user_id: string
+          years_experience?: number | null
+        }
+        Update: {
+          availability_schedule?: Json | null
+          average_rating?: number | null
+          bio?: string | null
+          created_at?: string
+          hourly_rate?: number | null
+          id?: string
+          is_available?: boolean | null
+          is_verified?: boolean | null
+          languages?: string[] | null
+          specialty?: string[] | null
+          total_sessions?: number | null
+          updated_at?: string
+          user_id?: string
+          years_experience?: number | null
+        }
+        Relationships: []
+      }
+      mentorship_sessions: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          duration_minutes: number | null
+          id: string
+          mentor_id: string | null
+          notes: string | null
+          price: number | null
+          rating: number | null
+          recording_url: string | null
+          review: string | null
+          scheduled_at: string
+          session_type: string | null
+          status: string | null
+          student_id: string
+          topic: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          duration_minutes?: number | null
+          id?: string
+          mentor_id?: string | null
+          notes?: string | null
+          price?: number | null
+          rating?: number | null
+          recording_url?: string | null
+          review?: string | null
+          scheduled_at: string
+          session_type?: string | null
+          status?: string | null
+          student_id: string
+          topic?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          duration_minutes?: number | null
+          id?: string
+          mentor_id?: string | null
+          notes?: string | null
+          price?: number | null
+          rating?: number | null
+          recording_url?: string | null
+          review?: string | null
+          scheduled_at?: string
+          session_type?: string | null
+          status?: string | null
+          student_id?: string
+          topic?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mentorship_sessions_mentor_id_fkey"
+            columns: ["mentor_id"]
+            isOneToOne: false
+            referencedRelation: "mentors"
             referencedColumns: ["id"]
           },
         ]
@@ -1185,6 +1571,116 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      paper_portfolios: {
+        Row: {
+          created_at: string
+          current_balance: number
+          id: string
+          initial_balance: number
+          is_active: boolean | null
+          portfolio_name: string
+          total_profit_loss: number | null
+          total_trades: number | null
+          updated_at: string
+          user_id: string
+          winning_trades: number | null
+        }
+        Insert: {
+          created_at?: string
+          current_balance?: number
+          id?: string
+          initial_balance?: number
+          is_active?: boolean | null
+          portfolio_name?: string
+          total_profit_loss?: number | null
+          total_trades?: number | null
+          updated_at?: string
+          user_id: string
+          winning_trades?: number | null
+        }
+        Update: {
+          created_at?: string
+          current_balance?: number
+          id?: string
+          initial_balance?: number
+          is_active?: boolean | null
+          portfolio_name?: string
+          total_profit_loss?: number | null
+          total_trades?: number | null
+          updated_at?: string
+          user_id?: string
+          winning_trades?: number | null
+        }
+        Relationships: []
+      }
+      paper_trades: {
+        Row: {
+          closed_at: string | null
+          created_at: string
+          entry_price: number
+          exit_price: number | null
+          id: string
+          notes: string | null
+          opened_at: string
+          portfolio_id: string | null
+          profit_loss: number | null
+          profit_loss_percent: number | null
+          quantity: number
+          status: string
+          stop_loss: number | null
+          symbol: string
+          take_profit: number | null
+          trade_type: string
+          user_id: string
+        }
+        Insert: {
+          closed_at?: string | null
+          created_at?: string
+          entry_price: number
+          exit_price?: number | null
+          id?: string
+          notes?: string | null
+          opened_at?: string
+          portfolio_id?: string | null
+          profit_loss?: number | null
+          profit_loss_percent?: number | null
+          quantity: number
+          status?: string
+          stop_loss?: number | null
+          symbol: string
+          take_profit?: number | null
+          trade_type: string
+          user_id: string
+        }
+        Update: {
+          closed_at?: string | null
+          created_at?: string
+          entry_price?: number
+          exit_price?: number | null
+          id?: string
+          notes?: string | null
+          opened_at?: string
+          portfolio_id?: string | null
+          profit_loss?: number | null
+          profit_loss_percent?: number | null
+          quantity?: number
+          status?: string
+          stop_loss?: number | null
+          symbol?: string
+          take_profit?: number | null
+          trade_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "paper_trades_portfolio_id_fkey"
+            columns: ["portfolio_id"]
+            isOneToOne: false
+            referencedRelation: "paper_portfolios"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       payments: {
         Row: {
@@ -1634,6 +2130,88 @@ export type Database = {
         }
         Relationships: []
       }
+      room_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          is_pinned: boolean | null
+          message_type: string | null
+          metadata: Json | null
+          room_id: string | null
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          is_pinned?: boolean | null
+          message_type?: string | null
+          metadata?: Json | null
+          room_id?: string | null
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          is_pinned?: boolean | null
+          message_type?: string | null
+          metadata?: Json | null
+          room_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "room_messages_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "trading_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      room_participants: {
+        Row: {
+          id: string
+          is_banned: boolean | null
+          is_muted: boolean | null
+          joined_at: string
+          left_at: string | null
+          role: string | null
+          room_id: string | null
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          is_banned?: boolean | null
+          is_muted?: boolean | null
+          joined_at?: string
+          left_at?: string | null
+          role?: string | null
+          room_id?: string | null
+          user_id: string
+        }
+        Update: {
+          id?: string
+          is_banned?: boolean | null
+          is_muted?: boolean | null
+          joined_at?: string
+          left_at?: string | null
+          role?: string | null
+          room_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "room_participants_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "trading_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       season_leaderboard: {
         Row: {
           created_at: string
@@ -1740,6 +2318,54 @@ export type Database = {
           },
         ]
       }
+      subscription_tiers: {
+        Row: {
+          ai_queries_per_day: number | null
+          badge_color: string | null
+          can_access_live_rooms: boolean | null
+          can_access_mentors: boolean | null
+          created_at: string
+          features: Json | null
+          id: string
+          max_journal_entries: number | null
+          max_paper_trades: number | null
+          price_monthly: number
+          price_yearly: number
+          tier_level: number
+          tier_name: string
+        }
+        Insert: {
+          ai_queries_per_day?: number | null
+          badge_color?: string | null
+          can_access_live_rooms?: boolean | null
+          can_access_mentors?: boolean | null
+          created_at?: string
+          features?: Json | null
+          id?: string
+          max_journal_entries?: number | null
+          max_paper_trades?: number | null
+          price_monthly?: number
+          price_yearly?: number
+          tier_level?: number
+          tier_name: string
+        }
+        Update: {
+          ai_queries_per_day?: number | null
+          badge_color?: string | null
+          can_access_live_rooms?: boolean | null
+          can_access_mentors?: boolean | null
+          created_at?: string
+          features?: Json | null
+          id?: string
+          max_journal_entries?: number | null
+          max_paper_trades?: number | null
+          price_monthly?: number
+          price_yearly?: number
+          tier_level?: number
+          tier_name?: string
+        }
+        Relationships: []
+      }
       trading_competitions: {
         Row: {
           competition_name: string
@@ -1779,6 +2405,111 @@ export type Database = {
           rules?: Json | null
           start_date?: string
           status?: string
+        }
+        Relationships: []
+      }
+      trading_journal: {
+        Row: {
+          ai_analysis: string | null
+          ai_suggestions: Json | null
+          created_at: string
+          emotional_state: string | null
+          entry_date: string
+          goals_for_tomorrow: string | null
+          id: string
+          lessons_learned: string | null
+          market_sentiment: string | null
+          post_market_notes: string | null
+          pre_market_notes: string | null
+          screenshots: string[] | null
+          tags: string[] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ai_analysis?: string | null
+          ai_suggestions?: Json | null
+          created_at?: string
+          emotional_state?: string | null
+          entry_date?: string
+          goals_for_tomorrow?: string | null
+          id?: string
+          lessons_learned?: string | null
+          market_sentiment?: string | null
+          post_market_notes?: string | null
+          pre_market_notes?: string | null
+          screenshots?: string[] | null
+          tags?: string[] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ai_analysis?: string | null
+          ai_suggestions?: Json | null
+          created_at?: string
+          emotional_state?: string | null
+          entry_date?: string
+          goals_for_tomorrow?: string | null
+          id?: string
+          lessons_learned?: string | null
+          market_sentiment?: string | null
+          post_market_notes?: string | null
+          pre_market_notes?: string | null
+          screenshots?: string[] | null
+          tags?: string[] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      trading_rooms: {
+        Row: {
+          created_at: string
+          current_participants: number | null
+          host_id: string
+          id: string
+          is_live: boolean | null
+          max_participants: number | null
+          required_tier: number | null
+          room_description: string | null
+          room_name: string
+          room_type: string | null
+          scheduled_start: string | null
+          tags: string[] | null
+          thumbnail_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          current_participants?: number | null
+          host_id: string
+          id?: string
+          is_live?: boolean | null
+          max_participants?: number | null
+          required_tier?: number | null
+          room_description?: string | null
+          room_name: string
+          room_type?: string | null
+          scheduled_start?: string | null
+          tags?: string[] | null
+          thumbnail_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          current_participants?: number | null
+          host_id?: string
+          id?: string
+          is_live?: boolean | null
+          max_participants?: number | null
+          required_tier?: number | null
+          room_description?: string | null
+          room_name?: string
+          room_type?: string | null
+          scheduled_start?: string | null
+          tags?: string[] | null
+          thumbnail_url?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -1879,6 +2610,53 @@ export type Database = {
             columns: ["achievement_id"]
             isOneToOne: false
             referencedRelation: "achievements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_battle_pass: {
+        Row: {
+          battle_pass_id: string | null
+          claimed_rewards: string[] | null
+          created_at: string
+          current_level: number | null
+          current_xp: number | null
+          id: string
+          is_premium: boolean | null
+          purchased_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          battle_pass_id?: string | null
+          claimed_rewards?: string[] | null
+          created_at?: string
+          current_level?: number | null
+          current_xp?: number | null
+          id?: string
+          is_premium?: boolean | null
+          purchased_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          battle_pass_id?: string | null
+          claimed_rewards?: string[] | null
+          created_at?: string
+          current_level?: number | null
+          current_xp?: number | null
+          id?: string
+          is_premium?: boolean | null
+          purchased_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_battle_pass_battle_pass_id_fkey"
+            columns: ["battle_pass_id"]
+            isOneToOne: false
+            referencedRelation: "battle_passes"
             referencedColumns: ["id"]
           },
         ]
@@ -2092,6 +2870,53 @@ export type Database = {
             columns: ["pack_id"]
             isOneToOne: false
             referencedRelation: "sticker_packs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_subscriptions: {
+        Row: {
+          auto_renew: boolean | null
+          billing_cycle: string | null
+          created_at: string
+          expires_at: string | null
+          id: string
+          started_at: string
+          status: string
+          tier_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          auto_renew?: boolean | null
+          billing_cycle?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          started_at?: string
+          status?: string
+          tier_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          auto_renew?: boolean | null
+          billing_cycle?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          started_at?: string
+          status?: string
+          tier_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_subscriptions_tier_id_fkey"
+            columns: ["tier_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_tiers"
             referencedColumns: ["id"]
           },
         ]
