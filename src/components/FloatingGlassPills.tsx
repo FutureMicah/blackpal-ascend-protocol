@@ -1,3 +1,4 @@
+// FloatingGlassCoins — flat glass disc/coin shapes tumbling in zero gravity
 import { useRef, useMemo } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Environment } from "@react-three/drei";
@@ -37,23 +38,23 @@ function GlassPill({ data }: { data: PillData }) {
 
   return (
     <mesh ref={meshRef} position={data.position} scale={data.scale}>
-      {/* Capsule geometry — pill shape */}
-      <capsuleGeometry args={[0.28, 0.85, 12, 24]} />
+      {/* Cylinder geometry — flat coin/disc shape */}
+      <cylinderGeometry args={[0.7, 0.7, 0.18, 64]} />
       <meshPhysicalMaterial
         color={data.color}
-        metalness={0.05}
+        metalness={0.08}
         roughness={0.0}
-        transmission={0.92}
-        thickness={1.2}
-        ior={1.6}
-        reflectivity={0.9}
+        transmission={0.88}
+        thickness={0.4}
+        ior={1.7}
+        reflectivity={0.95}
         transparent
-        opacity={0.88}
-        envMapIntensity={2.5}
+        opacity={0.85}
+        envMapIntensity={3.0}
         clearcoat={1}
-        clearcoatRoughness={0.05}
+        clearcoatRoughness={0.02}
         attenuationColor={data.color}
-        attenuationDistance={0.5}
+        attenuationDistance={0.3}
       />
     </mesh>
   );
