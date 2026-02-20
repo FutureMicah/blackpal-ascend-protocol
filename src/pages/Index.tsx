@@ -142,6 +142,13 @@ const Index = () => {
         </div>
       )}
 
+      {/* Wireframe Glow Hand - visible during portal stage */}
+      {stage === "portal" && (
+        <div className="fixed inset-0 -z-5 pointer-events-none">
+          <WireframeGlow className="w-full h-full opacity-60" />
+        </div>
+      )}
+
       {/* Stage-based rendering */}
       {stage === "arrival" && (
         <ArrivalAnimation onComplete={() => {
