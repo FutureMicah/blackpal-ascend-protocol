@@ -47,8 +47,9 @@ function GlowingWireframeHand() {
   useFrame((state) => {
     if (!groupRef.current) return;
     const t = state.clock.elapsedTime;
-    groupRef.current.rotation.y = Math.sin(t * 0.15) * 0.3;
-    groupRef.current.rotation.x = Math.sin(t * 0.1) * 0.1 - 0.2;
+    groupRef.current.rotation.y = Math.sin(t * 0.15) * 0.4 + 0.1;
+    groupRef.current.rotation.x = Math.sin(t * 0.1) * 0.15 - 0.3;
+    groupRef.current.rotation.z = Math.sin(t * 0.08) * 0.1;
   });
 
   // Build a stylized wireframe hand from cylinders and spheres
