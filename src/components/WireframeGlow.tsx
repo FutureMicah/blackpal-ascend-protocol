@@ -86,8 +86,8 @@ function GlowingWireframeHand() {
           </mesh>
           {/* Joint */}
           <mesh position={[0, finger.length * 0.6, 0]}>
-            <sphereGeometry args={[finger.radius * 1.2, 6, 4]} />
-            <meshBasicMaterial color="#a78bfa" wireframe transparent opacity={0.8} />
+            <sphereGeometry args={[finger.radius * 1.2, 8, 6]} />
+            <meshBasicMaterial color="#a78bfa" wireframe transparent opacity={0.9} />
           </mesh>
           {/* Finger segment 2 */}
           <mesh position={[0, finger.length * 0.85, 0]}>
