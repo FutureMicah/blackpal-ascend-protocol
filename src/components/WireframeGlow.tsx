@@ -69,7 +69,7 @@ function GlowingWireframeHand() {
   ], []);
 
   return (
-    <group ref={groupRef} position={[0, -0.5, 0]} scale={1.3}>
+    <group ref={groupRef} position={[0, -0.8, 0]} scale={2.0}>
       {/* Palm — wireframe box */}
       <mesh position={[0, 0.3, 0]}>
         <boxGeometry args={[1.3, 1.2, 0.4, 3, 3, 2]} />
