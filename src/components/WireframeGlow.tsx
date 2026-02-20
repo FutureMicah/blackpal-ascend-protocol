@@ -53,7 +53,7 @@ function GlowingWireframeHand() {
 
   // Build a stylized wireframe hand from cylinders and spheres
   const fingerData = useMemo(() => [
-    // Palm base
+    // Palm base (not rendered as finger)
     { pos: [0, 0, 0] as [number,number,number], rot: [0, 0, 0] as [number,number,number], length: 1.2, radius: 0.6 },
     // Thumb
     { pos: [-0.7, 0.2, 0.2] as [number,number,number], rot: [0, 0, 0.8] as [number,number,number], length: 0.8, radius: 0.12 },
