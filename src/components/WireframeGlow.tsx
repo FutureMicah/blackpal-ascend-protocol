@@ -47,13 +47,14 @@ function GlowingWireframeHand() {
   useFrame((state) => {
     if (!groupRef.current) return;
     const t = state.clock.elapsedTime;
-    groupRef.current.rotation.y = Math.sin(t * 0.15) * 0.3;
-    groupRef.current.rotation.x = Math.sin(t * 0.1) * 0.1 - 0.2;
+    groupRef.current.rotation.y = Math.sin(t * 0.15) * 0.4 + 0.1;
+    groupRef.current.rotation.x = Math.sin(t * 0.1) * 0.15 - 0.3;
+    groupRef.current.rotation.z = Math.sin(t * 0.08) * 0.1;
   });
 
   // Build a stylized wireframe hand from cylinders and spheres
   const fingerData = useMemo(() => [
-    // Palm base
+    // Palm base (not rendered as finger)
     { pos: [0, 0, 0] as [number,number,number], rot: [0, 0, 0] as [number,number,number], length: 1.2, radius: 0.6 },
     // Thumb
     { pos: [-0.7, 0.2, 0.2] as [number,number,number], rot: [0, 0, 0.8] as [number,number,number], length: 0.8, radius: 0.12 },
@@ -68,11 +69,11 @@ function GlowingWireframeHand() {
   ], []);
 
   return (
-    <group ref={groupRef} position={[0, -0.5, 0]} scale={1.3}>
+    <group ref={groupRef} position={[0, -0.8, 0]} scale={2.0}>
       {/* Palm — wireframe box */}
       <mesh position={[0, 0.3, 0]}>
-        <boxGeometry args={[1.3, 1.2, 0.4]} />
-        <meshBasicMaterial color="#7c3aed" wireframe transparent opacity={0.5} />
+        <boxGeometry args={[1.3, 1.2, 0.4, 3, 3, 2]} />
+        <meshBasicMaterial color="#7c3aed" wireframe transparent opacity={0.7} />
       </mesh>
 
       {/* Fingers */}
@@ -80,18 +81,18 @@ function GlowingWireframeHand() {
         <group key={i} position={finger.pos} rotation={finger.rot}>
           {/* Finger segment 1 */}
           <mesh position={[0, finger.length * 0.3, 0]}>
-            <cylinderGeometry args={[finger.radius, finger.radius * 1.1, finger.length * 0.6, 6]} />
-            <meshBasicMaterial color="#8b5cf6" wireframe transparent opacity={0.65} />
+            <cylinderGeometry args={[finger.radius, finger.radius * 1.1, finger.length * 0.6, 8]} />
+            <meshBasicMaterial color="#8b5cf6" wireframe transparent opacity={0.8} />
           </mesh>
           {/* Joint */}
           <mesh position={[0, finger.length * 0.6, 0]}>
-            <sphereGeometry args={[finger.radius * 1.2, 6, 4]} />
-            <meshBasicMaterial color="#a78bfa" wireframe transparent opacity={0.8} />
+            <sphereGeometry args={[finger.radius * 1.2, 8, 6]} />
+            <meshBasicMaterial color="#a78bfa" wireframe transparent opacity={0.9} />
           </mesh>
           {/* Finger segment 2 */}
           <mesh position={[0, finger.length * 0.85, 0]}>
-            <cylinderGeometry args={[finger.radius * 0.8, finger.radius, finger.length * 0.5, 6]} />
-            <meshBasicMaterial color="#8b5cf6" wireframe transparent opacity={0.65} />
+            <cylinderGeometry args={[finger.radius * 0.8, finger.radius, finger.length * 0.5, 8]} />
+            <meshBasicMaterial color="#8b5cf6" wireframe transparent opacity={0.8} />
           </mesh>
           {/* Fingertip */}
           <mesh position={[0, finger.length * 1.1, 0]}>
@@ -147,10 +148,6 @@ function WireframeScene() {
   return (
     <>
       <GlowingWireframeHand />
-      <GlowingWireframeSphere position={[-2.5, 1.5, -1]} scale={0.5} speed={0.6} />
-      <GlowingWireframeSphere position={[2.8, -1.2, -0.5]} scale={0.35} speed={0.8} />
-      <GlowingWireframeTorus position={[2.2, 1.8, -1.5]} scale={0.4} speed={0.5} />
-      <GlowingWireframeTorus position={[-2.0, -1.5, -0.8]} scale={0.3} speed={0.7} />
       <FloatingParticles />
     </>
   );
