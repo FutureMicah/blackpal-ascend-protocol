@@ -10,6 +10,7 @@ import { ParticleField } from "@/components/ParticleField";
 import { CursorTrail } from "@/components/CursorTrail";
 import { FloatingCandlesticks } from "@/components/FloatingCandlesticks";
 import { FloatingGlassPills } from "@/components/FloatingGlassPills";
+import { WireframeGlow } from "@/components/WireframeGlow";
 import { supabase } from "@/integrations/supabase/client";
 import type { User } from "@supabase/supabase-js";
 import { GeoData, detectGeo } from "@/lib/geo";
