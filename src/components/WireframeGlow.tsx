@@ -148,10 +148,6 @@ function WireframeScene() {
   return (
     <>
       <GlowingWireframeHand />
-      <GlowingWireframeSphere position={[-2.5, 1.5, -1]} scale={0.5} speed={0.6} />
-      <GlowingWireframeSphere position={[2.8, -1.2, -0.5]} scale={0.35} speed={0.8} />
-      <GlowingWireframeTorus position={[2.2, 1.8, -1.5]} scale={0.4} speed={0.5} />
-      <GlowingWireframeTorus position={[-2.0, -1.5, -0.8]} scale={0.3} speed={0.7} />
       <FloatingParticles />
     </>
   );

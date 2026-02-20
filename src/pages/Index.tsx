@@ -145,7 +145,7 @@ const Index = () => {
       {/* Wireframe Glow Hand - visible during portal stage */}
       {stage === "portal" && (
         <div className="fixed inset-0 -z-5 pointer-events-none">
-          <WireframeGlow className="w-full h-full opacity-60" />
+          <WireframeGlow className="w-full h-full opacity-90" />
         </div>
       )}
 
