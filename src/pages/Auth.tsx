@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
 import logo from "@/assets/blackpal-logo.jpg";
 import { Sparkles } from "lucide-react";
+import { BiometricAuth } from "@/components/BiometricAuth";
 
 const Auth = () => {
   const [loading, setLoading] = useState(false);
