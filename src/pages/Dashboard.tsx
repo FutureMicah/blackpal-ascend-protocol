@@ -30,6 +30,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { checkAndAwardAchievements } = useAchievements();
+  useRealtimeNotifications(user?.id ?? null);
 
   // Load user stats for comparison
   const loadUserStats = async (userId: string) => {
