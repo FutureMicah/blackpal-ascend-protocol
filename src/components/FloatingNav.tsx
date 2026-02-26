@@ -126,6 +126,10 @@ export const FloatingNav = () => {
                 const isActive = location.pathname === item.path;
                 return renderNavItem(item, isActive, () => setOpen(false));
               })}
+              <div className="flex items-center gap-3 px-4 py-3">
+                <ThemeToggle />
+                <span className="text-sm font-medium text-muted-foreground">Toggle Theme</span>
+              </div>
             </div>
           </SheetContent>
         </Sheet>
@@ -173,6 +177,7 @@ export const FloatingNav = () => {
               </Link>
             );
           })}
+          <ThemeToggle />
         </div>
       </div>
     </nav>
