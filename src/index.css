@@ -68,6 +68,50 @@ All colors MUST be HSL.
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-voltage: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
+
+  .light {
+    --background: 210 20% 96%;
+    --foreground: 220 20% 10%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 220 20% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 20% 10%;
+
+    --primary: 185 100% 35%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 100% 50%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 210 15% 90%;
+    --muted-foreground: 220 10% 40%;
+
+    --accent: 185 100% 35%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 85% 55%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 210 15% 85%;
+    --input: 210 15% 90%;
+    --ring: 185 100% 35%;
+
+    --electric-cyan: 185 100% 35%;
+    --voltage-blue: 210 100% 50%;
+    --silver-white: 220 20% 10%;
+    --deep-black: 210 20% 96%;
+    --glass-blur: 0 0% 100%;
+
+    --gradient-voltage: linear-gradient(135deg, hsl(185 100% 35%), hsl(210 100% 50%));
+    --gradient-silver: linear-gradient(135deg, hsl(220 20% 10%), hsl(210 100% 50%));
+    --gradient-glass: linear-gradient(135deg, hsl(0 0% 100% / 0.8), hsl(210 15% 95% / 0.6));
+
+    --shadow-voltage: 0 0 40px hsl(185 100% 35% / 0.15);
+    --shadow-glow: 0 0 20px hsl(210 100% 50% / 0.2);
+    --shadow-glass: 0 20px 60px hsl(220 20% 50% / 0.1);
+  }
 }
 
 @layer base {
