@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
 import logo from "@/assets/blackpal-logo.jpg";
 import { Sparkles } from "lucide-react";
+import { BiometricAuth } from "@/components/BiometricAuth";
 
 const Auth = () => {
   const [loading, setLoading] = useState(false);
@@ -257,6 +258,22 @@ const Auth = () => {
                 isSignUp ? "Enter BlackTrader Academy" : "Access Command Center"
               )}
             </Button>
+
+            {/* Biometric Login */}
+            {!isSignUp && (
+              <div className="mt-4 animate-slide-up" style={{ animationDelay: '0.45s' }}>
+                <div className="relative flex items-center justify-center my-3">
+                  <div className="border-t border-primary/20 flex-1" />
+                  <span className="px-3 text-xs text-muted-foreground">or</span>
+                  <div className="border-t border-primary/20 flex-1" />
+                </div>
+                <BiometricAuth 
+                  mode="login" 
+                  email={email}
+                  onSuccess={() => navigate("/dashboard")}
+                />
+              </div>
+            )}
           </form>
 
           <div className="mt-6 text-center animate-slide-up border-t border-primary/10 pt-6" style={{ animationDelay: '0.4s' }}>
