@@ -9,8 +9,6 @@ import { PaymentGateway } from "@/pages/PaymentGateway";
 import { ParticleField } from "@/components/ParticleField";
 import { CursorTrail } from "@/components/CursorTrail";
 import { FloatingCandlesticks } from "@/components/FloatingCandlesticks";
-import { FloatingGlassPills } from "@/components/FloatingGlassPills";
-import { WireframeGlow } from "@/components/WireframeGlow";
 import { supabase } from "@/integrations/supabase/client";
 import type { User } from "@supabase/supabase-js";
 import { GeoData, detectGeo } from "@/lib/geo";
@@ -135,19 +133,6 @@ const Index = () => {
         <CursorTrail />
       </div>
 
-      {/* Floating Glass Pills - visible during portal stage */}
-      {stage === "portal" && (
-        <div className="fixed inset-0 -z-5 pointer-events-none">
-          <FloatingGlassPills className="w-full h-full opacity-80" />
-        </div>
-      )}
-
-      {/* Wireframe Glow Hand - visible during portal stage */}
-      {stage === "portal" && (
-        <div className="fixed inset-0 -z-5 pointer-events-none">
-          <WireframeGlow className="w-full h-full opacity-90" />
-        </div>
-      )}
 
       {/* Stage-based rendering */}
       {stage === "arrival" && (
