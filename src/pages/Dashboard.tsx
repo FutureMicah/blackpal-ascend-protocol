@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Trophy, Users, GitCompare } from "lucide-react";
+import { Loader2, Trophy, Users, GitCompare, Fingerprint } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FloatingNav } from "@/components/FloatingNav";
 import { ProfileHeroCard } from "@/components/dashboard/ProfileHeroCard";
@@ -19,6 +19,7 @@ import { FriendActivityFeed } from "@/components/social/FriendActivityFeed";
 import { ProfileComparison } from "@/components/ProfileComparison";
 import { OnboardingTour } from "@/components/OnboardingTour";
 import { useRealtimeNotifications } from "@/hooks/use-realtime-notifications";
+import { BiometricAuth } from "@/components/BiometricAuth";
 
 export default function Dashboard() {
   const [user, setUser] = useState<any>(null);
@@ -26,6 +27,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [notification, setNotification] = useState<AwardedAchievement | null>(null);
   const [showComparison, setShowComparison] = useState(false);
+  const [showBiometricSetup, setShowBiometricSetup] = useState(false);
   const [userStats, setUserStats] = useState({ totalXP: 0, totalAchievements: 0, rareAchievements: 0 });
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -183,6 +185,15 @@ export default function Dashboard() {
           {user && <NotificationCenter userId={user.id} />}
           <Button
             variant="outline"
+            onClick={() => setShowBiometricSetup(!showBiometricSetup)}
+            className="flex items-center gap-2"
+            size="sm"
+          >
+            <Fingerprint className="h-4 w-4 sm:h-5 sm:w-5" />
+            <span className="hidden sm:inline">Biometric</span>
+          </Button>
+          <Button
+            variant="outline"
             onClick={() => setShowComparison(true)}
             className="flex items-center gap-2"
             size="sm"
@@ -200,6 +211,22 @@ export default function Dashboard() {
             <span className="hidden sm:inline">Leaderboard</span>
           </Button>
         </div>
+
+        {/* Biometric Setup Panel */}
+        {showBiometricSetup && (
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }} 
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 p-4 rounded-xl border border-primary/20 bg-card/50 backdrop-blur-sm"
+          >
+            <h3 className="text-sm font-semibold mb-2 text-foreground">🔐 Set Up Biometric Login</h3>
+            <p className="text-xs text-muted-foreground mb-3">Register your fingerprint or face to sign in instantly next time.</p>
+            <BiometricAuth 
+              mode="register" 
+              onSuccess={() => setShowBiometricSetup(false)} 
+            />
+          </motion.div>
+        )}
 
         {/* Profile Comparison Modal */}
         {showComparison && profile && (
