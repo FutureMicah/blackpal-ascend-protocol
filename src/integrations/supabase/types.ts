@@ -1260,6 +1260,42 @@ export type Database = {
           },
         ]
       }
+      in_app_notifications: {
+        Row: {
+          action_url: string | null
+          created_at: string
+          icon: string | null
+          id: string
+          is_read: boolean | null
+          message: string
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          action_url?: string | null
+          created_at?: string
+          icon?: string | null
+          id?: string
+          is_read?: boolean | null
+          message: string
+          title: string
+          type?: string
+          user_id: string
+        }
+        Update: {
+          action_url?: string | null
+          created_at?: string
+          icon?: string | null
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       journal_trades: {
         Row: {
           chart_screenshot: string | null
