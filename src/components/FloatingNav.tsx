@@ -1,4 +1,5 @@
 import { Home, Trophy, BarChart3, BookOpen, Vault, Users, CreditCard, Hammer, Coins, Bell, Menu, X, Search } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
@@ -125,6 +126,10 @@ export const FloatingNav = () => {
                 const isActive = location.pathname === item.path;
                 return renderNavItem(item, isActive, () => setOpen(false));
               })}
+              <div className="flex items-center gap-3 px-4 py-3">
+                <ThemeToggle />
+                <span className="text-sm font-medium text-muted-foreground">Toggle Theme</span>
+              </div>
             </div>
           </SheetContent>
         </Sheet>
@@ -172,6 +177,7 @@ export const FloatingNav = () => {
               </Link>
             );
           })}
+          <ThemeToggle />
         </div>
       </div>
     </nav>
