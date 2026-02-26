@@ -17,6 +17,7 @@ import { StreakTracker } from "@/components/StreakTracker";
 import { useAchievements, AwardedAchievement } from "@/hooks/use-achievements";
 import { FriendActivityFeed } from "@/components/social/FriendActivityFeed";
 import { ProfileComparison } from "@/components/ProfileComparison";
+import { OnboardingTour } from "@/components/OnboardingTour";
 
 export default function Dashboard() {
   const [user, setUser] = useState<any>(null);
@@ -156,6 +157,9 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Onboarding Tour */}
+      <OnboardingTour />
+
       {/* Achievement notification */}
       <AchievementNotification
         achievement={notification}
