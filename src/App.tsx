@@ -26,6 +26,7 @@ import Friends from "./pages/Friends";
 import BlackArena from "./pages/BlackArena";
 import BlackArenaPlus from "./pages/BlackArenaPlus";
 import GlobeEmbed from "./pages/GlobeEmbed";
+import AdminDashboard from "./pages/AdminDashboard";
 
 const queryClient = new QueryClient();
 
@@ -58,6 +59,7 @@ const App = () => (
           <Route path="/globe" element={<GlobeEmbed />} />
           <Route path="/profile/:userId" element={<PublicProfile />} />
           <Route path="/profile/edit" element={<ProfileEdit />} />
+          <Route path="/admin" element={<AdminDashboard />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

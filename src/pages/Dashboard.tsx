@@ -18,6 +18,7 @@ import { useAchievements, AwardedAchievement } from "@/hooks/use-achievements";
 import { FriendActivityFeed } from "@/components/social/FriendActivityFeed";
 import { ProfileComparison } from "@/components/ProfileComparison";
 import { OnboardingTour } from "@/components/OnboardingTour";
+import { useRealtimeNotifications } from "@/hooks/use-realtime-notifications";
 
 export default function Dashboard() {
   const [user, setUser] = useState<any>(null);
@@ -29,6 +30,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { checkAndAwardAchievements } = useAchievements();
+  useRealtimeNotifications(user?.id ?? null);
 
   // Load user stats for comparison
   const loadUserStats = async (userId: string) => {
