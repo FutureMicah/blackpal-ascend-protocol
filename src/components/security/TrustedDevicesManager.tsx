@@ -133,7 +133,7 @@ export const TrustedDevicesManager = ({ userId }: TrustedDevicesManagerProps) =>
                       autoFocus
                     />
                     <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => handleRename(device.id)}>
-                      <Check className="w-4 h-4 text-green-500" />
+                      <Check className="w-4 h-4 text-primary" />
                     </Button>
                     <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setEditingId(null)}>
                       <X className="w-4 h-4" />
