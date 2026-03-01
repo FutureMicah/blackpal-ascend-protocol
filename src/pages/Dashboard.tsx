@@ -19,7 +19,8 @@ import { FriendActivityFeed } from "@/components/social/FriendActivityFeed";
 import { ProfileComparison } from "@/components/ProfileComparison";
 import { OnboardingTour } from "@/components/OnboardingTour";
 import { useRealtimeNotifications } from "@/hooks/use-realtime-notifications";
-import { BiometricAuth } from "@/components/BiometricAuth";
+import { SessionLockScreen } from "@/components/security/SessionLockScreen";
+import { SecurityPanel } from "@/components/security/SecurityPanel";
 
 export default function Dashboard() {
   const [user, setUser] = useState<any>(null);
@@ -27,7 +28,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [notification, setNotification] = useState<AwardedAchievement | null>(null);
   const [showComparison, setShowComparison] = useState(false);
-  const [showBiometricSetup, setShowBiometricSetup] = useState(false);
+  const [showSecurityPanel, setShowSecurityPanel] = useState(false);
   const [userStats, setUserStats] = useState({ totalXP: 0, totalAchievements: 0, rareAchievements: 0 });
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -161,6 +162,17 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Session Lock */}
+      <SessionLockScreen timeoutMinutes={5} />
+
+      {/* Security Panel */}
+      <SecurityPanel
+        userId={user?.id}
+        userEmail={user?.email}
+        isOpen={showSecurityPanel}
+        onClose={() => setShowSecurityPanel(false)}
+      />
+
       {/* Onboarding Tour */}
       <OnboardingTour />
 
@@ -185,12 +197,12 @@ export default function Dashboard() {
           {user && <NotificationCenter userId={user.id} />}
           <Button
             variant="outline"
-            onClick={() => setShowBiometricSetup(!showBiometricSetup)}
+            onClick={() => setShowSecurityPanel(true)}
             className="flex items-center gap-2"
             size="sm"
           >
             <Fingerprint className="h-4 w-4 sm:h-5 sm:w-5" />
-            <span className="hidden sm:inline">Biometric</span>
+            <span className="hidden sm:inline">Security</span>
           </Button>
           <Button
             variant="outline"
@@ -212,21 +224,6 @@ export default function Dashboard() {
           </Button>
         </div>
 
-        {/* Biometric Setup Panel */}
-        {showBiometricSetup && (
-          <motion.div 
-            initial={{ opacity: 0, y: -10 }} 
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-6 p-4 rounded-xl border border-primary/20 bg-card/50 backdrop-blur-sm"
-          >
-            <h3 className="text-sm font-semibold mb-2 text-foreground">🔐 Set Up Biometric Login</h3>
-            <p className="text-xs text-muted-foreground mb-3">Register your fingerprint or face to sign in instantly next time.</p>
-            <BiometricAuth 
-              mode="register" 
-              onSuccess={() => setShowBiometricSetup(false)} 
-            />
-          </motion.div>
-        )}
 
         {/* Profile Comparison Modal */}
         {showComparison && profile && (

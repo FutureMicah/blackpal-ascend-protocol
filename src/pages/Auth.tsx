@@ -30,6 +30,14 @@ const Auth = () => {
         setUser(currentSession?.user ?? null);
         
         if (currentSession?.user && event === 'SIGNED_IN') {
+          // Log login activity
+          supabase.from('login_activity').insert({
+            user_id: currentSession.user.id,
+            login_method: 'password',
+            device_info: navigator.platform,
+            user_agent: navigator.userAgent,
+          }).then(() => {});
+
           setShowWelcome(true);
           setTimeout(() => {
             navigate("/dashboard");
