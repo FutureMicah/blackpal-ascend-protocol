@@ -1,8 +1,9 @@
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { GeoData, getPaymentMethods } from "@/lib/geo";
 import { Button } from "@/components/ui/button";
-import { CreditCard, Smartphone, QrCode, DollarSign } from "lucide-react";
+import { CreditCard, Smartphone, QrCode, DollarSign, ShieldCheck } from "lucide-react";
 import { useState } from "react";
+import { BiometricAuth } from "@/components/BiometricAuth";
 
 interface PaymentGatewayProps {
   geoData: GeoData;
@@ -13,6 +14,8 @@ interface PaymentGatewayProps {
 export const PaymentGateway = ({ geoData, onMethodSelect, onBack }: PaymentGatewayProps) => {
   const methods = getPaymentMethods(geoData.paymentTier);
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
+  const [requireBiometric, setRequireBiometric] = useState(false);
+  const [biometricVerified, setBiometricVerified] = useState(false);
 
   const getMethodIcon = (method: string) => {
     switch (method) {
@@ -160,17 +163,63 @@ export const PaymentGateway = ({ geoData, onMethodSelect, onBack }: PaymentGatew
             Back
           </Button>
           <Button
-            onClick={() => selectedMethod && onMethodSelect(selectedMethod)}
+            onClick={() => {
+              if (selectedMethod) {
+                setRequireBiometric(true);
+              }
+            }}
             disabled={!selectedMethod}
             className="flex-1 h-12"
           >
+            <ShieldCheck className="w-4 h-4 mr-2" />
             Continue
           </Button>
         </div>
 
+        {/* Biometric Verification Gate */}
+        <AnimatePresence>
+          {requireBiometric && !biometricVerified && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[60] flex items-center justify-center bg-background/90 backdrop-blur-xl p-4"
+            >
+              <motion.div
+                initial={{ scale: 0.9, y: 20 }}
+                animate={{ scale: 1, y: 0 }}
+                className="w-full max-w-sm p-8 rounded-2xl border border-primary/20 bg-card/90 backdrop-blur-sm text-center space-y-6"
+              >
+                <ShieldCheck className="w-16 h-16 mx-auto text-primary opacity-80" />
+                <h3 className="text-xl font-bold text-foreground">Verify Your Identity</h3>
+                <p className="text-sm text-muted-foreground">
+                  Confirm with biometrics to proceed with your ${geoData.amountUSD} payment.
+                </p>
+                <BiometricAuth
+                  mode="verify"
+                  label="Verify & Pay"
+                  onSuccess={() => {
+                    setBiometricVerified(true);
+                    setRequireBiometric(false);
+                    if (selectedMethod) onMethodSelect(selectedMethod);
+                  }}
+                  onCancel={() => setRequireBiometric(false)}
+                />
+                <Button
+                  variant="ghost"
+                  onClick={() => setRequireBiometric(false)}
+                  className="w-full text-muted-foreground"
+                >
+                  Cancel
+                </Button>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Security Notice */}
         <p className="text-xs text-center text-muted-foreground mt-6">
-          🔒 All payments are secured with industry-standard encryption
+          🔒 All payments are secured with biometric verification & encryption
         </p>
       </div>
     </motion.div>
