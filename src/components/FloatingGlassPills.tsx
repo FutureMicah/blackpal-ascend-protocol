@@ -1,76 +1,124 @@
-// FloatingGlassCoins — flat glass disc/coin shapes tumbling in zero gravity
+// FloatingGlassCoins — realistic 3D metallic coins with BlackPal logo engraved
 import { useRef, useMemo } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
+import { Canvas, useFrame, useLoader } from "@react-three/fiber";
 import { Environment } from "@react-three/drei";
 import * as THREE from "three";
 
-interface PillData {
+interface CoinData {
   position: [number, number, number];
   rotation: [number, number, number];
   rotationSpeed: [number, number, number];
   floatSpeed: number;
   floatOffset: number;
   scale: number;
-  color: string;
+  metalColor: string;
 }
 
-function GlassPill({ data }: { data: PillData }) {
+function GlassCoin({ data, logoTexture }: { data: CoinData; logoTexture: THREE.Texture }) {
   const meshRef = useRef<THREE.Mesh>(null!);
+  const rimRef = useRef<THREE.Mesh>(null!);
   const initialPos = useRef(data.position);
 
   useFrame((state) => {
     if (!meshRef.current) return;
     const t = state.clock.elapsedTime;
 
-    // Slow tumble rotation
+    // Slow tumble
     meshRef.current.rotation.x += data.rotationSpeed[0];
     meshRef.current.rotation.y += data.rotationSpeed[1];
     meshRef.current.rotation.z += data.rotationSpeed[2];
 
-    // Gentle zero-gravity float
+    // Gentle float
     meshRef.current.position.y =
       initialPos.current[1] +
       Math.sin(t * data.floatSpeed + data.floatOffset) * 0.35;
     meshRef.current.position.x =
       initialPos.current[0] +
       Math.cos(t * data.floatSpeed * 0.7 + data.floatOffset) * 0.15;
+
+    if (rimRef.current) {
+      rimRef.current.rotation.copy(meshRef.current.rotation);
+      rimRef.current.position.copy(meshRef.current.position);
+    }
   });
 
   return (
-    <mesh ref={meshRef} position={data.position} scale={data.scale}>
-      {/* Cylinder geometry — flat coin/disc shape */}
-      <cylinderGeometry args={[0.7, 0.7, 0.18, 64]} />
-      <meshPhysicalMaterial
-        color={data.color}
-        metalness={0.08}
-        roughness={0.0}
-        transmission={0.88}
-        thickness={0.4}
-        ior={1.7}
-        reflectivity={0.95}
-        transparent
-        opacity={0.85}
-        envMapIntensity={3.0}
-        clearcoat={1}
-        clearcoatRoughness={0.02}
-        attenuationColor={data.color}
-        attenuationDistance={0.3}
-      />
-    </mesh>
+    <group>
+      {/* Main coin body — metallic disc */}
+      <mesh ref={meshRef} position={data.position} scale={data.scale}>
+        <cylinderGeometry args={[0.7, 0.7, 0.1, 64]} />
+        <meshPhysicalMaterial
+          color={data.metalColor}
+          metalness={0.95}
+          roughness={0.15}
+          clearcoat={1.0}
+          clearcoatRoughness={0.05}
+          reflectivity={1.0}
+          envMapIntensity={2.5}
+        />
+      </mesh>
+
+      {/* Front face — logo */}
+      <mesh
+        position={data.position}
+        scale={data.scale}
+        rotation={[0, 0, 0]}
+      >
+        <cylinderGeometry args={[0.6, 0.6, 0.001, 64]} />
+        <meshPhysicalMaterial
+          map={logoTexture}
+          metalness={0.7}
+          roughness={0.25}
+          clearcoat={0.8}
+          clearcoatRoughness={0.1}
+          envMapIntensity={1.5}
+          transparent
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+
+      {/* Rim edge — gold/chrome ring */}
+      <mesh ref={rimRef} position={data.position} scale={data.scale}>
+        <torusGeometry args={[0.7, 0.055, 16, 64]} />
+        <meshPhysicalMaterial
+          color="#d4af37"
+          metalness={1.0}
+          roughness={0.08}
+          clearcoat={1.0}
+          clearcoatRoughness={0.02}
+          envMapIntensity={3.0}
+        />
+      </mesh>
+    </group>
   );
 }
 
-function PillsScene() {
-  const pills = useMemo<PillData[]>(() => {
-    const colors = [
-      "#5b4fff", // deep violet
-      "#7c6fff", // soft purple
-      "#4a3fd4", // indigo
-      "#6655ee", // violet
-      "#8870ff", // lavender purple
-      "#3d35b8", // dark blue-violet
-      "#9080ff", // light purple
-      "#5545cc", // medium violet
+function CoinsScene() {
+  const logoTexture = useLoader(THREE.TextureLoader, "/blackpal-logo.png");
+
+  // Configure texture for crisp circular mapping
+  useMemo(() => {
+    logoTexture.colorSpace = THREE.SRGBColorSpace;
+    logoTexture.minFilter = THREE.LinearFilter;
+    logoTexture.magFilter = THREE.LinearFilter;
+    logoTexture.wrapS = THREE.ClampToEdgeWrapping;
+    logoTexture.wrapT = THREE.ClampToEdgeWrapping;
+  }, [logoTexture]);
+
+  const coins = useMemo<CoinData[]>(() => {
+    const metalColors = [
+      "#d4af37", // gold
+      "#c0c0c0", // silver
+      "#d4af37", // gold
+      "#b87333", // copper/bronze
+      "#d4af37", // gold
+      "#c0c0c0", // silver
+      "#d4af37", // gold
+      "#e8d5b0", // pale gold
+      "#b87333", // bronze
+      "#d4af37", // gold
+      "#c0c0c0", // silver
+      "#d4af37", // gold
     ];
 
     const positions: [number, number, number][] = [
@@ -94,23 +142,23 @@ function PillsScene() {
         Math.random() * Math.PI * 2,
         Math.random() * Math.PI * 2,
         Math.random() * Math.PI * 2,
-      ],
+      ] as [number, number, number],
       rotationSpeed: [
         (Math.random() - 0.5) * 0.008,
         (Math.random() - 0.5) * 0.006,
         (Math.random() - 0.5) * 0.005,
-      ],
+      ] as [number, number, number],
       floatSpeed: 0.3 + Math.random() * 0.4,
       floatOffset: Math.random() * Math.PI * 2,
       scale: 0.7 + Math.random() * 0.6,
-      color: colors[i % colors.length],
+      metalColor: metalColors[i % metalColors.length],
     }));
   }, []);
 
   return (
     <>
-      {pills.map((pill, i) => (
-        <GlassPill key={i} data={pill} />
+      {coins.map((coin, i) => (
+        <GlassCoin key={i} data={coin} logoTexture={logoTexture} />
       ))}
     </>
   );
@@ -125,22 +173,34 @@ export const FloatingGlassPills = ({ className = "" }: FloatingGlassPillsProps) 
     <div className={`w-full h-full ${className}`}>
       <Canvas
         camera={{ position: [0, 0, 7], fov: 50 }}
-        gl={{ antialias: true, alpha: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.2 }}
+        gl={{
+          antialias: true,
+          alpha: true,
+          toneMapping: THREE.ACESFilmicToneMapping,
+          toneMappingExposure: 1.4,
+        }}
         style={{ background: "transparent" }}
       >
-        <ambientLight intensity={0.3} />
-        <pointLight position={[5, 5, 5]} intensity={3} color="#8870ff" />
-        <pointLight position={[-5, -3, 3]} intensity={2} color="#4a90d9" />
-        <pointLight position={[0, 6, -4]} intensity={1.5} color="#ffffff" />
+        <ambientLight intensity={0.4} />
+        <pointLight position={[5, 5, 5]} intensity={4} color="#d4af37" />
+        <pointLight position={[-5, -3, 3]} intensity={2.5} color="#ffffff" />
+        <pointLight position={[0, 6, -4]} intensity={2} color="#ffd700" />
         <spotLight
-          position={[0, 8, 0]}
+          position={[0, 8, 2]}
           angle={0.4}
           penumbra={0.8}
-          intensity={4}
-          color="#a090ff"
+          intensity={5}
+          color="#fff5cc"
+        />
+        <spotLight
+          position={[-3, -5, 5]}
+          angle={0.3}
+          penumbra={1}
+          intensity={3}
+          color="#c0c0c0"
         />
         <Environment preset="studio" />
-        <PillsScene />
+        <CoinsScene />
       </Canvas>
     </div>
   );
