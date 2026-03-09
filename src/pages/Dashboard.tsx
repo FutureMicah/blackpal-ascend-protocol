@@ -104,6 +104,18 @@ export default function Dashboard() {
         .single();
 
       if (error) throw error;
+
+      // COMPULSORY PAYMENT CHECK — redirect to home if not paid
+      if (!data?.payment_completed) {
+        toast({
+          variant: "destructive",
+          title: "Payment Required",
+          description: "You must complete payment to access the dashboard.",
+        });
+        navigate("/");
+        return;
+      }
+
       setProfile(data);
 
       // Check for level and XP achievements

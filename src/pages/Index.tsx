@@ -165,6 +165,7 @@ const Index = () => {
       {stage === "payment-gateway" && geoData && (
         <PaymentGateway
           geoData={geoData}
+          userId={user?.id}
           onMethodSelect={handlePaymentMethodSelect}
           onBack={() => setStage("payment-tier")}
         />
