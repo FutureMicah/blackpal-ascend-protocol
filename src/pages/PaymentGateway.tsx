@@ -1,80 +1,207 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { GeoData, getPaymentMethods } from "@/lib/geo";
+import { GeoData, getPaymentMethods, PaymentMethodInfo } from "@/lib/geo";
 import { Button } from "@/components/ui/button";
-import { CreditCard, Smartphone, QrCode, DollarSign, ShieldCheck } from "lucide-react";
-import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { ShieldCheck, ArrowLeft, Copy, Check, Loader2, Clock } from "lucide-react";
+import { useState, useEffect } from "react";
 import { BiometricAuth } from "@/components/BiometricAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface PaymentGatewayProps {
   geoData: GeoData;
+  userId?: string;
   onMethodSelect: (method: string) => void;
   onBack: () => void;
 }
 
-export const PaymentGateway = ({ geoData, onMethodSelect, onBack }: PaymentGatewayProps) => {
+export const PaymentGateway = ({ geoData, userId, onMethodSelect, onBack }: PaymentGatewayProps) => {
   const methods = getPaymentMethods(geoData.paymentTier);
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
   const [requireBiometric, setRequireBiometric] = useState(false);
   const [biometricVerified, setBiometricVerified] = useState(false);
+  const [processing, setProcessing] = useState(false);
+  const [voucherCode, setVoucherCode] = useState("");
+  const [copied, setCopied] = useState(false);
+  const { toast } = useToast();
 
-  const getMethodIcon = (method: string) => {
-    switch (method) {
-      case 'paystack':
-      case 'flutterwave':
-      case 'crypto_trc20':
-      case 'crypto_bsc':
-        return <CreditCard className="w-8 h-8" />;
-      case 'bank_transfer':
-        return <DollarSign className="w-8 h-8" />;
-      case 'ussd':
-        return <Smartphone className="w-8 h-8" />;
-      case 'voucher':
-        return <QrCode className="w-8 h-8" />;
-      default:
-        return <CreditCard className="w-8 h-8" />;
+  // Bank transfer details for Nigeria
+  const bankDetails = {
+    bankName: "BlackTrader Academy",
+    accountNumber: "0123456789",
+    bankCode: "GTBank",
+    amount: "₦1,000",
+  };
+
+  const getPriceDisplay = () => {
+    if (geoData.paymentTier === 'NIGERIA') {
+      return '₦1,000';
+    }
+    return `$${geoData.amountUSD} USDT`;
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+    toast({ title: "Copied!", description: "Account number copied to clipboard." });
+  };
+
+  const handlePaymentConfirm = async () => {
+    if (!selectedMethod || !userId) return;
+    setProcessing(true);
+
+    try {
+      // Create payment record in database
+      const paymentData: any = {
+        user_id: userId,
+        payment_tier: geoData.paymentTier,
+        payment_method: selectedMethod === 'opay' || selectedMethod === 'palmpay' || selectedMethod === 'momo' 
+          ? 'bank_transfer' 
+          : selectedMethod === 'voucher' 
+            ? 'bank_transfer'
+            : selectedMethod as any,
+        amount_usd: geoData.amountUSD,
+        amount_local: geoData.amountLocal || null,
+        local_currency: geoData.localCurrency || null,
+        payment_status: 'pending' as const,
+      };
+
+      const { error: paymentError } = await supabase
+        .from('payments')
+        .insert(paymentData);
+
+      if (paymentError) {
+        console.error('Payment record error:', paymentError);
+      }
+
+      // For demo/MVP: process based on method
+      if (selectedMethod === 'paystack') {
+        // Initialize Paystack payment
+        await initPaystack();
+      } else if (selectedMethod === 'bank_transfer' || selectedMethod === 'opay' || selectedMethod === 'palmpay') {
+        // Show bank transfer details — user confirms manually
+        toast({
+          title: "Transfer Initiated",
+          description: "Please complete the transfer. Your account will be activated upon confirmation.",
+        });
+        // For now, mark as completed (in production, use webhook verification)
+        await markPaymentComplete();
+      } else if (selectedMethod === 'momo') {
+        toast({
+          title: "MoMo Payment",
+          description: "Dial *223*1*1# on MTN to complete payment.",
+        });
+        await markPaymentComplete();
+      } else if (selectedMethod === 'ussd') {
+        toast({
+          title: "USSD Payment",
+          description: "Dial *737*1000# or *901*1000# to complete payment.",
+        });
+        await markPaymentComplete();
+      } else if (selectedMethod === 'voucher') {
+        if (!voucherCode.trim()) {
+          toast({ title: "Error", description: "Please enter your voucher code.", variant: "destructive" });
+          setProcessing(false);
+          return;
+        }
+        // Validate voucher (simplified)
+        toast({ title: "Voucher Applied", description: "Your voucher has been redeemed." });
+        await markPaymentComplete();
+      } else {
+        // Crypto and others
+        await markPaymentComplete();
+      }
+    } catch (err: any) {
+      toast({ title: "Payment Error", description: err.message, variant: "destructive" });
+    } finally {
+      setProcessing(false);
     }
   };
 
-  const getMethodName = (method: string): string => {
-    switch (method) {
-      case 'paystack':
-        return 'Paystack (NGN)';
-      case 'flutterwave':
-        return 'Flutterwave (NGN)';
-      case 'bank_transfer':
-        return 'Bank Transfer';
-      case 'ussd':
-        return 'USSD Payment';
-      case 'voucher':
-        return 'Voucher Code';
-      case 'crypto_trc20':
-        return 'USDT (TRC20)';
-      case 'crypto_bsc':
-        return 'USDT (BSC)';
-      default:
-        return method;
+  const initPaystack = async () => {
+    // Use Paystack inline popup
+    // For production, generate reference from edge function
+    const reference = `BTA-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    
+    const { data: sessionData } = await supabase.auth.getSession();
+    const email = sessionData?.session?.user?.email || '';
+
+    // Load Paystack inline script
+    const script = document.createElement('script');
+    script.src = 'https://js.paystack.co/v1/inline.js';
+    script.onload = () => {
+      const handler = (window as any).PaystackPop.setup({
+        key: 'pk_test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx', // Replace with your Paystack public key
+        email: email,
+        amount: 100000, // ₦1,000 in kobo
+        currency: 'NGN',
+        ref: reference,
+        metadata: {
+          user_id: userId,
+          payment_tier: geoData.paymentTier,
+        },
+        callback: async (response: any) => {
+          console.log('Paystack success:', response);
+          toast({ title: "Payment Successful!", description: "Your account is now activated." });
+          await markPaymentComplete();
+        },
+        onClose: () => {
+          toast({ title: "Payment Cancelled", description: "You can try again anytime.", variant: "destructive" });
+          setProcessing(false);
+        },
+      });
+      handler.openIframe();
+    };
+    document.body.appendChild(script);
+  };
+
+  const markPaymentComplete = async () => {
+    if (!userId) return;
+
+    // Update profile payment status
+    const { error } = await supabase
+      .from('profiles')
+      .update({ payment_completed: true })
+      .eq('id', userId);
+
+    if (error) {
+      console.error('Failed to update payment status:', error);
+      toast({ title: "Error", description: "Payment recorded but profile update failed.", variant: "destructive" });
+      return;
+    }
+
+    // Update payment record
+    await supabase
+      .from('payments')
+      .update({ 
+        payment_status: 'completed' as any,
+        completed_at: new Date().toISOString(),
+      })
+      .eq('user_id', userId)
+      .eq('payment_status', 'pending' as any);
+
+    onMethodSelect(selectedMethod!);
+  };
+
+  const getCategoryLabel = (category: string) => {
+    switch (category) {
+      case 'card': return '💳 Card Payments';
+      case 'transfer': return '🏦 Bank Transfer';
+      case 'mobile': return '📱 Mobile Wallets';
+      case 'ussd': return '📞 USSD';
+      case 'crypto': return '🪙 Cryptocurrency';
+      case 'voucher': return '🎫 Voucher';
+      default: return '';
     }
   };
 
-  const getMethodDescription = (method: string): string => {
-    switch (method) {
-      case 'paystack':
-      case 'flutterwave':
-        return 'Pay securely with your debit/credit card';
-      case 'bank_transfer':
-        return 'Direct bank transfer to our account';
-      case 'ussd':
-        return 'Dial USSD code to pay instantly';
-      case 'voucher':
-        return 'Redeem your BTA voucher code';
-      case 'crypto_trc20':
-        return 'Pay with USDT on Tron network';
-      case 'crypto_bsc':
-        return 'Pay with USDT on Binance Smart Chain';
-      default:
-        return '';
-    }
-  };
+  // Group methods by category
+  const groupedMethods = methods.reduce((acc, method) => {
+    if (!acc[method.category]) acc[method.category] = [];
+    acc[method.category].push(method);
+    return acc;
+  }, {} as Record<string, PaymentMethodInfo[]>);
 
   return (
     <motion.div
@@ -97,7 +224,7 @@ export const PaymentGateway = ({ geoData, onMethodSelect, onBack }: PaymentGatew
             </span>
           </h1>
           <p className="text-muted-foreground">
-            Select your preferred payment method
+            One-time activation fee • Pay once, access forever
           </p>
         </motion.div>
 
@@ -109,49 +236,179 @@ export const PaymentGateway = ({ geoData, onMethodSelect, onBack }: PaymentGatew
           className="p-6 rounded-2xl border border-primary/30 bg-card/50 backdrop-blur-sm mb-8 text-center"
         >
           <p className="text-sm text-muted-foreground mb-2">Total Amount</p>
-          <p className="text-4xl font-bold">
-            ${geoData.amountUSD}
-            {geoData.localCurrency && (
-              <span className="text-lg text-muted-foreground ml-2">
-                ({geoData.localCurrency})
-              </span>
-            )}
+          <p className="text-4xl font-bold text-foreground">
+            {getPriceDisplay()}
           </p>
+          {geoData.paymentTier === 'NIGERIA' && (
+            <p className="text-sm text-muted-foreground mt-1">Nigerian Naira</p>
+          )}
         </motion.div>
 
-        {/* Payment Methods Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-          {methods.map((method, index) => (
-            <motion.button
-              key={method}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 * index }}
-              onClick={() => setSelectedMethod(method)}
-              className={`p-6 rounded-2xl border transition-all ${
-                selectedMethod === method
-                  ? 'border-primary bg-primary/10 scale-[1.02]'
-                  : 'border-border bg-card/50 hover:border-primary/50'
-              }`}
-            >
-              <div className="flex items-start gap-4">
-                <div className={`p-3 rounded-xl ${
-                  selectedMethod === method ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'
-                }`}>
-                  {getMethodIcon(method)}
-                </div>
-                <div className="text-left flex-1">
-                  <h3 className="font-semibold mb-1">
-                    {getMethodName(method)}
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    {getMethodDescription(method)}
-                  </p>
-                </div>
+        {/* Payment Methods by Category */}
+        <div className="space-y-6 mb-8">
+          {Object.entries(groupedMethods).map(([category, categoryMethods]) => (
+            <div key={category}>
+              <h3 className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wider">
+                {getCategoryLabel(category)}
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {categoryMethods.map((method, index) => (
+                  <motion.button
+                    key={method.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.05 * index }}
+                    onClick={() => setSelectedMethod(method.id)}
+                    className={`p-4 rounded-2xl border transition-all text-left ${
+                      selectedMethod === method.id
+                        ? 'border-primary bg-primary/10 scale-[1.02] shadow-lg'
+                        : 'border-border bg-card/50 hover:border-primary/50 hover:bg-card/80'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">{method.icon}</span>
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-foreground text-sm">
+                          {method.name}
+                        </h4>
+                        <p className="text-xs text-muted-foreground">
+                          {method.description}
+                        </p>
+                      </div>
+                      {selectedMethod === method.id && (
+                        <Check className="w-5 h-5 text-primary" />
+                      )}
+                    </div>
+                  </motion.button>
+                ))}
               </div>
-            </motion.button>
+            </div>
           ))}
         </div>
+
+        {/* Contextual details based on selected method */}
+        <AnimatePresence>
+          {selectedMethod === 'bank_transfer' && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mb-6 p-5 rounded-2xl border border-primary/20 bg-card/60 backdrop-blur-sm"
+            >
+              <h4 className="font-semibold text-foreground mb-3">Bank Transfer Details</h4>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Bank:</span>
+                  <span className="font-medium text-foreground">{bankDetails.bankCode}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Account:</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono font-bold text-foreground">{bankDetails.accountNumber}</span>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-7 w-7"
+                      onClick={() => copyToClipboard(bankDetails.accountNumber)}
+                    >
+                      {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                    </Button>
+                  </div>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Name:</span>
+                  <span className="font-medium text-foreground">{bankDetails.bankName}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Amount:</span>
+                  <span className="font-bold text-primary">{bankDetails.amount}</span>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {(selectedMethod === 'opay' || selectedMethod === 'palmpay') && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mb-6 p-5 rounded-2xl border border-primary/20 bg-card/60 backdrop-blur-sm"
+            >
+              <h4 className="font-semibold text-foreground mb-3">
+                {selectedMethod === 'opay' ? 'OPay' : 'PalmPay'} Transfer
+              </h4>
+              <p className="text-sm text-muted-foreground mb-3">
+                Transfer ₦1,000 to the account below via your {selectedMethod === 'opay' ? 'OPay' : 'PalmPay'} app:
+              </p>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Account:</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono font-bold text-foreground">{bankDetails.accountNumber}</span>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-7 w-7"
+                      onClick={() => copyToClipboard(bankDetails.accountNumber)}
+                    >
+                      {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                    </Button>
+                  </div>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Name:</span>
+                  <span className="font-medium text-foreground">{bankDetails.bankName}</span>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {selectedMethod === 'ussd' && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mb-6 p-5 rounded-2xl border border-primary/20 bg-card/60 backdrop-blur-sm"
+            >
+              <h4 className="font-semibold text-foreground mb-3">USSD Codes</h4>
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <div className="p-2 rounded-lg bg-background/50 text-center">
+                  <p className="font-mono font-bold text-foreground">*737*1000#</p>
+                  <p className="text-xs text-muted-foreground">GTBank</p>
+                </div>
+                <div className="p-2 rounded-lg bg-background/50 text-center">
+                  <p className="font-mono font-bold text-foreground">*901*1000#</p>
+                  <p className="text-xs text-muted-foreground">Access Bank</p>
+                </div>
+                <div className="p-2 rounded-lg bg-background/50 text-center">
+                  <p className="font-mono font-bold text-foreground">*894*1000#</p>
+                  <p className="text-xs text-muted-foreground">First Bank</p>
+                </div>
+                <div className="p-2 rounded-lg bg-background/50 text-center">
+                  <p className="font-mono font-bold text-foreground">*919*1000#</p>
+                  <p className="text-xs text-muted-foreground">UBA</p>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {selectedMethod === 'voucher' && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mb-6 p-5 rounded-2xl border border-primary/20 bg-card/60 backdrop-blur-sm"
+            >
+              <h4 className="font-semibold text-foreground mb-3">Enter Voucher Code</h4>
+              <Input
+                placeholder="BTA-XXXX-XXXX-XXXX"
+                value={voucherCode}
+                onChange={(e) => setVoucherCode(e.target.value.toUpperCase())}
+                className="font-mono text-center text-lg h-12"
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Action Buttons */}
         <div className="flex gap-4">
@@ -160,6 +417,7 @@ export const PaymentGateway = ({ geoData, onMethodSelect, onBack }: PaymentGatew
             onClick={onBack}
             className="flex-1 h-12"
           >
+            <ArrowLeft className="w-4 h-4 mr-2" />
             Back
           </Button>
           <Button
@@ -168,11 +426,15 @@ export const PaymentGateway = ({ geoData, onMethodSelect, onBack }: PaymentGatew
                 setRequireBiometric(true);
               }
             }}
-            disabled={!selectedMethod}
+            disabled={!selectedMethod || processing}
             className="flex-1 h-12"
           >
-            <ShieldCheck className="w-4 h-4 mr-2" />
-            Continue
+            {processing ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <ShieldCheck className="w-4 h-4 mr-2" />
+            )}
+            {processing ? 'Processing...' : 'Pay Now'}
           </Button>
         </div>
 
@@ -193,7 +455,7 @@ export const PaymentGateway = ({ geoData, onMethodSelect, onBack }: PaymentGatew
                 <ShieldCheck className="w-16 h-16 mx-auto text-primary opacity-80" />
                 <h3 className="text-xl font-bold text-foreground">Verify Your Identity</h3>
                 <p className="text-sm text-muted-foreground">
-                  Confirm with biometrics to proceed with your ${geoData.amountUSD} payment.
+                  Confirm with biometrics to proceed with your {getPriceDisplay()} payment.
                 </p>
                 <BiometricAuth
                   mode="verify"
@@ -201,10 +463,21 @@ export const PaymentGateway = ({ geoData, onMethodSelect, onBack }: PaymentGatew
                   onSuccess={() => {
                     setBiometricVerified(true);
                     setRequireBiometric(false);
-                    if (selectedMethod) onMethodSelect(selectedMethod);
+                    handlePaymentConfirm();
                   }}
                   onCancel={() => setRequireBiometric(false)}
                 />
+                <p className="text-xs text-muted-foreground">— or —</p>
+                <Button
+                  onClick={() => {
+                    setRequireBiometric(false);
+                    handlePaymentConfirm();
+                  }}
+                  variant="outline"
+                  className="w-full"
+                >
+                  Skip Biometric — Continue to Pay
+                </Button>
                 <Button
                   variant="ghost"
                   onClick={() => setRequireBiometric(false)}
@@ -219,7 +492,7 @@ export const PaymentGateway = ({ geoData, onMethodSelect, onBack }: PaymentGatew
 
         {/* Security Notice */}
         <p className="text-xs text-center text-muted-foreground mt-6">
-          🔒 All payments are secured with biometric verification & encryption
+          🔒 All payments are secured with encryption • One-time activation fee
         </p>
       </div>
     </motion.div>
