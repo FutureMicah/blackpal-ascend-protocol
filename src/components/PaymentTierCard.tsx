@@ -25,12 +25,19 @@ export const PaymentTierCard = ({ geoData, onContinue }: PaymentTierCardProps) =
   const getTierDescription = () => {
     switch (geoData.paymentTier) {
       case 'NIGERIA':
-        return 'Pay in Naira to activate your BTA Dashboard';
+        return 'Pay ₦1,000 in Naira to activate your BTA Dashboard';
       case 'AFRICA':
-        return 'Crypto Pass Required — Join the Continental Elite';
+        return 'Crypto Pass Required — $100 USDT to Join the Continental Elite';
       case 'INTERNATIONAL':
-        return 'International Access — Premium Global Citizenship';
+        return 'International Access — $200 USDT Premium Global Citizenship';
     }
+  };
+
+  const getPriceDisplay = () => {
+    if (geoData.paymentTier === 'NIGERIA') {
+      return '₦1,000';
+    }
+    return `$${geoData.amountUSD}`;
   };
 
   return (
@@ -88,10 +95,10 @@ export const PaymentTierCard = ({ geoData, onContinue }: PaymentTierCardProps) =
               <div>
                 <p className="text-xs text-muted-foreground">Activation Fee</p>
                 <p className="text-2xl font-bold">
-                  ${geoData.amountUSD}
-                  {geoData.localCurrency && (
+                  {getPriceDisplay()}
+                  {geoData.paymentTier !== 'NIGERIA' && geoData.localCurrency && (
                     <span className="text-sm text-muted-foreground ml-2">
-                      ({geoData.localCurrency})
+                      USDT
                     </span>
                   )}
                 </p>
@@ -105,6 +112,13 @@ export const PaymentTierCard = ({ geoData, onContinue }: PaymentTierCardProps) =
             </div>
           </div>
 
+          {/* Compulsory Notice */}
+          <div className="p-3 rounded-xl bg-destructive/10 border border-destructive/20 mb-4">
+            <p className="text-sm text-center text-destructive font-medium">
+              ⚠️ Payment is required to access the platform
+            </p>
+          </div>
+
           {/* Continue Button */}
           <Button
             onClick={onContinue}
@@ -116,7 +130,7 @@ export const PaymentTierCard = ({ geoData, onContinue }: PaymentTierCardProps) =
 
           {/* Security Notice */}
           <p className="text-xs text-center text-muted-foreground mt-3">
-            🔒 Secure payment • Encrypted
+            🔒 One-time activation • Pay once, access forever
           </p>
         </div>
       </motion.div>

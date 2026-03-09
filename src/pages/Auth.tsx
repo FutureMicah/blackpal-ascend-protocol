@@ -25,7 +25,7 @@ const Auth = () => {
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, currentSession) => {
+      async (event, currentSession) => {
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
         
@@ -38,10 +38,22 @@ const Auth = () => {
             user_agent: navigator.userAgent,
           }).then(() => {});
 
-          setShowWelcome(true);
-          setTimeout(() => {
-            navigate("/dashboard");
-          }, 2500);
+          // Check if payment is completed before allowing dashboard access
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('payment_completed')
+            .eq('id', currentSession.user.id)
+            .maybeSingle();
+
+          if (profileData?.payment_completed) {
+            setShowWelcome(true);
+            setTimeout(() => {
+              navigate("/dashboard");
+            }, 2500);
+          } else {
+            // Redirect to main flow for payment
+            navigate("/");
+          }
         }
       }
     );
