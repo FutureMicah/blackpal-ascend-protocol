@@ -373,24 +373,26 @@ export const PaymentGateway = ({ geoData, userId, onMethodSelect, onBack }: Paym
               className="mb-6 p-5 rounded-2xl border border-primary/20 bg-card/60 backdrop-blur-sm"
             >
               <h4 className="font-semibold text-foreground mb-3">USSD Codes</h4>
+              <p className="text-xs text-muted-foreground mb-3">Dial from your bank's registered line to pay ₦1,000:</p>
               <div className="grid grid-cols-2 gap-2 text-sm">
-                <div className="p-2 rounded-lg bg-background/50 text-center">
-                  <p className="font-mono font-bold text-foreground">*737*1000#</p>
-                  <p className="text-xs text-muted-foreground">GTBank</p>
-                </div>
                 <div className="p-2 rounded-lg bg-background/50 text-center">
                   <p className="font-mono font-bold text-foreground">*901*1000#</p>
                   <p className="text-xs text-muted-foreground">Access Bank</p>
                 </div>
                 <div className="p-2 rounded-lg bg-background/50 text-center">
-                  <p className="font-mono font-bold text-foreground">*894*1000#</p>
-                  <p className="text-xs text-muted-foreground">First Bank</p>
+                  <p className="font-mono font-bold text-foreground">*945*1000#</p>
+                  <p className="text-xs text-muted-foreground">Wema Bank</p>
+                </div>
+                <div className="p-2 rounded-lg bg-background/50 text-center">
+                  <p className="font-mono font-bold text-foreground">*737*1000#</p>
+                  <p className="text-xs text-muted-foreground">GTBank</p>
                 </div>
                 <div className="p-2 rounded-lg bg-background/50 text-center">
                   <p className="font-mono font-bold text-foreground">*919*1000#</p>
                   <p className="text-xs text-muted-foreground">UBA</p>
                 </div>
               </div>
+              <p className="text-xs text-center text-muted-foreground mt-3">Transfer to Access Bank: 1491995592</p>
             </motion.div>
           )}
 
