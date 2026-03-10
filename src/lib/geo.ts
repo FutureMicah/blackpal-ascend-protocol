@@ -63,15 +63,19 @@ export function calculatePaymentTier(data: {
 
   if (isNigeria) {
     paymentTier = 'NIGERIA';
-    amountUSD = 1; // ~₦1,000
+    amountUSD = 1;
     amountLocal = 1000;
     localCurrency = 'NGN';
   } else if (isAfrica) {
-    paymentTier = 'AFRICA';
-    amountUSD = 100;
+    paymentTier = 'NIGERIA'; // All users pay ₦1,000
+    amountUSD = 1;
+    amountLocal = 1000;
+    localCurrency = 'NGN';
   } else {
-    paymentTier = 'INTERNATIONAL';
-    amountUSD = 200;
+    paymentTier = 'NIGERIA'; // All users pay ₦1,000
+    amountUSD = 1;
+    amountLocal = 1000;
+    localCurrency = 'NGN';
   }
 
   return {
