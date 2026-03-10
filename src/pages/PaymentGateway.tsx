@@ -7,6 +7,7 @@ import { useState, useEffect } from "react";
 import { BiometricAuth } from "@/components/BiometricAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { PaymentProofUpload } from "@/components/PaymentProofUpload";
 
 interface PaymentGatewayProps {
   geoData: GeoData;
