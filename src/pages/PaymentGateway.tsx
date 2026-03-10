@@ -22,7 +22,7 @@ export const PaymentGateway = ({ geoData, userId, onMethodSelect, onBack }: Paym
   const [biometricVerified, setBiometricVerified] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [voucherCode, setVoucherCode] = useState("");
-  const [copied, setCopied] = useState(false);
+  const { toast } = useToast();
   const { toast } = useToast();
 
   // Real bank account details
