@@ -49,8 +49,8 @@ export const PaymentGateway = ({ geoData, userId, onMethodSelect, onBack }: Paym
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    setCopiedText(text);
+    setTimeout(() => setCopiedText(null), 2000);
     toast({ title: "Copied!", description: "Account number copied to clipboard." });
   };
 
