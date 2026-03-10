@@ -22,16 +22,22 @@ export const PaymentGateway = ({ geoData, userId, onMethodSelect, onBack }: Paym
   const [biometricVerified, setBiometricVerified] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [voucherCode, setVoucherCode] = useState("");
-  const [copied, setCopied] = useState(false);
   const { toast } = useToast();
 
-  // Bank transfer details for Nigeria
-  const bankDetails = {
-    bankName: "BlackTrader Academy",
-    accountNumber: "0123456789",
-    bankCode: "GTBank",
-    amount: "₦1,000",
+  // Real bank account details
+  const bankAccounts = [
+    { bank: 'Access Bank', accountNumber: '1491995592', accountName: 'BlackPal Academy' },
+    { bank: 'Wema Bank', accountNumber: '7650337621', accountName: 'BlackPal Academy' },
+    { bank: '9 Payment Service Bank', accountNumber: '5240061723', accountName: 'BlackPal Academy' },
+    { bank: 'Providus Bank', accountNumber: '9977732785', accountName: 'BlackPal Academy' },
+  ];
+
+  const mobileAccounts: Record<string, { accountNumber: string; accountName: string }> = {
+    opay: { accountNumber: '8135108929', accountName: 'BlackPal Academy' },
+    palmpay: { accountNumber: '8135108929', accountName: 'BlackPal Academy' },
   };
+
+  const [copiedText, setCopiedText] = useState<string | null>(null);
 
   const getPriceDisplay = () => {
     if (geoData.paymentTier === 'NIGERIA') {
@@ -42,8 +48,8 @@ export const PaymentGateway = ({ geoData, userId, onMethodSelect, onBack }: Paym
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    setCopiedText(text);
+    setTimeout(() => setCopiedText(null), 2000);
     toast({ title: "Copied!", description: "Account number copied to clipboard." });
   };
 
@@ -296,34 +302,31 @@ export const PaymentGateway = ({ geoData, userId, onMethodSelect, onBack }: Paym
               className="mb-6 p-5 rounded-2xl border border-primary/20 bg-card/60 backdrop-blur-sm"
             >
               <h4 className="font-semibold text-foreground mb-3">Bank Transfer Details</h4>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Bank:</span>
-                  <span className="font-medium text-foreground">{bankDetails.bankCode}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Account:</span>
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono font-bold text-foreground">{bankDetails.accountNumber}</span>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="h-7 w-7"
-                      onClick={() => copyToClipboard(bankDetails.accountNumber)}
-                    >
-                      {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                    </Button>
+              <p className="text-xs text-muted-foreground mb-4">Transfer ₦1,000 to any of these accounts:</p>
+              <div className="space-y-4">
+                {bankAccounts.map((acc) => (
+                  <div key={acc.accountNumber} className="p-3 rounded-xl bg-background/50 border border-border/50 space-y-1">
+                    <div className="flex justify-between">
+                      <span className="text-xs text-muted-foreground">Bank:</span>
+                      <span className="text-xs font-medium text-foreground">{acc.bank}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-muted-foreground">Account:</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono font-bold text-foreground text-sm">{acc.accountNumber}</span>
+                        <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => copyToClipboard(acc.accountNumber)}>
+                          {copiedText === acc.accountNumber ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-xs text-muted-foreground">Name:</span>
+                      <span className="text-xs font-medium text-foreground">{acc.accountName}</span>
+                    </div>
                   </div>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Name:</span>
-                  <span className="font-medium text-foreground">{bankDetails.bankName}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Amount:</span>
-                  <span className="font-bold text-primary">{bankDetails.amount}</span>
-                </div>
+                ))}
               </div>
+              <p className="text-xs text-center text-primary font-semibold mt-3">Amount: ₦1,000</p>
             </motion.div>
           )}
 
@@ -340,24 +343,23 @@ export const PaymentGateway = ({ geoData, userId, onMethodSelect, onBack }: Paym
               <p className="text-sm text-muted-foreground mb-3">
                 Transfer ₦1,000 to the account below via your {selectedMethod === 'opay' ? 'OPay' : 'PalmPay'} app:
               </p>
-              <div className="space-y-2 text-sm">
+              <div className="p-3 rounded-xl bg-background/50 border border-border/50 space-y-2">
                 <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Account:</span>
+                  <span className="text-xs text-muted-foreground">Account:</span>
                   <div className="flex items-center gap-2">
-                    <span className="font-mono font-bold text-foreground">{bankDetails.accountNumber}</span>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="h-7 w-7"
-                      onClick={() => copyToClipboard(bankDetails.accountNumber)}
-                    >
-                      {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                    <span className="font-mono font-bold text-foreground">{mobileAccounts[selectedMethod].accountNumber}</span>
+                    <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => copyToClipboard(mobileAccounts[selectedMethod].accountNumber)}>
+                      {copiedText === mobileAccounts[selectedMethod].accountNumber ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
                     </Button>
                   </div>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Name:</span>
-                  <span className="font-medium text-foreground">{bankDetails.bankName}</span>
+                  <span className="text-xs text-muted-foreground">Name:</span>
+                  <span className="text-xs font-medium text-foreground">{mobileAccounts[selectedMethod].accountName}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-xs text-muted-foreground">Amount:</span>
+                  <span className="font-bold text-primary">₦1,000</span>
                 </div>
               </div>
             </motion.div>
@@ -371,24 +373,26 @@ export const PaymentGateway = ({ geoData, userId, onMethodSelect, onBack }: Paym
               className="mb-6 p-5 rounded-2xl border border-primary/20 bg-card/60 backdrop-blur-sm"
             >
               <h4 className="font-semibold text-foreground mb-3">USSD Codes</h4>
+              <p className="text-xs text-muted-foreground mb-3">Dial from your bank's registered line to pay ₦1,000:</p>
               <div className="grid grid-cols-2 gap-2 text-sm">
-                <div className="p-2 rounded-lg bg-background/50 text-center">
-                  <p className="font-mono font-bold text-foreground">*737*1000#</p>
-                  <p className="text-xs text-muted-foreground">GTBank</p>
-                </div>
                 <div className="p-2 rounded-lg bg-background/50 text-center">
                   <p className="font-mono font-bold text-foreground">*901*1000#</p>
                   <p className="text-xs text-muted-foreground">Access Bank</p>
                 </div>
                 <div className="p-2 rounded-lg bg-background/50 text-center">
-                  <p className="font-mono font-bold text-foreground">*894*1000#</p>
-                  <p className="text-xs text-muted-foreground">First Bank</p>
+                  <p className="font-mono font-bold text-foreground">*945*1000#</p>
+                  <p className="text-xs text-muted-foreground">Wema Bank</p>
+                </div>
+                <div className="p-2 rounded-lg bg-background/50 text-center">
+                  <p className="font-mono font-bold text-foreground">*737*1000#</p>
+                  <p className="text-xs text-muted-foreground">GTBank</p>
                 </div>
                 <div className="p-2 rounded-lg bg-background/50 text-center">
                   <p className="font-mono font-bold text-foreground">*919*1000#</p>
                   <p className="text-xs text-muted-foreground">UBA</p>
                 </div>
               </div>
+              <p className="text-xs text-center text-muted-foreground mt-3">Transfer to Access Bank: 1491995592</p>
             </motion.div>
           )}
 
