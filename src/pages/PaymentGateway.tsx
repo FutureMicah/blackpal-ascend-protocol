@@ -7,6 +7,7 @@ import { useState, useEffect } from "react";
 import { BiometricAuth } from "@/components/BiometricAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { PaymentProofUpload } from "@/components/PaymentProofUpload";
 
 interface PaymentGatewayProps {
   geoData: GeoData;
@@ -441,6 +442,18 @@ export const PaymentGateway = ({ geoData, userId, onMethodSelect, onBack }: Paym
             {processing ? 'Processing...' : 'Pay Now'}
           </Button>
         </div>
+
+        {/* Payment Proof Upload */}
+        {selectedMethod && userId && (
+          <div className="mt-6">
+            <PaymentProofUpload
+              userId={userId}
+              onUploaded={() => {
+                toast({ title: "Proof submitted", description: "Admin will verify your payment shortly." });
+              }}
+            />
+          </div>
+        )}
 
         {/* Biometric Verification Gate */}
         <AnimatePresence>

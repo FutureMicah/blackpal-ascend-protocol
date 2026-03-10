@@ -1,4 +1,4 @@
-import { Home, Trophy, BarChart3, BookOpen, Vault, Users, CreditCard, Hammer, Coins, Bell, Menu, X, Search } from "lucide-react";
+import { Home, Trophy, BarChart3, BookOpen, Vault, Users, CreditCard, Hammer, Coins, Bell, Menu, X, Search, Megaphone } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -27,6 +27,7 @@ const navItems = [
   { name: "BlackForge", path: "/blackforge", icon: Hammer },
   { name: "BlackCoin", path: "/blackcoin", icon: Coins },
   { name: "BlackNotify", path: "/blacknotify", icon: Bell },
+  { name: "Community", path: "/community", icon: Megaphone },
 ];
 
 export const FloatingNav = () => {
