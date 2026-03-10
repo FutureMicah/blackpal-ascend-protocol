@@ -27,6 +27,7 @@ const navItems = [
   { name: "BlackForge", path: "/blackforge", icon: Hammer },
   { name: "BlackCoin", path: "/blackcoin", icon: Coins },
   { name: "BlackNotify", path: "/blacknotify", icon: Bell },
+  { name: "Community", path: "/community", icon: Megaphone },
 ];
 
 export const FloatingNav = () => {
