@@ -25,13 +25,20 @@ export const PaymentGateway = ({ geoData, userId, onMethodSelect, onBack }: Paym
   const [copied, setCopied] = useState(false);
   const { toast } = useToast();
 
-  // Bank transfer details for Nigeria
-  const bankDetails = {
-    bankName: "BlackTrader Academy",
-    accountNumber: "0123456789",
-    bankCode: "GTBank",
-    amount: "₦1,000",
+  // Real bank account details
+  const bankAccounts = [
+    { bank: 'Access Bank', accountNumber: '1491995592', accountName: 'BlackPal Academy' },
+    { bank: 'Wema Bank', accountNumber: '7650337621', accountName: 'BlackPal Academy' },
+    { bank: '9 Payment Service Bank', accountNumber: '5240061723', accountName: 'BlackPal Academy' },
+    { bank: 'Providus Bank', accountNumber: '9977732785', accountName: 'BlackPal Academy' },
+  ];
+
+  const mobileAccounts: Record<string, { accountNumber: string; accountName: string }> = {
+    opay: { accountNumber: '8135108929', accountName: 'BlackPal Academy' },
+    palmpay: { accountNumber: '8135108929', accountName: 'BlackPal Academy' },
   };
+
+  const [copiedText, setCopiedText] = useState<string | null>(null);
 
   const getPriceDisplay = () => {
     if (geoData.paymentTier === 'NIGERIA') {
