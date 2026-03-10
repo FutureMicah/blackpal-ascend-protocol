@@ -443,6 +443,18 @@ export const PaymentGateway = ({ geoData, userId, onMethodSelect, onBack }: Paym
           </Button>
         </div>
 
+        {/* Payment Proof Upload */}
+        {selectedMethod && userId && (
+          <div className="mt-6">
+            <PaymentProofUpload
+              userId={userId}
+              onUploaded={() => {
+                toast({ title: "Proof submitted", description: "Admin will verify your payment shortly." });
+              }}
+            />
+          </div>
+        )}
+
         {/* Biometric Verification Gate */}
         <AnimatePresence>
           {requireBiometric && !biometricVerified && (
