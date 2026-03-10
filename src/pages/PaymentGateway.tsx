@@ -303,34 +303,31 @@ export const PaymentGateway = ({ geoData, userId, onMethodSelect, onBack }: Paym
               className="mb-6 p-5 rounded-2xl border border-primary/20 bg-card/60 backdrop-blur-sm"
             >
               <h4 className="font-semibold text-foreground mb-3">Bank Transfer Details</h4>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Bank:</span>
-                  <span className="font-medium text-foreground">{bankDetails.bankCode}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Account:</span>
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono font-bold text-foreground">{bankDetails.accountNumber}</span>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="h-7 w-7"
-                      onClick={() => copyToClipboard(bankDetails.accountNumber)}
-                    >
-                      {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                    </Button>
+              <p className="text-xs text-muted-foreground mb-4">Transfer ₦1,000 to any of these accounts:</p>
+              <div className="space-y-4">
+                {bankAccounts.map((acc) => (
+                  <div key={acc.accountNumber} className="p-3 rounded-xl bg-background/50 border border-border/50 space-y-1">
+                    <div className="flex justify-between">
+                      <span className="text-xs text-muted-foreground">Bank:</span>
+                      <span className="text-xs font-medium text-foreground">{acc.bank}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-muted-foreground">Account:</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono font-bold text-foreground text-sm">{acc.accountNumber}</span>
+                        <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => copyToClipboard(acc.accountNumber)}>
+                          {copiedText === acc.accountNumber ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-xs text-muted-foreground">Name:</span>
+                      <span className="text-xs font-medium text-foreground">{acc.accountName}</span>
+                    </div>
                   </div>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Name:</span>
-                  <span className="font-medium text-foreground">{bankDetails.bankName}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Amount:</span>
-                  <span className="font-bold text-primary">{bankDetails.amount}</span>
-                </div>
+                ))}
               </div>
+              <p className="text-xs text-center text-primary font-semibold mt-3">Amount: ₦1,000</p>
             </motion.div>
           )}
 
@@ -347,24 +344,23 @@ export const PaymentGateway = ({ geoData, userId, onMethodSelect, onBack }: Paym
               <p className="text-sm text-muted-foreground mb-3">
                 Transfer ₦1,000 to the account below via your {selectedMethod === 'opay' ? 'OPay' : 'PalmPay'} app:
               </p>
-              <div className="space-y-2 text-sm">
+              <div className="p-3 rounded-xl bg-background/50 border border-border/50 space-y-2">
                 <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Account:</span>
+                  <span className="text-xs text-muted-foreground">Account:</span>
                   <div className="flex items-center gap-2">
-                    <span className="font-mono font-bold text-foreground">{bankDetails.accountNumber}</span>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="h-7 w-7"
-                      onClick={() => copyToClipboard(bankDetails.accountNumber)}
-                    >
-                      {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                    <span className="font-mono font-bold text-foreground">{mobileAccounts[selectedMethod].accountNumber}</span>
+                    <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => copyToClipboard(mobileAccounts[selectedMethod].accountNumber)}>
+                      {copiedText === mobileAccounts[selectedMethod].accountNumber ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
                     </Button>
                   </div>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Name:</span>
-                  <span className="font-medium text-foreground">{bankDetails.bankName}</span>
+                  <span className="text-xs text-muted-foreground">Name:</span>
+                  <span className="text-xs font-medium text-foreground">{mobileAccounts[selectedMethod].accountName}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-xs text-muted-foreground">Amount:</span>
+                  <span className="font-bold text-primary">₦1,000</span>
                 </div>
               </div>
             </motion.div>
