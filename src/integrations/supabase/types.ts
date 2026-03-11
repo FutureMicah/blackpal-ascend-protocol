@@ -3261,7 +3261,15 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "student" | "investor" | "admin" | "moderator"
+      app_role:
+        | "student"
+        | "investor"
+        | "admin"
+        | "moderator"
+        | "super_admin"
+        | "editor"
+        | "customer_support"
+        | "finance"
       payment_method:
         | "paystack"
         | "flutterwave"
@@ -3404,7 +3412,16 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["student", "investor", "admin", "moderator"],
+      app_role: [
+        "student",
+        "investor",
+        "admin",
+        "moderator",
+        "super_admin",
+        "editor",
+        "customer_support",
+        "finance",
+      ],
       payment_method: [
         "paystack",
         "flutterwave",
