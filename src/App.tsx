@@ -27,6 +27,7 @@ import BlackArena from "./pages/BlackArena";
 import BlackArenaPlus from "./pages/BlackArenaPlus";
 import GlobeEmbed from "./pages/GlobeEmbed";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminLogin from "./pages/AdminLogin";
 import Community from "./pages/Community";
 
 const queryClient = new QueryClient();
