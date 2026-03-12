@@ -120,26 +120,8 @@ const BlackArenaPlus = () => {
                 ))}
               </div>
 
-              {/* Stats */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
-                {[
-                  { label: "Active Traders", value: "2,345" },
-                  { label: "Total Trades", value: "156K" },
-                  { label: "Prize Pool", value: "$50K" },
-                  { label: "Mentors", value: "48" },
-                ].map((stat, i) => (
-                  <motion.div
-                    key={stat.label}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.5 + i * 0.1 }}
-                    className="p-4 rounded-xl bg-card/50 border border-border text-center"
-                  >
-                    <p className="text-2xl font-bold text-primary">{stat.value}</p>
-                    <p className="text-sm text-muted-foreground">{stat.label}</p>
-                  </motion.div>
-                ))}
-              </div>
+              {/* Stats - loaded from database */}
+              <LiveArenaStats />
             </motion.div>
           ) : (
             <motion.div
