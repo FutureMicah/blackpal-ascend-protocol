@@ -8,6 +8,50 @@ import {
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+
+// Live stats component that fetches real data
+const LiveArenaStats = () => {
+  const [stats, setStats] = useState({ traders: 0, trades: 0, mentors: 0 });
+
+  useEffect(() => {
+    const loadStats = async () => {
+      const [tradersRes, tradesRes, mentorsRes] = await Promise.all([
+        supabase.from("paper_portfolios").select("id", { count: "exact", head: true }),
+        supabase.from("paper_trades").select("id", { count: "exact", head: true }),
+        supabase.from("mentors").select("id", { count: "exact", head: true }),
+      ]);
+      setStats({
+        traders: tradersRes.count || 0,
+        trades: tradesRes.count || 0,
+        mentors: mentorsRes.count || 0,
+      });
+    };
+    loadStats();
+  }, []);
+
+  const items = [
+    { label: "Active Traders", value: stats.traders.toLocaleString() },
+    { label: "Total Trades", value: stats.trades.toLocaleString() },
+    { label: "Mentors", value: stats.mentors.toLocaleString() },
+  ];
+
+  return (
+    <div className="grid grid-cols-3 gap-4 mt-8">
+      {items.map((stat, i) => (
+        <motion.div
+          key={stat.label}
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.5 + i * 0.1 }}
+          className="p-4 rounded-xl bg-card/50 border border-border text-center"
+        >
+          <p className="text-2xl font-bold text-primary">{stat.value}</p>
+          <p className="text-sm text-muted-foreground">{stat.label}</p>
+        </motion.div>
+      ))}
+    </div>
+  );
+};
 import { AITradingAssistant, AIAssistantTrigger } from "@/components/AITradingAssistant";
 import { PaperTradingSimulator } from "@/components/PaperTradingSimulator";
 import { BattlePassSystem } from "@/components/BattlePassSystem";
