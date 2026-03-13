@@ -2386,6 +2386,229 @@ export type Database = {
         }
         Relationships: []
       }
+      prop_daily_stats: {
+        Row: {
+          created_at: string
+          daily_pnl: number
+          daily_pnl_percent: number
+          ending_balance: number
+          id: string
+          prop_account_id: string
+          starting_balance: number
+          trade_date: string
+          trades_count: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          daily_pnl?: number
+          daily_pnl_percent?: number
+          ending_balance: number
+          id?: string
+          prop_account_id: string
+          starting_balance: number
+          trade_date?: string
+          trades_count?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          daily_pnl?: number
+          daily_pnl_percent?: number
+          ending_balance?: number
+          id?: string
+          prop_account_id?: string
+          starting_balance?: number
+          trade_date?: string
+          trades_count?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prop_daily_stats_prop_account_id_fkey"
+            columns: ["prop_account_id"]
+            isOneToOne: false
+            referencedRelation: "user_prop_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      prop_pass_history: {
+        Row: {
+          final_balance: number
+          final_pnl_percent: number
+          id: string
+          passed_at: string
+          prop_account_id: string
+          tier_id: string
+          total_trades: number
+          trading_days: number
+          user_id: string
+          win_rate: number
+        }
+        Insert: {
+          final_balance: number
+          final_pnl_percent: number
+          id?: string
+          passed_at?: string
+          prop_account_id: string
+          tier_id: string
+          total_trades?: number
+          trading_days?: number
+          user_id: string
+          win_rate?: number
+        }
+        Update: {
+          final_balance?: number
+          final_pnl_percent?: number
+          id?: string
+          passed_at?: string
+          prop_account_id?: string
+          tier_id?: string
+          total_trades?: number
+          trading_days?: number
+          user_id?: string
+          win_rate?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prop_pass_history_prop_account_id_fkey"
+            columns: ["prop_account_id"]
+            isOneToOne: false
+            referencedRelation: "user_prop_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prop_pass_history_tier_id_fkey"
+            columns: ["tier_id"]
+            isOneToOne: false
+            referencedRelation: "prop_tiers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      prop_tiers: {
+        Row: {
+          account_size: number
+          badge_icon: string | null
+          challenge_fee: number
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean | null
+          max_daily_loss_percent: number
+          max_total_drawdown_percent: number
+          max_trading_days: number
+          min_trading_days: number
+          profit_split_percent: number
+          profit_target_percent: number
+          required_passes: number
+          tier_level: number
+          tier_name: string
+          updated_at: string
+        }
+        Insert: {
+          account_size?: number
+          badge_icon?: string | null
+          challenge_fee?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_daily_loss_percent?: number
+          max_total_drawdown_percent?: number
+          max_trading_days?: number
+          min_trading_days?: number
+          profit_split_percent?: number
+          profit_target_percent?: number
+          required_passes?: number
+          tier_level?: number
+          tier_name: string
+          updated_at?: string
+        }
+        Update: {
+          account_size?: number
+          badge_icon?: string | null
+          challenge_fee?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_daily_loss_percent?: number
+          max_total_drawdown_percent?: number
+          max_trading_days?: number
+          min_trading_days?: number
+          profit_split_percent?: number
+          profit_target_percent?: number
+          required_passes?: number
+          tier_level?: number
+          tier_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      prop_trades: {
+        Row: {
+          closed_at: string | null
+          created_at: string
+          entry_price: number
+          exit_price: number | null
+          id: string
+          lot_size: number
+          opened_at: string
+          profit_loss: number | null
+          prop_account_id: string
+          status: string
+          stop_loss: number | null
+          symbol: string
+          take_profit: number | null
+          trade_type: string
+          user_id: string
+        }
+        Insert: {
+          closed_at?: string | null
+          created_at?: string
+          entry_price: number
+          exit_price?: number | null
+          id?: string
+          lot_size?: number
+          opened_at?: string
+          profit_loss?: number | null
+          prop_account_id: string
+          status?: string
+          stop_loss?: number | null
+          symbol: string
+          take_profit?: number | null
+          trade_type: string
+          user_id: string
+        }
+        Update: {
+          closed_at?: string | null
+          created_at?: string
+          entry_price?: number
+          exit_price?: number | null
+          id?: string
+          lot_size?: number
+          opened_at?: string
+          profit_loss?: number | null
+          prop_account_id?: string
+          status?: string
+          stop_loss?: number | null
+          symbol?: string
+          take_profit?: number | null
+          trade_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prop_trades_prop_account_id_fkey"
+            columns: ["prop_account_id"]
+            isOneToOne: false
+            referencedRelation: "user_prop_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       referral_codes: {
         Row: {
           code: string
@@ -3139,6 +3362,92 @@ export type Database = {
             columns: ["milestone_id"]
             isOneToOne: false
             referencedRelation: "achievement_milestones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_prop_accounts: {
+        Row: {
+          access_code: string
+          account_balance: number
+          assigned_by: string | null
+          created_at: string
+          current_equity: number
+          failed_at: string | null
+          highest_balance: number
+          id: string
+          losing_trades: number
+          max_daily_loss_hit: boolean | null
+          max_drawdown_hit: boolean | null
+          passed_at: string | null
+          phase: string
+          profit_target_hit: boolean | null
+          starting_balance: number
+          status: string
+          tier_id: string
+          total_pnl: number
+          total_trades: number
+          trading_days: number
+          updated_at: string
+          user_id: string
+          winning_trades: number
+        }
+        Insert: {
+          access_code: string
+          account_balance?: number
+          assigned_by?: string | null
+          created_at?: string
+          current_equity?: number
+          failed_at?: string | null
+          highest_balance?: number
+          id?: string
+          losing_trades?: number
+          max_daily_loss_hit?: boolean | null
+          max_drawdown_hit?: boolean | null
+          passed_at?: string | null
+          phase?: string
+          profit_target_hit?: boolean | null
+          starting_balance?: number
+          status?: string
+          tier_id: string
+          total_pnl?: number
+          total_trades?: number
+          trading_days?: number
+          updated_at?: string
+          user_id: string
+          winning_trades?: number
+        }
+        Update: {
+          access_code?: string
+          account_balance?: number
+          assigned_by?: string | null
+          created_at?: string
+          current_equity?: number
+          failed_at?: string | null
+          highest_balance?: number
+          id?: string
+          losing_trades?: number
+          max_daily_loss_hit?: boolean | null
+          max_drawdown_hit?: boolean | null
+          passed_at?: string | null
+          phase?: string
+          profit_target_hit?: boolean | null
+          starting_balance?: number
+          status?: string
+          tier_id?: string
+          total_pnl?: number
+          total_trades?: number
+          trading_days?: number
+          updated_at?: string
+          user_id?: string
+          winning_trades?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_prop_accounts_tier_id_fkey"
+            columns: ["tier_id"]
+            isOneToOne: false
+            referencedRelation: "prop_tiers"
             referencedColumns: ["id"]
           },
         ]
