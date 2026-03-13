@@ -359,6 +359,7 @@ export default function AdminDashboard() {
             {canManageContent && <TabsTrigger value="broadcast" className="gap-1"><Megaphone className="w-3 h-3" /> Broadcast</TabsTrigger>}
             {canManageContent && <TabsTrigger value="groups" className="gap-1"><Hash className="w-3 h-3" /> Groups</TabsTrigger>}
             {canManageSupport && <TabsTrigger value="support" className="gap-1"><Headphones className="w-3 h-3" /> Support</TabsTrigger>}
+            {canManageUsers && <TabsTrigger value="props" className="gap-1"><Trophy className="w-3 h-3" /> Prop Firms</TabsTrigger>}
             {isSuperAdmin && <TabsTrigger value="staff" className="gap-1"><UserCog className="w-3 h-3" /> Staff</TabsTrigger>}
             {isSuperAdmin && <TabsTrigger value="settings" className="gap-1"><Settings className="w-3 h-3" /> Settings</TabsTrigger>}
           </TabsList>
