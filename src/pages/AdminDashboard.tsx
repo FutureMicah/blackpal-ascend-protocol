@@ -1011,6 +1011,9 @@ export default function AdminDashboard() {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Prop Firm Management Tab Content */}
+        <AdminPropManager adminUserId={adminUserId} users={users} />
       </div>
     </div>
   );

@@ -67,6 +67,9 @@ const App = () => (
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin-login" element={<AdminLogin />} />
           <Route path="/community" element={<Community />} />
+          <Route path="/cinematic-core" element={<CinematicCore />} />
+          <Route path="/cinematic-access" element={<CinematicAccess />} />
+          <Route path="/prop-dashboard" element={<PropDashboard />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
