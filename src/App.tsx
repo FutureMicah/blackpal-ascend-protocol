@@ -29,6 +29,9 @@ import GlobeEmbed from "./pages/GlobeEmbed";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminLogin from "./pages/AdminLogin";
 import Community from "./pages/Community";
+import CinematicCore from "./pages/CinematicCore";
+import CinematicAccess from "./pages/CinematicAccess";
+import PropDashboard from "./pages/PropDashboard";
 
 const queryClient = new QueryClient();
 
