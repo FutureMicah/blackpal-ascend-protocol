@@ -652,52 +652,9 @@ export default function AdminDashboard() {
             </Card>
           </TabsContent>
 
-          {/* Support Tab */}
+          {/* Support Tab - Ticket Management */}
           <TabsContent value="support">
-            <Card className="border-border bg-card/80">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2"><Headphones className="w-5 h-5" /> Customer Support</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <Card className="border-border">
-                    <CardContent className="p-4 text-center">
-                      <Mail className="w-8 h-8 mx-auto text-primary mb-2" />
-                      <p className="text-2xl font-bold text-foreground">{pendingProofs.length}</p>
-                      <p className="text-xs text-muted-foreground">Pending Reviews</p>
-                    </CardContent>
-                  </Card>
-                  <Card className="border-border">
-                    <CardContent className="p-4 text-center">
-                      <Users className="w-8 h-8 mx-auto text-green-500 mb-2" />
-                      <p className="text-2xl font-bold text-foreground">{stats.unpaidUsers}</p>
-                      <p className="text-xs text-muted-foreground">Users Awaiting Activation</p>
-                    </CardContent>
-                  </Card>
-                  <Card className="border-border">
-                    <CardContent className="p-4 text-center">
-                      <Bell className="w-8 h-8 mx-auto text-yellow-500 mb-2" />
-                      <p className="text-2xl font-bold text-foreground">{stats.pendingPayments}</p>
-                      <p className="text-xs text-muted-foreground">Pending Payments</p>
-                    </CardContent>
-                  </Card>
-                </div>
-                <div className="space-y-2">
-                  <h3 className="text-sm font-semibold text-foreground">Recent Unpaid Users</h3>
-                  {users.filter(u => !u.payment_completed).slice(0, 5).map(u => (
-                    <div key={u.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30 border border-border">
-                      <div>
-                        <p className="text-sm font-medium text-foreground">{u.display_name || "Unknown"}</p>
-                        <p className="text-[10px] text-muted-foreground">Joined {u.created_at ? format(new Date(u.created_at), "MMM d") : "—"}</p>
-                      </div>
-                      <Button size="sm" className="h-7 text-xs" onClick={() => handleApprovePayment(u.id)}>
-                        <Check className="w-3 h-3 mr-1" /> Activate
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            <AdminSupportTickets adminId={adminUserId} />
           </TabsContent>
 
           {/* Staff Management Tab */}
