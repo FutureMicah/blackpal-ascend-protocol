@@ -72,6 +72,8 @@ const App = () => (
           <Route path="/cinematic-core" element={<CinematicCore />} />
           <Route path="/cinematic-access" element={<CinematicAccess />} />
           <Route path="/prop-dashboard" element={<PropDashboard />} />
+          <Route path="/my-accounts" element={<MyAccounts />} />
+          <Route path="/market-hub" element={<MarketHub />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
