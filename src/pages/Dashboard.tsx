@@ -21,6 +21,7 @@ import { OnboardingTour } from "@/components/OnboardingTour";
 import { useRealtimeNotifications } from "@/hooks/use-realtime-notifications";
 import { SessionLockScreen } from "@/components/security/SessionLockScreen";
 import { SecurityPanel } from "@/components/security/SecurityPanel";
+import { SupportChat } from "@/components/SupportChat";
 
 export default function Dashboard() {
   const [user, setUser] = useState<any>(null);
