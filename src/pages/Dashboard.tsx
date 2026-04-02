@@ -21,6 +21,7 @@ import { OnboardingTour } from "@/components/OnboardingTour";
 import { useRealtimeNotifications } from "@/hooks/use-realtime-notifications";
 import { SessionLockScreen } from "@/components/security/SessionLockScreen";
 import { SecurityPanel } from "@/components/security/SecurityPanel";
+import { SupportChat } from "@/components/SupportChat";
 
 export default function Dashboard() {
   const [user, setUser] = useState<any>(null);
@@ -272,6 +273,13 @@ export default function Dashboard() {
             <StreakTracker userId={profile.id} />
             <FriendActivityFeed userId={profile.id} maxItems={10} />
             <WalletSnapshot userId={profile.id} />
+            
+            {/* Support Chat */}
+            {user && (
+              <div className="rounded-xl border border-border bg-card/50 p-4">
+                <SupportChat userId={user.id} />
+              </div>
+            )}
             
             {/* Quick Access to Hub */}
             <motion.div

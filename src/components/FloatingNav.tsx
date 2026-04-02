@@ -1,4 +1,4 @@
-import { Home, Trophy, BarChart3, BookOpen, Vault, Users, CreditCard, Hammer, Coins, Bell, Menu, X, Search, Megaphone } from "lucide-react";
+import { Home, Trophy, BarChart3, BookOpen, Vault, Users, CreditCard, Hammer, Coins, Bell, Menu, X, Search, Megaphone, Wallet, Globe, Headphones } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -17,6 +17,8 @@ import { Badge } from "@/components/ui/badge";
 
 const navItems = [
   { name: "Dashboard", path: "/dashboard", icon: Home },
+  { name: "My Accounts", path: "/my-accounts", icon: Wallet },
+  { name: "Market Hub", path: "/market-hub", icon: Globe },
   { name: "Discover", path: "/discover", icon: Search },
   { name: "Achievements", path: "/achievements", icon: Trophy },
   { name: "Leaderboard", path: "/leaderboard", icon: BarChart3 },

@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      account_requests: {
+        Row: {
+          admin_notes: string | null
+          created_at: string
+          id: string
+          requested_size_naira: number
+          requested_tier: number
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          user_id: string
+          user_xp: number
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string
+          id?: string
+          requested_size_naira?: number
+          requested_tier?: number
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          user_id: string
+          user_xp?: number
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string
+          id?: string
+          requested_size_naira?: number
+          requested_tier?: number
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          user_id?: string
+          user_xp?: number
+        }
+        Relationships: []
+      }
       achievement_auctions: {
         Row: {
           achievement_id: string
@@ -2908,6 +2947,120 @@ export type Database = {
         }
         Relationships: []
       }
+      support_tickets: {
+        Row: {
+          admin_id: string | null
+          admin_replied_at: string | null
+          admin_reply: string | null
+          category: string | null
+          created_at: string
+          id: string
+          message: string
+          priority: string
+          status: string
+          subject: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_id?: string | null
+          admin_replied_at?: string | null
+          admin_reply?: string | null
+          category?: string | null
+          created_at?: string
+          id?: string
+          message: string
+          priority?: string
+          status?: string
+          subject: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_id?: string | null
+          admin_replied_at?: string | null
+          admin_reply?: string | null
+          category?: string | null
+          created_at?: string
+          id?: string
+          message?: string
+          priority?: string
+          status?: string
+          subject?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      trader_accounts: {
+        Row: {
+          account_name: string
+          account_size_naira: number
+          created_at: string
+          current_balance: number
+          daily_loss_limit_percent: number
+          highest_balance: number
+          id: string
+          is_first_account: boolean
+          max_drawdown_percent: number
+          payout_count: number
+          profit_target_percent: number
+          status: string
+          tier_level: number
+          total_payout_naira: number
+          total_trades: number
+          updated_at: string
+          user_id: string
+          win_rate: number | null
+          xp_earned: number
+          xp_required_next: number
+        }
+        Insert: {
+          account_name?: string
+          account_size_naira?: number
+          created_at?: string
+          current_balance?: number
+          daily_loss_limit_percent?: number
+          highest_balance?: number
+          id?: string
+          is_first_account?: boolean
+          max_drawdown_percent?: number
+          payout_count?: number
+          profit_target_percent?: number
+          status?: string
+          tier_level?: number
+          total_payout_naira?: number
+          total_trades?: number
+          updated_at?: string
+          user_id: string
+          win_rate?: number | null
+          xp_earned?: number
+          xp_required_next?: number
+        }
+        Update: {
+          account_name?: string
+          account_size_naira?: number
+          created_at?: string
+          current_balance?: number
+          daily_loss_limit_percent?: number
+          highest_balance?: number
+          id?: string
+          is_first_account?: boolean
+          max_drawdown_percent?: number
+          payout_count?: number
+          profit_target_percent?: number
+          status?: string
+          tier_level?: number
+          total_payout_naira?: number
+          total_trades?: number
+          updated_at?: string
+          user_id?: string
+          win_rate?: number | null
+          xp_earned?: number
+          xp_required_next?: number
+        }
+        Relationships: []
+      }
       trading_competitions: {
         Row: {
           competition_name: string
@@ -3582,6 +3735,51 @@ export type Database = {
           public_key?: string
           transports?: string[] | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      xp_tier_config: {
+        Row: {
+          account_size_naira: number
+          badge_icon: string | null
+          created_at: string
+          daily_loss_limit_percent: number
+          id: string
+          max_accounts: number
+          max_drawdown_percent: number
+          profit_split_percent: number
+          profit_target_percent: number
+          tier_level: number
+          tier_name: string
+          xp_required: number
+        }
+        Insert: {
+          account_size_naira: number
+          badge_icon?: string | null
+          created_at?: string
+          daily_loss_limit_percent?: number
+          id?: string
+          max_accounts?: number
+          max_drawdown_percent?: number
+          profit_split_percent?: number
+          profit_target_percent?: number
+          tier_level: number
+          tier_name: string
+          xp_required: number
+        }
+        Update: {
+          account_size_naira?: number
+          badge_icon?: string | null
+          created_at?: string
+          daily_loss_limit_percent?: number
+          id?: string
+          max_accounts?: number
+          max_drawdown_percent?: number
+          profit_split_percent?: number
+          profit_target_percent?: number
+          tier_level?: number
+          tier_name?: string
+          xp_required?: number
         }
         Relationships: []
       }
