@@ -274,6 +274,13 @@ export default function Dashboard() {
             <FriendActivityFeed userId={profile.id} maxItems={10} />
             <WalletSnapshot userId={profile.id} />
             
+            {/* Support Chat */}
+            {user && (
+              <div className="rounded-xl border border-border bg-card/50 p-4">
+                <SupportChat userId={user.id} />
+              </div>
+            )}
+            
             {/* Quick Access to Hub */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
