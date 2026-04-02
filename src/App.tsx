@@ -32,6 +32,8 @@ import Community from "./pages/Community";
 import CinematicCore from "./pages/CinematicCore";
 import CinematicAccess from "./pages/CinematicAccess";
 import PropDashboard from "./pages/PropDashboard";
+import MyAccounts from "./pages/MyAccounts";
+import MarketHub from "./pages/MarketHub";
 
 const queryClient = new QueryClient();
 
