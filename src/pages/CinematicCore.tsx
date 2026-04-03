@@ -1,18 +1,17 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, memo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useLivePrices, getSymbolList } from "@/hooks/use-live-prices";
+import { TradingViewWidget } from "@/components/TradingViewWidget";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import {
-  ArrowLeft, TrendingUp, TrendingDown, BarChart3, Activity, Target,
-  Shield, Zap, Clock, DollarSign, AlertTriangle, ChevronDown, ChevronUp,
-  Maximize2, Minimize2, X, Loader2
+  ArrowLeft, TrendingUp, TrendingDown, Activity, Target,
+  Shield, Maximize2, Minimize2, X, Loader2
 } from "lucide-react";
-import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Area, AreaChart, ReferenceLine } from "recharts";
+import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, ReferenceLine } from "recharts";
 
 interface PropAccount {
   id: string;
@@ -58,12 +57,33 @@ interface OpenTrade {
   opened_at: string;
 }
 
-const CHART_COLORS = {
-  up: "hsl(142, 76%, 46%)",
-  down: "hsl(0, 85%, 60%)",
-  grid: "hsl(220, 15%, 20%)",
-  text: "hsl(220, 10%, 60%)",
+// Mapping internal symbols to TradingView symbols
+const TV_SYMBOL_MAP: Record<string, string> = {
+  "EUR/USD": "FX:EURUSD",
+  "GBP/USD": "FX:GBPUSD",
+  "USD/JPY": "FX:USDJPY",
+  "AUD/USD": "FX:AUDUSD",
+  "USD/CAD": "FX:USDCAD",
+  "NZD/USD": "FX:NZDUSD",
+  "EUR/GBP": "FX:EURGBP",
+  "XAU/USD": "TVC:GOLD",
+  "BTC/USD": "BITSTAMP:BTCUSD",
+  "ETH/USD": "BITSTAMP:ETHUSD",
+  "US30": "FOREXCOM:DJI",
+  "NAS100": "FOREXCOM:NSXUSD",
 };
+
+function getDecimals(sym: string) {
+  if (sym.includes("JPY") || sym === "US30" || sym === "NAS100") return 2;
+  if (["BTC/USD", "ETH/USD", "XAU/USD"].includes(sym)) return 2;
+  return 5;
+}
+
+// Memoized TradingView chart to prevent re-renders
+const TVChart = memo(({ symbol }: { symbol: string }) => (
+  <TradingViewWidget widgetType="chart" symbol={symbol} height={500} theme="dark" />
+));
+TVChart.displayName = "TVChart";
 
 export default function CinematicCore() {
   const navigate = useNavigate();
@@ -72,33 +92,34 @@ export default function CinematicCore() {
   const [propAccount, setPropAccount] = useState<PropAccount | null>(null);
   const [tier, setTier] = useState<PropTier | null>(null);
   const [openTrades, setOpenTrades] = useState<OpenTrade[]>([]);
+  const [closedTrades, setClosedTrades] = useState<any[]>([]);
   const [selectedSymbol, setSelectedSymbol] = useState("EUR/USD");
   const [lotSize, setLotSize] = useState("0.01");
   const [slPips, setSlPips] = useState("50");
   const [tpPips, setTpPips] = useState("100");
-  const [chartData, setChartData] = useState<any[]>([]);
   const [expanded, setExpanded] = useState(false);
-  const [showTradePanel, setShowTradePanel] = useState(true);
   const [dailyPnl, setDailyPnl] = useState(0);
+  const [bottomTab, setBottomTab] = useState<"trades" | "history" | "news">("trades");
+  const [chartMode, setChartMode] = useState<"tv" | "live">("tv");
+  const [chartData, setChartData] = useState<any[]>([]);
   const chartRef = useRef<any[]>([]);
 
   const symbols = getSymbolList();
-  const prices = useLivePrices(symbols, 500);
+  const prices = useLivePrices(symbols, 800);
   const currentPrice = prices[selectedSymbol];
+  const tvSymbol = TV_SYMBOL_MAP[selectedSymbol] || "FX:EURUSD";
 
-  // Build chart data from price ticks
+  // Build live chart data
   useEffect(() => {
-    if (!currentPrice) return;
+    if (!currentPrice || chartMode !== "live") return;
     const now = new Date();
     const point = {
       time: now.toLocaleTimeString("en", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" }),
       price: currentPrice.bid,
-      high: currentPrice.ask,
-      low: currentPrice.bid,
     };
-    chartRef.current = [...chartRef.current.slice(-120), point];
+    chartRef.current = [...chartRef.current.slice(-80), point];
     setChartData([...chartRef.current]);
-  }, [currentPrice]);
+  }, [currentPrice, chartMode]);
 
   // Load prop account
   useEffect(() => {
@@ -115,36 +136,24 @@ export default function CinematicCore() {
         .order("created_at", { ascending: false })
         .limit(1);
 
-      if (!accounts || accounts.length === 0) {
-        navigate("/cinematic-access");
-        return;
-      }
-
+      if (!accounts || accounts.length === 0) { navigate("/cinematic-access"); return; }
       const account = accounts[0];
       setPropAccount(account as any);
 
-      const { data: tierData } = await supabase
-        .from("prop_tiers")
-        .select("*")
-        .eq("id", account.tier_id)
-        .single();
+      const [tierRes, tradesRes, historyRes] = await Promise.all([
+        supabase.from("prop_tiers").select("*").eq("id", account.tier_id).single(),
+        supabase.from("prop_trades").select("*").eq("prop_account_id", account.id).eq("status", "open"),
+        supabase.from("prop_trades").select("*").eq("prop_account_id", account.id).eq("status", "closed").order("closed_at", { ascending: false }).limit(20),
+      ]);
 
-      if (tierData) setTier(tierData as any);
-
-      // Load open trades
-      const { data: trades } = await supabase
-        .from("prop_trades")
-        .select("*")
-        .eq("prop_account_id", account.id)
-        .eq("status", "open");
-
-      if (trades) setOpenTrades(trades as any);
+      if (tierRes.data) setTier(tierRes.data as any);
+      if (tradesRes.data) setOpenTrades(tradesRes.data as any);
+      if (historyRes.data) setClosedTrades(historyRes.data as any);
       setLoading(false);
     };
     init();
   }, [navigate]);
 
-  // Calculate floating PnL for open trades
   const getFloatingPnl = useCallback((trade: OpenTrade) => {
     const price = prices[trade.symbol];
     if (!price) return 0;
@@ -158,9 +167,8 @@ export default function CinematicCore() {
   const totalFloatingPnl = openTrades.reduce((sum, t) => sum + getFloatingPnl(t), 0);
   const equity = (propAccount?.account_balance || 0) + totalFloatingPnl;
 
-  // Check risk limits
   const checkRiskLimits = useCallback(() => {
-    if (!propAccount || !tier) return { dailyOk: true, drawdownOk: true };
+    if (!propAccount || !tier) return { dailyOk: true, drawdownOk: true, dailyUsed: 0, drawdownUsed: 0, profitProgress: 0 };
     const dailyLossLimit = propAccount.starting_balance * (tier.max_daily_loss_percent / 100);
     const drawdownLimit = propAccount.starting_balance * (tier.max_total_drawdown_percent / 100);
     const totalDrawdown = propAccount.starting_balance - equity;
@@ -175,7 +183,6 @@ export default function CinematicCore() {
 
   const risk = checkRiskLimits();
 
-  // Execute trade
   const executeTrade = async (type: "buy" | "sell") => {
     if (!propAccount || !currentPrice || !userId) return;
     const entryPrice = type === "buy" ? currentPrice.ask : currentPrice.bid;
@@ -197,15 +204,10 @@ export default function CinematicCore() {
 
     if (error) { toast.error("Trade failed"); return; }
     setOpenTrades(prev => [...prev, data as any]);
-    toast.success(`${type.toUpperCase()} ${selectedSymbol} @ ${entryPrice}`);
-
-    // Update trade count
-    await supabase.from("user_prop_accounts").update({
-      total_trades: (propAccount.total_trades || 0) + 1,
-    }).eq("id", propAccount.id);
+    toast.success(`${type.toUpperCase()} ${selectedSymbol} @ ${entryPrice.toFixed(getDecimals(selectedSymbol))}`);
+    await supabase.from("user_prop_accounts").update({ total_trades: (propAccount.total_trades || 0) + 1 }).eq("id", propAccount.id);
   };
 
-  // Close trade
   const closeTrade = async (trade: OpenTrade) => {
     if (!propAccount || !userId) return;
     const price = prices[trade.symbol];
@@ -214,17 +216,13 @@ export default function CinematicCore() {
     const pnl = getFloatingPnl(trade);
 
     await supabase.from("prop_trades").update({
-      exit_price: exitPrice,
-      profit_loss: pnl,
-      status: "closed",
-      closed_at: new Date().toISOString(),
+      exit_price: exitPrice, profit_loss: pnl, status: "closed", closed_at: new Date().toISOString(),
     }).eq("id", trade.id);
 
     const newBalance = propAccount.account_balance + pnl;
     const isWin = pnl > 0;
     await supabase.from("user_prop_accounts").update({
-      account_balance: newBalance,
-      current_equity: newBalance,
+      account_balance: newBalance, current_equity: newBalance,
       highest_balance: Math.max(propAccount.highest_balance, newBalance),
       total_pnl: propAccount.total_pnl + pnl,
       winning_trades: propAccount.winning_trades + (isWin ? 1 : 0),
@@ -232,15 +230,14 @@ export default function CinematicCore() {
     }).eq("id", propAccount.id);
 
     setPropAccount(prev => prev ? {
-      ...prev,
-      account_balance: newBalance,
-      current_equity: newBalance,
+      ...prev, account_balance: newBalance, current_equity: newBalance,
       total_pnl: prev.total_pnl + pnl,
       winning_trades: prev.winning_trades + (isWin ? 1 : 0),
       losing_trades: prev.losing_trades + (isWin ? 0 : 1),
     } : null);
 
     setOpenTrades(prev => prev.filter(t => t.id !== trade.id));
+    setClosedTrades(prev => [{ ...trade, exit_price: exitPrice, profit_loss: pnl, status: "closed", closed_at: new Date().toISOString() }, ...prev.slice(0, 19)]);
     setDailyPnl(prev => prev + pnl);
     toast.success(`Closed ${trade.symbol} ${pnl >= 0 ? "+" : ""}$${pnl.toFixed(2)}`);
   };
@@ -251,81 +248,83 @@ export default function CinematicCore() {
       const price = prices[trade.symbol];
       if (!price) return;
       const current = trade.trade_type === "buy" ? price.bid : price.ask;
-      if (trade.stop_loss && ((trade.trade_type === "buy" && current <= trade.stop_loss) || (trade.trade_type === "sell" && current >= trade.stop_loss))) {
-        closeTrade(trade);
-      }
-      if (trade.take_profit && ((trade.trade_type === "buy" && current >= trade.take_profit) || (trade.trade_type === "sell" && current <= trade.take_profit))) {
-        closeTrade(trade);
-      }
+      if (trade.stop_loss && ((trade.trade_type === "buy" && current <= trade.stop_loss) || (trade.trade_type === "sell" && current >= trade.stop_loss))) closeTrade(trade);
+      if (trade.take_profit && ((trade.trade_type === "buy" && current >= trade.take_profit) || (trade.trade_type === "sell" && current <= trade.take_profit))) closeTrade(trade);
     });
   }, [prices]);
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-emerald-500 mx-auto mb-3" />
+          <p className="text-xs text-zinc-500">Loading Terminal...</p>
+        </div>
       </div>
     );
   }
 
   const winRate = propAccount && propAccount.total_trades > 0
-    ? ((propAccount.winning_trades / propAccount.total_trades) * 100).toFixed(1)
-    : "0.0";
+    ? ((propAccount.winning_trades / propAccount.total_trades) * 100).toFixed(1) : "0.0";
+  const spread = currentPrice ? (currentPrice.ask - currentPrice.bid) : 0;
+  const dec = getDecimals(selectedSymbol);
 
   return (
-    <div className={`min-h-screen bg-background text-foreground flex flex-col ${expanded ? "fixed inset-0 z-50" : ""}`}>
-      {/* Top Bar - Trading Terminal Header */}
-      <header className="h-10 border-b border-border bg-card/90 backdrop-blur-xl flex items-center px-3 gap-4 shrink-0">
-        <Button variant="ghost" size="icon" className="w-7 h-7" onClick={() => navigate("/prop-dashboard")}>
-          <ArrowLeft className="w-4 h-4" />
+    <div className={`h-screen bg-[#0d0d12] text-zinc-200 flex flex-col overflow-hidden select-none ${expanded ? "fixed inset-0 z-50" : ""}`}>
+      {/* ═══ TOP BAR ═══ */}
+      <header className="h-8 bg-[#111118] border-b border-zinc-800/60 flex items-center px-2 gap-2 shrink-0">
+        <Button variant="ghost" size="icon" className="w-6 h-6 text-zinc-400 hover:text-white" onClick={() => navigate("/my-accounts")}>
+          <ArrowLeft className="w-3.5 h-3.5" />
         </Button>
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-bold text-primary">{tier?.badge_icon}</span>
-          <span className="text-xs font-semibold">{tier?.tier_name} Account</span>
-          <Badge variant="outline" className="text-[10px] h-5">{propAccount?.phase}</Badge>
-        </div>
-        <div className="ml-auto flex items-center gap-3 text-[11px]">
-          <span className="text-muted-foreground">Balance:</span>
-          <span className="font-mono font-bold">${propAccount?.account_balance.toFixed(2)}</span>
-          <span className="text-muted-foreground">Equity:</span>
-          <span className={`font-mono font-bold ${equity >= (propAccount?.account_balance || 0) ? "text-green-500" : "text-destructive"}`}>
+        <div className="w-px h-4 bg-zinc-800" />
+        <span className="text-[10px] font-bold text-emerald-400">{tier?.badge_icon}</span>
+        <span className="text-[10px] font-semibold text-zinc-300">{tier?.tier_name}</span>
+        <Badge className="text-[8px] h-4 bg-zinc-800 text-zinc-400 border-zinc-700">{propAccount?.phase}</Badge>
+        <div className="flex-1" />
+        <div className="flex items-center gap-3 text-[10px] font-mono">
+          <span className="text-zinc-500">BAL</span>
+          <span className="text-white font-bold">${propAccount?.account_balance.toFixed(2)}</span>
+          <span className="text-zinc-500">EQT</span>
+          <span className={equity >= (propAccount?.account_balance || 0) ? "text-emerald-400 font-bold" : "text-red-400 font-bold"}>
             ${equity.toFixed(2)}
           </span>
-          <span className="text-muted-foreground">P&L:</span>
-          <span className={`font-mono font-bold ${totalFloatingPnl >= 0 ? "text-green-500" : "text-destructive"}`}>
+          <span className="text-zinc-500">P&L</span>
+          <span className={totalFloatingPnl >= 0 ? "text-emerald-400 font-bold" : "text-red-400 font-bold"}>
             {totalFloatingPnl >= 0 ? "+" : ""}${totalFloatingPnl.toFixed(2)}
           </span>
-          <Button variant="ghost" size="icon" className="w-6 h-6" onClick={() => setExpanded(!expanded)}>
-            {expanded ? <Minimize2 className="w-3 h-3" /> : <Maximize2 className="w-3 h-3" />}
-          </Button>
         </div>
+        <div className="w-px h-4 bg-zinc-800" />
+        <div className="flex items-center gap-1">
+          <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+          <span className="text-[9px] text-emerald-400">LIVE</span>
+        </div>
+        <Button variant="ghost" size="icon" className="w-5 h-5 text-zinc-500" onClick={() => setExpanded(!expanded)}>
+          {expanded ? <Minimize2 className="w-3 h-3" /> : <Maximize2 className="w-3 h-3" />}
+        </Button>
       </header>
 
+      {/* ═══ MAIN CONTENT ═══ */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Left: Watchlist */}
-        <aside className="w-48 border-r border-border bg-card/50 overflow-y-auto shrink-0 hidden md:block">
-          <div className="p-2">
-            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">Market Watch</p>
+        {/* LEFT — MARKET WATCH */}
+        <aside className="w-44 bg-[#0f0f16] border-r border-zinc-800/50 overflow-y-auto shrink-0 hidden lg:flex flex-col">
+          <div className="p-1.5 border-b border-zinc-800/50">
+            <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest px-1">Market Watch</p>
+          </div>
+          <div className="flex-1 overflow-y-auto">
             {symbols.map(sym => {
               const p = prices[sym];
               if (!p) return null;
               const isUp = p.change >= 0;
+              const active = selectedSymbol === sym;
               return (
-                <button
-                  key={sym}
-                  onClick={() => { setSelectedSymbol(sym); chartRef.current = []; }}
-                  className={`w-full flex items-center justify-between p-1.5 rounded-md text-[11px] transition-colors ${
-                    selectedSymbol === sym ? "bg-primary/10 border border-primary/30" : "hover:bg-muted/30"
-                  }`}
-                >
-                  <span className="font-medium">{sym}</span>
-                  <div className="text-right">
-                    <span className={`font-mono ${isUp ? "text-green-500" : "text-destructive"}`}>
-                      {p.bid.toFixed(sym.includes("JPY") || ["BTC/USD","ETH/USD","XAU/USD","US30","NAS100"].includes(sym) ? 2 : 5)}
-                    </span>
-                    <div className={`text-[9px] ${isUp ? "text-green-500" : "text-destructive"}`}>
-                      {isUp ? "+" : ""}{p.changePercent}%
-                    </div>
+                <button key={sym} onClick={() => { setSelectedSymbol(sym); chartRef.current = []; }}
+                  className={`w-full flex items-center justify-between px-2 py-1 text-[10px] transition-colors border-b border-zinc-800/20 ${
+                    active ? "bg-emerald-500/10 border-l-2 border-l-emerald-500" : "hover:bg-zinc-800/30"
+                  }`}>
+                  <span className={`font-medium ${active ? "text-white" : "text-zinc-400"}`}>{sym}</span>
+                  <div className="text-right font-mono">
+                    <span className={isUp ? "text-emerald-400" : "text-red-400"}>{p.bid.toFixed(getDecimals(sym))}</span>
+                    <div className={`text-[8px] ${isUp ? "text-emerald-500/70" : "text-red-500/70"}`}>{isUp ? "+" : ""}{p.changePercent}%</div>
                   </div>
                 </button>
               );
@@ -333,229 +332,250 @@ export default function CinematicCore() {
           </div>
         </aside>
 
-        {/* Center: Chart */}
-        <main className="flex-1 flex flex-col overflow-hidden">
-          {/* Symbol selector for mobile */}
-          <div className="md:hidden flex items-center gap-2 p-2 border-b border-border overflow-x-auto">
+        {/* CENTER — CHART + TRADES */}
+        <main className="flex-1 flex flex-col overflow-hidden min-w-0">
+          {/* Mobile symbol bar */}
+          <div className="lg:hidden flex items-center gap-1 px-2 py-1 border-b border-zinc-800/50 overflow-x-auto bg-[#111118]">
             {symbols.slice(0, 8).map(sym => (
-              <button
-                key={sym}
-                onClick={() => { setSelectedSymbol(sym); chartRef.current = []; }}
-                className={`px-2 py-1 rounded text-[10px] whitespace-nowrap shrink-0 ${
-                  selectedSymbol === sym ? "bg-primary/20 text-primary" : "text-muted-foreground"
-                }`}
-              >
-                {sym}
-              </button>
+              <button key={sym} onClick={() => { setSelectedSymbol(sym); chartRef.current = []; }}
+                className={`px-2 py-0.5 rounded text-[9px] whitespace-nowrap shrink-0 ${
+                  selectedSymbol === sym ? "bg-emerald-500/20 text-emerald-400" : "text-zinc-500"
+                }`}>{sym}</button>
             ))}
           </div>
 
           {/* Chart header */}
-          <div className="flex items-center justify-between px-3 py-1.5 border-b border-border bg-card/30">
-            <div className="flex items-center gap-3">
-              <span className="text-sm font-bold">{selectedSymbol}</span>
+          <div className="flex items-center justify-between px-2 py-1 border-b border-zinc-800/50 bg-[#0f0f16]">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-white">{selectedSymbol}</span>
               {currentPrice && (
                 <>
-                  <span className={`text-lg font-mono font-bold ${currentPrice.change >= 0 ? "text-green-500" : "text-destructive"}`}>
-                    {currentPrice.bid.toFixed(selectedSymbol.includes("JPY") || ["BTC/USD","ETH/USD","XAU/USD","US30","NAS100"].includes(selectedSymbol) ? 2 : 5)}
+                  <span className={`text-sm font-mono font-bold ${currentPrice.change >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                    {currentPrice.bid.toFixed(dec)}
                   </span>
-                  <span className={`text-xs ${currentPrice.change >= 0 ? "text-green-500" : "text-destructive"}`}>
-                    {currentPrice.change >= 0 ? "+" : ""}{currentPrice.changePercent}%
-                  </span>
+                  <span className="text-[9px] text-zinc-500">Spread: {(spread / (selectedSymbol.includes("JPY") ? 0.01 : 0.0001)).toFixed(1)}p</span>
                 </>
               )}
             </div>
             <div className="flex items-center gap-1">
-              <Badge variant="outline" className="text-[9px] h-5">LIVE</Badge>
-              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+              <button onClick={() => setChartMode("tv")}
+                className={`px-1.5 py-0.5 rounded text-[9px] ${chartMode === "tv" ? "bg-emerald-500/20 text-emerald-400" : "text-zinc-500 hover:text-zinc-300"}`}>
+                TradingView
+              </button>
+              <button onClick={() => setChartMode("live")}
+                className={`px-1.5 py-0.5 rounded text-[9px] ${chartMode === "live" ? "bg-emerald-500/20 text-emerald-400" : "text-zinc-500 hover:text-zinc-300"}`}>
+                Live Tick
+              </button>
             </div>
           </div>
 
           {/* Chart area */}
-          <div className="flex-1 min-h-0 p-1">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData} margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
-                <defs>
-                  <linearGradient id="priceGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <XAxis dataKey="time" tick={{ fontSize: 9, fill: CHART_COLORS.text }} tickLine={false} axisLine={false} interval="preserveStartEnd" />
-                <YAxis domain={["auto", "auto"]} tick={{ fontSize: 9, fill: CHART_COLORS.text }} tickLine={false} axisLine={false} width={60} tickFormatter={(v) => v.toFixed(selectedSymbol.includes("JPY") || ["BTC/USD","ETH/USD","XAU/USD","US30","NAS100"].includes(selectedSymbol) ? 2 : 4)} />
-                <Area type="monotone" dataKey="price" stroke="hsl(var(--primary))" strokeWidth={1.5} fill="url(#priceGrad)" dot={false} isAnimationActive={false} />
-                {openTrades.filter(t => t.symbol === selectedSymbol).map(trade => (
-                  <ReferenceLine key={trade.id} y={trade.entry_price} stroke={trade.trade_type === "buy" ? CHART_COLORS.up : CHART_COLORS.down} strokeDasharray="3 3" label={{ value: `${trade.trade_type.toUpperCase()} @ ${trade.entry_price}`, fontSize: 9, fill: trade.trade_type === "buy" ? CHART_COLORS.up : CHART_COLORS.down }} />
-                ))}
-              </AreaChart>
-            </ResponsiveContainer>
+          <div className="flex-1 min-h-0 bg-[#0a0a0f]">
+            {chartMode === "tv" ? (
+              <TVChart symbol={tvSymbol} />
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={chartData} margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
+                  <defs>
+                    <linearGradient id="tickGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.2} />
+                      <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <XAxis dataKey="time" tick={{ fontSize: 8, fill: "#52525b" }} tickLine={false} axisLine={false} interval="preserveStartEnd" />
+                  <YAxis domain={["auto", "auto"]} tick={{ fontSize: 8, fill: "#52525b" }} tickLine={false} axisLine={false} width={55} tickFormatter={(v) => v.toFixed(dec > 3 ? 4 : 2)} />
+                  <Area type="monotone" dataKey="price" stroke="#10b981" strokeWidth={1.5} fill="url(#tickGrad)" dot={false} isAnimationActive={false} />
+                  {openTrades.filter(t => t.symbol === selectedSymbol).map(trade => (
+                    <ReferenceLine key={trade.id} y={trade.entry_price} stroke={trade.trade_type === "buy" ? "#10b981" : "#ef4444"} strokeDasharray="3 3" />
+                  ))}
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
           </div>
 
-          {/* Open positions */}
-          {openTrades.length > 0 && (
-            <div className="border-t border-border max-h-32 overflow-y-auto">
-              <table className="w-full text-[10px]">
-                <thead>
-                  <tr className="text-muted-foreground border-b border-border">
-                    <th className="text-left p-1 px-2">Symbol</th>
-                    <th className="text-left p-1">Type</th>
-                    <th className="text-right p-1">Lots</th>
-                    <th className="text-right p-1">Entry</th>
-                    <th className="text-right p-1">SL</th>
-                    <th className="text-right p-1">TP</th>
-                    <th className="text-right p-1">P&L</th>
-                    <th className="text-right p-1 px-2"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {openTrades.map(trade => {
-                    const pnl = getFloatingPnl(trade);
-                    return (
-                      <tr key={trade.id} className="border-b border-border/30 hover:bg-muted/20">
-                        <td className="p-1 px-2 font-medium">{trade.symbol}</td>
-                        <td className={`p-1 font-semibold ${trade.trade_type === "buy" ? "text-green-500" : "text-destructive"}`}>
-                          {trade.trade_type.toUpperCase()}
-                        </td>
-                        <td className="p-1 text-right font-mono">{trade.lot_size}</td>
-                        <td className="p-1 text-right font-mono">{trade.entry_price}</td>
-                        <td className="p-1 text-right font-mono text-destructive">{trade.stop_loss?.toFixed(5) || "—"}</td>
-                        <td className="p-1 text-right font-mono text-green-500">{trade.take_profit?.toFixed(5) || "—"}</td>
-                        <td className={`p-1 text-right font-mono font-bold ${pnl >= 0 ? "text-green-500" : "text-destructive"}`}>
-                          {pnl >= 0 ? "+" : ""}${pnl.toFixed(2)}
-                        </td>
-                        <td className="p-1 px-2 text-right">
-                          <Button variant="ghost" size="icon" className="w-5 h-5" onClick={() => closeTrade(trade)}>
-                            <X className="w-3 h-3 text-destructive" />
-                          </Button>
+          {/* Bottom panel — trades/history */}
+          <div className="h-28 border-t border-zinc-800/50 bg-[#0f0f16] flex flex-col shrink-0">
+            <div className="flex items-center gap-0.5 px-1 border-b border-zinc-800/30">
+              {(["trades", "history", "news"] as const).map(tab => (
+                <button key={tab} onClick={() => setBottomTab(tab)}
+                  className={`px-2 py-1 text-[9px] font-medium uppercase tracking-wider border-b-2 transition-colors ${
+                    bottomTab === tab ? "border-emerald-500 text-emerald-400" : "border-transparent text-zinc-500 hover:text-zinc-300"
+                  }`}>{tab === "trades" ? `Open (${openTrades.length})` : tab === "history" ? "History" : "News"}</button>
+              ))}
+            </div>
+            <div className="flex-1 overflow-y-auto">
+              {bottomTab === "trades" && (
+                openTrades.length === 0 ? (
+                  <div className="flex items-center justify-center h-full text-[10px] text-zinc-600">No open positions</div>
+                ) : (
+                  <table className="w-full text-[9px]">
+                    <thead><tr className="text-zinc-600">
+                      <th className="text-left p-1 pl-2">Symbol</th><th className="text-left p-1">Type</th>
+                      <th className="text-right p-1">Lots</th><th className="text-right p-1">Entry</th>
+                      <th className="text-right p-1">SL</th><th className="text-right p-1">TP</th>
+                      <th className="text-right p-1">P&L</th><th className="p-1 pr-2"></th>
+                    </tr></thead>
+                    <tbody>{openTrades.map(trade => {
+                      const pnl = getFloatingPnl(trade);
+                      return (
+                        <tr key={trade.id} className="border-t border-zinc-800/20 hover:bg-zinc-800/20">
+                          <td className="p-1 pl-2 text-white font-medium">{trade.symbol}</td>
+                          <td className={`p-1 font-bold ${trade.trade_type === "buy" ? "text-emerald-400" : "text-red-400"}`}>{trade.trade_type.toUpperCase()}</td>
+                          <td className="p-1 text-right font-mono text-zinc-400">{trade.lot_size}</td>
+                          <td className="p-1 text-right font-mono text-zinc-300">{trade.entry_price.toFixed(getDecimals(trade.symbol))}</td>
+                          <td className="p-1 text-right font-mono text-red-400/70">{trade.stop_loss?.toFixed(getDecimals(trade.symbol)) || "—"}</td>
+                          <td className="p-1 text-right font-mono text-emerald-400/70">{trade.take_profit?.toFixed(getDecimals(trade.symbol)) || "—"}</td>
+                          <td className={`p-1 text-right font-mono font-bold ${pnl >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                            {pnl >= 0 ? "+" : ""}${pnl.toFixed(2)}
+                          </td>
+                          <td className="p-1 pr-2 text-right">
+                            <button onClick={() => closeTrade(trade)} className="text-red-500 hover:text-red-400"><X className="w-3 h-3" /></button>
+                          </td>
+                        </tr>
+                      );
+                    })}</tbody>
+                  </table>
+                )
+              )}
+              {bottomTab === "history" && (
+                closedTrades.length === 0 ? (
+                  <div className="flex items-center justify-center h-full text-[10px] text-zinc-600">No trade history</div>
+                ) : (
+                  <table className="w-full text-[9px]">
+                    <thead><tr className="text-zinc-600">
+                      <th className="text-left p-1 pl-2">Symbol</th><th className="text-left p-1">Type</th>
+                      <th className="text-right p-1">Lots</th><th className="text-right p-1">Entry</th>
+                      <th className="text-right p-1">Exit</th><th className="text-right p-1">P&L</th>
+                    </tr></thead>
+                    <tbody>{closedTrades.map((trade: any) => (
+                      <tr key={trade.id} className="border-t border-zinc-800/20">
+                        <td className="p-1 pl-2 text-zinc-300">{trade.symbol}</td>
+                        <td className={`p-1 ${trade.trade_type === "buy" ? "text-emerald-400" : "text-red-400"}`}>{trade.trade_type?.toUpperCase()}</td>
+                        <td className="p-1 text-right font-mono text-zinc-500">{trade.lot_size}</td>
+                        <td className="p-1 text-right font-mono text-zinc-400">{trade.entry_price?.toFixed(getDecimals(trade.symbol))}</td>
+                        <td className="p-1 text-right font-mono text-zinc-400">{trade.exit_price?.toFixed(getDecimals(trade.symbol))}</td>
+                        <td className={`p-1 text-right font-mono font-bold ${(trade.profit_loss || 0) >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                          {(trade.profit_loss || 0) >= 0 ? "+" : ""}${(trade.profit_loss || 0).toFixed(2)}
                         </td>
                       </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                    ))}</tbody>
+                  </table>
+                )
+              )}
+              {bottomTab === "news" && (
+                <div className="p-2 text-[10px] text-zinc-500">Market news feed coming from TradingView widgets in Market Hub.</div>
+              )}
             </div>
-          )}
+          </div>
         </main>
 
-        {/* Right: Trade Panel + Risk */}
-        <aside className={`border-l border-border bg-card/50 shrink-0 overflow-y-auto ${showTradePanel ? "w-60" : "w-0"} transition-all hidden lg:block`}>
-          <div className="p-3 space-y-3">
-            {/* Quick trade */}
-            <div className="space-y-2">
-              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">New Order</p>
-              <div className="space-y-1.5">
+        {/* RIGHT — ORDER PANEL + RISK */}
+        <aside className="w-52 bg-[#0f0f16] border-l border-zinc-800/50 overflow-y-auto shrink-0 hidden md:flex flex-col">
+          {/* Order Entry */}
+          <div className="p-2 border-b border-zinc-800/50">
+            <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest mb-2">New Order</p>
+            <div className="space-y-1.5">
+              <div>
+                <label className="text-[9px] text-zinc-600">Volume (lots)</label>
+                <Input value={lotSize} onChange={e => setLotSize(e.target.value)} className="h-6 text-[10px] font-mono bg-zinc-900 border-zinc-800 text-white" />
+              </div>
+              <div className="grid grid-cols-2 gap-1">
                 <div>
-                  <label className="text-[10px] text-muted-foreground">Lot Size</label>
-                  <Input value={lotSize} onChange={e => setLotSize(e.target.value)} className="h-7 text-xs font-mono" />
+                  <label className="text-[9px] text-zinc-600">SL (pips)</label>
+                  <Input value={slPips} onChange={e => setSlPips(e.target.value)} className="h-6 text-[10px] font-mono bg-zinc-900 border-zinc-800 text-white" />
                 </div>
-                <div className="grid grid-cols-2 gap-1">
-                  <div>
-                    <label className="text-[10px] text-muted-foreground">SL (pips)</label>
-                    <Input value={slPips} onChange={e => setSlPips(e.target.value)} className="h-7 text-xs font-mono" />
-                  </div>
-                  <div>
-                    <label className="text-[10px] text-muted-foreground">TP (pips)</label>
-                    <Input value={tpPips} onChange={e => setTpPips(e.target.value)} className="h-7 text-xs font-mono" />
-                  </div>
+                <div>
+                  <label className="text-[9px] text-zinc-600">TP (pips)</label>
+                  <Input value={tpPips} onChange={e => setTpPips(e.target.value)} className="h-6 text-[10px] font-mono bg-zinc-900 border-zinc-800 text-white" />
                 </div>
               </div>
               {currentPrice && (
                 <div className="grid grid-cols-2 gap-1">
-                  <div className="text-center p-1 rounded bg-muted/30">
-                    <p className="text-[9px] text-muted-foreground">BID</p>
-                    <p className="text-xs font-mono font-bold text-destructive">{currentPrice.bid}</p>
+                  <div className="text-center py-1 rounded bg-zinc-900 border border-zinc-800">
+                    <p className="text-[8px] text-zinc-600">BID</p>
+                    <p className="text-[11px] font-mono font-bold text-red-400">{currentPrice.bid.toFixed(dec)}</p>
                   </div>
-                  <div className="text-center p-1 rounded bg-muted/30">
-                    <p className="text-[9px] text-muted-foreground">ASK</p>
-                    <p className="text-xs font-mono font-bold text-green-500">{currentPrice.ask}</p>
+                  <div className="text-center py-1 rounded bg-zinc-900 border border-zinc-800">
+                    <p className="text-[8px] text-zinc-600">ASK</p>
+                    <p className="text-[11px] font-mono font-bold text-emerald-400">{currentPrice.ask.toFixed(dec)}</p>
                   </div>
                 </div>
               )}
               <div className="grid grid-cols-2 gap-1">
-                <Button onClick={() => executeTrade("sell")} className="h-9 bg-destructive hover:bg-destructive/90 text-destructive-foreground text-xs font-bold">
-                  <TrendingDown className="w-3 h-3 mr-1" />SELL
-                </Button>
-                <Button onClick={() => executeTrade("buy")} className="h-9 bg-green-600 hover:bg-green-700 text-white text-xs font-bold">
-                  <TrendingUp className="w-3 h-3 mr-1" />BUY
-                </Button>
+                <button onClick={() => executeTrade("sell")}
+                  className="h-8 rounded bg-red-600 hover:bg-red-500 text-white text-[10px] font-bold flex items-center justify-center gap-1 transition-colors">
+                  <TrendingDown className="w-3 h-3" />SELL
+                </button>
+                <button onClick={() => executeTrade("buy")}
+                  className="h-8 rounded bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold flex items-center justify-center gap-1 transition-colors">
+                  <TrendingUp className="w-3 h-3" />BUY
+                </button>
               </div>
             </div>
+          </div>
 
-            {/* Risk Monitor */}
-            <div className="space-y-2 pt-2 border-t border-border">
-              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
-                <Shield className="w-3 h-3" /> Risk Monitor
-              </p>
-              <div className="space-y-2">
-                <div>
-                  <div className="flex justify-between text-[10px] mb-0.5">
-                    <span className="text-muted-foreground">Daily Loss</span>
-                    <span className={risk.dailyOk ? "text-green-500" : "text-destructive"}>
-                      {(risk as any).dailyUsed?.toFixed(1) || 0}%
-                    </span>
-                  </div>
-                  <Progress value={Math.min((risk as any).dailyUsed || 0, 100)} className="h-1.5" />
+          {/* Risk Monitor */}
+          <div className="p-2 border-b border-zinc-800/50 space-y-1.5">
+            <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-1">
+              <Shield className="w-3 h-3" /> Risk Monitor
+            </p>
+            {[
+              { label: "Daily Loss", value: risk.dailyUsed, ok: risk.dailyOk, color: "bg-red-500" },
+              { label: "Max Drawdown", value: risk.drawdownUsed, ok: risk.drawdownOk, color: "bg-orange-500" },
+              { label: "Profit Target", value: Math.max(0, risk.profitProgress), ok: true, color: "bg-emerald-500" },
+            ].map(r => (
+              <div key={r.label}>
+                <div className="flex justify-between text-[9px] mb-0.5">
+                  <span className="text-zinc-500">{r.label}</span>
+                  <span className={r.ok ? "text-zinc-400" : "text-red-400"}>{r.value.toFixed(1)}%</span>
                 </div>
-                <div>
-                  <div className="flex justify-between text-[10px] mb-0.5">
-                    <span className="text-muted-foreground">Max Drawdown</span>
-                    <span className={risk.drawdownOk ? "text-green-500" : "text-destructive"}>
-                      {(risk as any).drawdownUsed?.toFixed(1) || 0}%
-                    </span>
-                  </div>
-                  <Progress value={Math.min((risk as any).drawdownUsed || 0, 100)} className="h-1.5" />
-                </div>
-                <div>
-                  <div className="flex justify-between text-[10px] mb-0.5">
-                    <span className="text-muted-foreground">Profit Target</span>
-                    <span className="text-primary">{Math.max(0, (risk as any).profitProgress || 0).toFixed(1)}%</span>
-                  </div>
-                  <Progress value={Math.min(Math.max(0, (risk as any).profitProgress || 0), 100)} className="h-1.5" />
+                <div className="h-1 rounded-full bg-zinc-800 overflow-hidden">
+                  <div className={`h-full rounded-full transition-all ${r.color}`} style={{ width: `${Math.min(r.value, 100)}%` }} />
                 </div>
               </div>
-            </div>
+            ))}
+          </div>
 
-            {/* Account Stats */}
-            <div className="space-y-1.5 pt-2 border-t border-border">
-              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
-                <Activity className="w-3 h-3" /> Stats
+          {/* Stats */}
+          <div className="p-2 border-b border-zinc-800/50 space-y-1">
+            <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-1">
+              <Activity className="w-3 h-3" /> Statistics
+            </p>
+            {[
+              { label: "Win Rate", value: `${winRate}%` },
+              { label: "Total Trades", value: propAccount?.total_trades || 0 },
+              { label: "W / L", value: `${propAccount?.winning_trades || 0} / ${propAccount?.losing_trades || 0}` },
+              { label: "Days", value: propAccount?.trading_days || 0 },
+              { label: "Realized", value: `$${propAccount?.total_pnl.toFixed(2) || "0.00"}` },
+            ].map(s => (
+              <div key={s.label} className="flex justify-between text-[9px]">
+                <span className="text-zinc-500">{s.label}</span>
+                <span className="font-mono text-zinc-300">{s.value}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Rules */}
+          {tier && (
+            <div className="p-2 space-y-1">
+              <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-1">
+                <Target className="w-3 h-3" /> Rules
               </p>
               {[
-                { label: "Win Rate", value: `${winRate}%` },
-                { label: "Total Trades", value: propAccount?.total_trades || 0 },
-                { label: "Wins / Losses", value: `${propAccount?.winning_trades || 0} / ${propAccount?.losing_trades || 0}` },
-                { label: "Trading Days", value: propAccount?.trading_days || 0 },
-                { label: "Realized P&L", value: `$${propAccount?.total_pnl.toFixed(2) || "0.00"}` },
-              ].map(s => (
-                <div key={s.label} className="flex justify-between text-[10px]">
-                  <span className="text-muted-foreground">{s.label}</span>
-                  <span className="font-mono font-medium">{s.value}</span>
+                { label: "Daily Limit", value: `${tier.max_daily_loss_percent}%` },
+                { label: "Max DD", value: `${tier.max_total_drawdown_percent}%` },
+                { label: "Target", value: `${tier.profit_target_percent}%` },
+                { label: "Min Days", value: tier.min_trading_days },
+                { label: "Max Days", value: tier.max_trading_days },
+                { label: "Split", value: `${tier.profit_split_percent}%` },
+              ].map(r => (
+                <div key={r.label} className="flex justify-between text-[9px]">
+                  <span className="text-zinc-500">{r.label}</span>
+                  <span className="font-mono text-zinc-400">{r.value}</span>
                 </div>
               ))}
             </div>
-
-            {/* Rules */}
-            {tier && (
-              <div className="space-y-1 pt-2 border-t border-border">
-                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
-                  <Target className="w-3 h-3" /> Rules
-                </p>
-                {[
-                  { label: "Daily Loss Limit", value: `${tier.max_daily_loss_percent}%` },
-                  { label: "Max Drawdown", value: `${tier.max_total_drawdown_percent}%` },
-                  { label: "Profit Target", value: `${tier.profit_target_percent}%` },
-                  { label: "Min Trading Days", value: tier.min_trading_days },
-                  { label: "Max Trading Days", value: tier.max_trading_days },
-                  { label: "Profit Split", value: `${tier.profit_split_percent}%` },
-                ].map(r => (
-                  <div key={r.label} className="flex justify-between text-[10px]">
-                    <span className="text-muted-foreground">{r.label}</span>
-                    <span className="font-mono">{r.value}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          )}
         </aside>
       </div>
     </div>
