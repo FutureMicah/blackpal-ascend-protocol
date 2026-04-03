@@ -6,14 +6,10 @@ import { TradingViewWidget } from "@/components/TradingViewWidget";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import {
-  ArrowLeft, TrendingUp, TrendingDown, BarChart3, Activity, Target,
-  Shield, Zap, Clock, DollarSign, AlertTriangle, ChevronDown, ChevronUp,
-  Maximize2, Minimize2, X, Loader2, Settings, List, Newspaper,
-  Globe, Flame, LayoutGrid, CandlestickChart, LineChart as LineChartIcon
+  ArrowLeft, TrendingUp, TrendingDown, Activity, Target,
+  Shield, Maximize2, Minimize2, X, Loader2
 } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, ReferenceLine } from "recharts";
 

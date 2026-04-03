@@ -338,10 +338,10 @@ export default function MyAccounts() {
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {[
-                { icon: Target, label: "Hit Profit Target", xp: "+50 XP", desc: "Complete a challenge phase" },
-                { icon: Shield, label: "Stay Within Drawdown", xp: "+25 XP", desc: "Trade 10 days without violation" },
-                { icon: Award, label: "Receive Payout", xp: "+100 XP", desc: "Successfully receive a payout" },
-                { icon: Star, label: "Win Streak", xp: "+10 XP", desc: "5 consecutive winning trades" },
+                { icon: Target, label: "Hit Profit Target", xp: "+5 XP", desc: "Complete a challenge phase" },
+                { icon: Shield, label: "Stay Within Drawdown", xp: "+2 XP", desc: "Trade 10 days without violation" },
+                { icon: Award, label: "Receive Payout", xp: "+5 XP", desc: "Successfully receive a payout" },
+                { icon: Star, label: "Win Streak", xp: "+1 XP", desc: "5 consecutive winning trades" },
               ].map(item => (
                 <div key={item.label} className="flex items-start gap-3 p-3 rounded-lg bg-muted/20">
                   <item.icon className="w-5 h-5 text-primary mt-0.5 shrink-0" />
