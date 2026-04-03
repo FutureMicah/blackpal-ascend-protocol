@@ -166,48 +166,47 @@ const BlackVerse = () => {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 relative overflow-hidden">
       <FloatingNav />
 
-      <div className="container mx-auto px-4 py-8 pt-24">
-        {/* Header Section */}
-        <div className="text-center mb-12">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <Globe className="w-10 h-10 text-primary animate-pulse" />
-            <h1 className="text-5xl font-bold gradient-text-cyber">BlackVerse</h1>
-            <Crown className="w-8 h-8 text-gold" />
+      <div className="max-w-6xl mx-auto px-3 sm:px-4 py-6 pt-20 sm:pt-24">
+        {/* Header */}
+        <div className="text-center mb-6 sm:mb-8">
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <Globe className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
+            <h1 className="text-2xl sm:text-3xl font-bold gradient-text-cyber">BlackVerse</h1>
           </div>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-xs sm:text-sm text-muted-foreground max-w-md mx-auto">
             Connect with elite traders, share insights, and grow together
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           {/* Main Feed */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Create Post Card */}
-            <Card className="glass-card p-6">
-              <div className="flex items-start gap-4">
-                <Avatar className="w-12 h-12 ring-2 ring-primary/50">
-                  <AvatarFallback className="bg-gradient-to-br from-primary to-purple-600 text-white">You</AvatarFallback>
+          <div className="lg:col-span-2 space-y-4">
+            {/* Create Post */}
+            <Card className="glass-card p-3 sm:p-4">
+              <div className="flex items-start gap-3">
+                <Avatar className="w-8 h-8 sm:w-10 sm:h-10 ring-2 ring-primary/50 shrink-0">
+                  <AvatarFallback className="bg-gradient-to-br from-primary to-secondary text-primary-foreground text-xs">You</AvatarFallback>
                 </Avatar>
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <Input
-                    placeholder="Share your trading insight or update..."
+                    placeholder="Share your trading insight..."
                     value={newPost}
                     onChange={(e) => setNewPost(e.target.value)}
-                    className="mb-3"
+                    className="mb-2 text-sm h-9"
                     onKeyDown={(e) => e.key === 'Enter' && handlePost()}
                   />
                   <div className="flex justify-end">
                     <Button 
+                      size="sm"
                       onClick={handlePost}
                       disabled={posting || !newPost.trim()}
-                      className="bg-primary"
                     >
                       {posting ? (
-                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                        <Loader2 className="w-3 h-3 animate-spin mr-1" />
                       ) : (
-                        <Send className="w-4 h-4 mr-2" />
+                        <Send className="w-3 h-3 mr-1" />
                       )}
-                      Post
+                      <span className="text-xs">Post</span>
                     </Button>
                   </div>
                 </div>
@@ -216,52 +215,52 @@ const BlackVerse = () => {
 
             {/* Posts Feed */}
             {posts.length === 0 ? (
-              <Card className="glass-card p-12 text-center">
-                <MessageSquare className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-xl font-bold mb-2">No posts yet</h3>
-                <p className="text-muted-foreground">Be the first to share something!</p>
+              <Card className="glass-card p-8 text-center">
+                <MessageSquare className="w-10 h-10 mx-auto text-muted-foreground mb-3" />
+                <h3 className="text-sm font-bold mb-1">No posts yet</h3>
+                <p className="text-xs text-muted-foreground">Be the first to share something!</p>
               </Card>
             ) : (
               posts.map((post) => (
-                <Card key={post.id} className="glass-card p-6 hover:border-primary/40 transition-all">
-                  <div className="flex items-start gap-4">
+                <Card key={post.id} className="glass-card p-3 sm:p-4 hover:border-primary/40 transition-all">
+                  <div className="flex items-start gap-3">
                     <Avatar 
-                      className="w-12 h-12 ring-2 ring-primary/50 cursor-pointer"
+                      className="w-8 h-8 sm:w-10 sm:h-10 ring-2 ring-primary/50 cursor-pointer shrink-0"
                       onClick={() => navigate(`/profile/${post.user_id}`)}
                     >
                       <AvatarImage src={post.profile?.avatar_url || undefined} />
-                      <AvatarFallback className="bg-gradient-to-br from-primary to-purple-600 text-white">
+                      <AvatarFallback className="bg-gradient-to-br from-primary to-secondary text-primary-foreground text-xs">
                         {post.profile?.display_name?.[0] || "?"}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <h3 
-                          className="font-semibold text-foreground cursor-pointer hover:text-primary"
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-1.5 mb-1">
+                        <span 
+                          className="font-semibold text-xs sm:text-sm text-foreground cursor-pointer hover:text-primary truncate max-w-[120px] sm:max-w-[180px]"
                           onClick={() => navigate(`/profile/${post.user_id}`)}
                         >
-                          {post.profile?.display_name || "Unknown User"}
-                        </h3>
-                        <Badge className="bg-primary/20 text-primary border-primary/30 text-xs">
+                          {post.profile?.display_name || "Unknown"}
+                        </span>
+                        <Badge className="bg-primary/20 text-primary border-primary/30 text-[10px] px-1.5 py-0">
                           Lvl {post.profile?.rank_level || 1}
                         </Badge>
-                        <span className="text-sm text-muted-foreground">
-                          {format(new Date(post.created_at), "MMM d 'at' h:mm a")}
+                        <span className="text-[10px] sm:text-xs text-muted-foreground">
+                          {format(new Date(post.created_at), "MMM d, h:mm a")}
                         </span>
                       </div>
-                      <p className="text-foreground/90 mb-4">{getActivityContent(post)}</p>
-                      <div className="flex items-center gap-6 text-sm text-muted-foreground">
-                        <button className="flex items-center gap-2 hover:text-primary transition-colors">
-                          <Heart className="w-4 h-4" />
-                          Like
+                      <p className="text-xs sm:text-sm text-foreground/90 mb-3 break-words">{getActivityContent(post)}</p>
+                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                        <button className="flex items-center gap-1 hover:text-primary transition-colors">
+                          <Heart className="w-3.5 h-3.5" />
+                          <span className="hidden sm:inline">Like</span>
                         </button>
-                        <button className="flex items-center gap-2 hover:text-primary transition-colors">
-                          <MessageSquare className="w-4 h-4" />
-                          Comment
+                        <button className="flex items-center gap-1 hover:text-primary transition-colors">
+                          <MessageSquare className="w-3.5 h-3.5" />
+                          <span className="hidden sm:inline">Comment</span>
                         </button>
-                        <button className="flex items-center gap-2 hover:text-primary transition-colors">
-                          <Share2 className="w-4 h-4" />
-                          Share
+                        <button className="flex items-center gap-1 hover:text-primary transition-colors">
+                          <Share2 className="w-3.5 h-3.5" />
+                          <span className="hidden sm:inline">Share</span>
                         </button>
                       </div>
                     </div>
@@ -272,41 +271,38 @@ const BlackVerse = () => {
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-6">
+          <div className="space-y-4">
             {/* Top Traders */}
-            <Card className="glass-card p-6">
-              <div className="flex items-center gap-2 mb-6">
-                <Award className="w-5 h-5 text-gold" />
-                <h2 className="text-xl font-bold gradient-text-cyber">Top Traders</h2>
+            <Card className="glass-card p-3 sm:p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Award className="w-4 h-4 text-primary" />
+                <h2 className="text-sm font-bold text-foreground">Top Traders</h2>
               </div>
-              <div className="space-y-4">
+              <div className="space-y-2">
                 {topTraders.map((trader, idx) => {
                   const tierBadge = getTierBadge(trader.payment_tier);
                   return (
                     <div 
                       key={trader.id} 
-                      className="flex items-center gap-3 p-3 rounded-lg bg-background/30 hover:bg-background/50 transition-all cursor-pointer"
+                      className="flex items-center gap-2 p-2 rounded-lg bg-background/30 hover:bg-background/50 transition-all cursor-pointer"
                       onClick={() => navigate(`/profile/${trader.id}`)}
                     >
-                      <div className="relative">
-                        <Avatar className="w-10 h-10 ring-2 ring-gold/50">
-                          <AvatarImage src={trader.avatar_url || undefined} />
-                          <AvatarFallback className="bg-gradient-to-br from-gold to-primary text-white font-bold">
-                            {trader.display_name?.[0] || "?"}
-                          </AvatarFallback>
-                        </Avatar>
-                        {idx === 0 && <Crown className="w-4 h-4 text-gold absolute -top-1 -right-1" />}
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-semibold text-sm">#{idx + 1}</span>
-                          <span className="text-foreground font-medium">{trader.display_name}</span>
+                      <Avatar className="w-7 h-7 ring-1 ring-primary/30 shrink-0">
+                        <AvatarImage src={trader.avatar_url || undefined} />
+                        <AvatarFallback className="bg-gradient-to-br from-primary to-secondary text-primary-foreground text-[10px]">
+                          {trader.display_name?.[0] || "?"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1">
+                          <span className="font-semibold text-[10px] text-muted-foreground">#{idx + 1}</span>
+                          <span className="text-xs font-medium text-foreground truncate">{trader.display_name}</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline" className={`text-xs ${tierBadge.color}`}>
+                        <div className="flex items-center gap-1.5">
+                          <Badge variant="outline" className={`text-[9px] px-1 py-0 ${tierBadge.color}`}>
                             {tierBadge.label}
                           </Badge>
-                          <span className="text-xs text-primary font-bold">
+                          <span className="text-[10px] text-primary font-bold">
                             {trader.xp_points?.toLocaleString() || 0} XP
                           </span>
                         </div>
@@ -317,40 +313,41 @@ const BlackVerse = () => {
               </div>
               <Button 
                 variant="outline" 
-                className="w-full mt-4"
+                size="sm"
+                className="w-full mt-3 text-xs h-8"
                 onClick={() => navigate("/leaderboard")}
               >
-                View Full Leaderboard
+                View Leaderboard
               </Button>
             </Card>
 
             {/* Community Stats */}
-            <Card className="glass-card p-6">
-              <h2 className="text-xl font-bold gradient-text-cyber mb-6">Community Pulse</h2>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-3 rounded-lg bg-background/30">
-                  <div className="flex items-center gap-2">
-                    <Users className="w-5 h-5 text-primary" />
-                    <span className="text-sm text-muted-foreground">Total Members</span>
+            <Card className="glass-card p-3 sm:p-4">
+              <h2 className="text-sm font-bold text-foreground mb-3">Community Pulse</h2>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between p-2 rounded-lg bg-background/30">
+                  <div className="flex items-center gap-1.5">
+                    <Users className="w-3.5 h-3.5 text-primary" />
+                    <span className="text-xs text-muted-foreground">Members</span>
                   </div>
-                  <span className="font-bold text-foreground">{communityStats.users.toLocaleString()}</span>
+                  <span className="text-xs font-bold text-foreground">{communityStats.users.toLocaleString()}</span>
                 </div>
-                <div className="flex items-center justify-between p-3 rounded-lg bg-background/30">
-                  <div className="flex items-center gap-2">
-                    <MessageSquare className="w-5 h-5 text-primary" />
-                    <span className="text-sm text-muted-foreground">Total Posts</span>
+                <div className="flex items-center justify-between p-2 rounded-lg bg-background/30">
+                  <div className="flex items-center gap-1.5">
+                    <MessageSquare className="w-3.5 h-3.5 text-primary" />
+                    <span className="text-xs text-muted-foreground">Posts</span>
                   </div>
-                  <span className="font-bold text-foreground">{communityStats.posts.toLocaleString()}</span>
+                  <span className="text-xs font-bold text-foreground">{communityStats.posts.toLocaleString()}</span>
                 </div>
               </div>
             </Card>
 
-            {/* Discover Button */}
+            {/* Discover */}
             <Button 
-              className="w-full h-14 text-lg"
+              className="w-full h-9 text-xs"
               onClick={() => navigate("/discover")}
             >
-              <Users className="w-5 h-5 mr-2" />
+              <Users className="w-3.5 h-3.5 mr-1.5" />
               Discover Traders
             </Button>
           </div>
