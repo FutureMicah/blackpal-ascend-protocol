@@ -6,11 +6,7 @@ import { useState, useEffect } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
+  Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger,
 } from "@/components/ui/sheet";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
@@ -32,6 +28,14 @@ const navItems = [
   { name: "Community", path: "/community", icon: Megaphone },
 ];
 
+// Bottom tab items for quick mobile access
+const mobileQuickTabs = [
+  { name: "Home", path: "/dashboard", icon: Home },
+  { name: "Accounts", path: "/my-accounts", icon: Wallet },
+  { name: "Market", path: "/market-hub", icon: Globe },
+  { name: "Discover", path: "/discover", icon: Search },
+];
+
 export const FloatingNav = () => {
   const location = useLocation();
   const isMobile = useIsMobile();
@@ -42,101 +46,83 @@ export const FloatingNav = () => {
     const loadPendingRequests = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
-
       const { count } = await supabase
         .from("friend_connections")
         .select("*", { count: "exact", head: true })
         .eq("friend_id", user.id)
         .eq("status", "pending");
-
       setPendingRequests(count || 0);
     };
-
     loadPendingRequests();
-
-    // Subscribe to realtime updates for friend requests
-    const channel = supabase
-      .channel("nav-friend-requests")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "friend_connections",
-        },
-        () => {
-          loadPendingRequests();
-        }
-      )
+    const channel = supabase.channel("nav-friend-requests")
+      .on("postgres_changes", { event: "*", schema: "public", table: "friend_connections" }, () => loadPendingRequests())
       .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => { supabase.removeChannel(channel); };
   }, []);
-
-  const renderNavItem = (item: typeof navItems[0], isActive: boolean, onClick?: () => void) => {
-    const Icon = item.icon;
-    const showBadge = item.path === "/discover" && pendingRequests > 0;
-    
-    return (
-      <Link
-        key={item.path}
-        to={item.path}
-        onClick={onClick}
-        className={cn(
-          "relative flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300",
-          isActive
-            ? "bg-primary text-primary-foreground shadow-lg"
-            : "hover:bg-primary/10 text-muted-foreground hover:text-foreground"
-        )}
-      >
-        <div className="relative">
-          <Icon className="w-5 h-5" />
-          {showBadge && (
-            <Badge 
-              variant="destructive" 
-              className="absolute -top-2 -right-2 h-4 w-4 p-0 flex items-center justify-center text-[10px]"
-            >
-              {pendingRequests > 9 ? "9+" : pendingRequests}
-            </Badge>
-          )}
-        </div>
-        <span className="text-sm font-medium">{item.name}</span>
-      </Link>
-    );
-  };
 
   if (isMobile) {
     return (
-      <nav className="fixed top-6 left-1/2 -translate-x-1/2 z-50 animate-fade-in">
-        <Sheet open={open} onOpenChange={setOpen}>
-          <SheetTrigger asChild>
-            <Button
-              variant="outline"
-              size="icon"
-              className="glass-strong rounded-full shadow-depth-xl border border-primary/20"
-            >
-              <Menu className="h-5 w-5" />
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="top" className="glass-strong border-primary/20">
-            <SheetHeader>
-              <SheetTitle>Navigation</SheetTitle>
-            </SheetHeader>
-            <div className="grid gap-2 py-4">
-              {navItems.map((item) => {
-                const isActive = location.pathname === item.path;
-                return renderNavItem(item, isActive, () => setOpen(false));
-              })}
-              <div className="flex items-center gap-3 px-4 py-3">
-                <ThemeToggle />
-                <span className="text-sm font-medium text-muted-foreground">Toggle Theme</span>
+      <>
+        {/* Top bar with menu */}
+        <nav className="fixed top-0 left-0 right-0 z-50 h-12 bg-background/90 backdrop-blur-xl border-b border-border/50 flex items-center px-3">
+          <Sheet open={open} onOpenChange={setOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="w-8 h-8">
+                <Menu className="h-4 w-4" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-[260px] p-0">
+              <SheetHeader className="p-4 pb-2">
+                <SheetTitle className="text-sm">Navigation</SheetTitle>
+              </SheetHeader>
+              <div className="flex-1 overflow-y-auto px-2 pb-4">
+                {navItems.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = location.pathname === item.path;
+                  const showBadge = item.path === "/discover" && pendingRequests > 0;
+                  return (
+                    <Link key={item.path} to={item.path} onClick={() => setOpen(false)}
+                      className={cn("relative flex items-center gap-2.5 px-3 py-2.5 rounded-lg transition-all text-xs", isActive ? "bg-primary text-primary-foreground" : "hover:bg-primary/10 text-muted-foreground hover:text-foreground")}>
+                      <div className="relative">
+                        <Icon className="w-4 h-4" />
+                        {showBadge && <Badge variant="destructive" className="absolute -top-1.5 -right-1.5 h-3.5 w-3.5 p-0 flex items-center justify-center text-[8px]">{pendingRequests > 9 ? "9+" : pendingRequests}</Badge>}
+                      </div>
+                      <span className="font-medium">{item.name}</span>
+                    </Link>
+                  );
+                })}
+                <div className="flex items-center gap-2.5 px-3 py-2.5 mt-2 border-t border-border">
+                  <ThemeToggle />
+                  <span className="text-xs text-muted-foreground">Theme</span>
+                </div>
               </div>
-            </div>
-          </SheetContent>
-        </Sheet>
-      </nav>
+            </SheetContent>
+          </Sheet>
+          <span className="text-xs font-bold text-foreground ml-2">BlackPal</span>
+          <div className="flex-1" />
+          <ThemeToggle />
+        </nav>
+
+        {/* Bottom tab bar */}
+        <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-xl border-t border-border/50 safe-area-pb">
+          <div className="flex items-center justify-around h-12">
+            {mobileQuickTabs.map((item) => {
+              const Icon = item.icon;
+              const isActive = location.pathname === item.path;
+              return (
+                <Link key={item.path} to={item.path} className={cn("flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg transition-colors", isActive ? "text-primary" : "text-muted-foreground")}>
+                  <Icon className="w-4 h-4" />
+                  <span className="text-[9px] font-medium">{item.name}</span>
+                </Link>
+              );
+            })}
+            <button onClick={() => setOpen(true)} className="flex flex-col items-center gap-0.5 px-3 py-1 text-muted-foreground">
+              <Menu className="w-4 h-4" />
+              <span className="text-[9px] font-medium">More</span>
+            </button>
+          </div>
+        </nav>
+      </>
     );
   }
 
@@ -148,35 +134,15 @@ export const FloatingNav = () => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
             const showBadge = item.path === "/discover" && pendingRequests > 0;
-            
             return (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={cn(
-                  "relative group px-4 py-2 rounded-full transition-all duration-300 flex items-center gap-2",
-                  isActive
-                    ? "bg-primary text-primary-foreground shadow-lg"
-                    : "hover:bg-primary/10 text-muted-foreground hover:text-foreground"
-                )}
-              >
+              <Link key={item.path} to={item.path}
+                className={cn("relative group px-4 py-2 rounded-full transition-all duration-300 flex items-center gap-2", isActive ? "bg-primary text-primary-foreground shadow-lg" : "hover:bg-primary/10 text-muted-foreground hover:text-foreground")}>
                 <div className="relative">
                   <Icon className="w-4 h-4" />
-                  {showBadge && (
-                    <Badge 
-                      variant="destructive" 
-                      className="absolute -top-2 -right-2 h-4 w-4 p-0 flex items-center justify-center text-[10px]"
-                    >
-                      {pendingRequests > 9 ? "9+" : pendingRequests}
-                    </Badge>
-                  )}
+                  {showBadge && <Badge variant="destructive" className="absolute -top-2 -right-2 h-4 w-4 p-0 flex items-center justify-center text-[10px]">{pendingRequests > 9 ? "9+" : pendingRequests}</Badge>}
                 </div>
-                <span className="text-sm font-medium hidden lg:inline">
-                  {item.name}
-                </span>
-                {isActive && (
-                  <div className="absolute inset-0 rounded-full bg-primary/20 animate-pulse" />
-                )}
+                <span className="text-sm font-medium hidden lg:inline">{item.name}</span>
+                {isActive && <div className="absolute inset-0 rounded-full bg-primary/20 animate-pulse" />}
               </Link>
             );
           })}
