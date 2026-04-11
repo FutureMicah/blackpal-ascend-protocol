@@ -204,35 +204,35 @@ export default function Dashboard() {
       <FloatingNav />
 
       {/* Main content */}
-      <div className="relative max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-24">
+      <div className="relative max-w-[1400px] mx-auto px-3 sm:px-6 lg:px-8 py-16 sm:py-24">
         {/* Header with Leaderboard, Compare, and Notifications */}
-        <div className="flex justify-end gap-2 mb-4">
+        <div className="flex justify-end gap-1.5 mb-3">
           {user && <NotificationCenter userId={user.id} />}
           <Button
             variant="outline"
             onClick={() => setShowSecurityPanel(true)}
-            className="flex items-center gap-2"
+            className="flex items-center gap-1 h-7 px-2 text-[10px]"
             size="sm"
           >
-            <Fingerprint className="h-4 w-4 sm:h-5 sm:w-5" />
+            <Fingerprint className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">Security</span>
           </Button>
           <Button
             variant="outline"
             onClick={() => setShowComparison(true)}
-            className="flex items-center gap-2"
+            className="flex items-center gap-1 h-7 px-2 text-[10px]"
             size="sm"
           >
-            <GitCompare className="h-4 w-4 sm:h-5 sm:w-5" />
+            <GitCompare className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">Compare</span>
           </Button>
           <Button
             variant="outline"
             onClick={() => navigate("/leaderboard")}
-            className="flex items-center gap-2"
+            className="flex items-center gap-1 h-7 px-2 text-[10px]"
             size="sm"
           >
-            <Trophy className="h-4 w-4 sm:h-5 sm:w-5" />
+            <Trophy className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">Leaderboard</span>
           </Button>
         </div>
@@ -250,7 +250,7 @@ export default function Dashboard() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6"
+          className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-6"
         >
           {/* Left Column - Profile Card */}
           <div className="lg:col-span-3 order-1">
@@ -262,21 +262,21 @@ export default function Dashboard() {
           </div>
 
           {/* Middle Column - Main Content */}
-          <div className="lg:col-span-6 space-y-4 sm:space-y-6 order-3 lg:order-2">
+          <div className="lg:col-span-6 space-y-3 sm:space-y-6 order-3 lg:order-2">
             <XPReactor profile={profile} />
             <AchievementsCarousel userId={profile.id} />
             <ActivityFeed userId={profile.id} />
           </div>
 
           {/* Right Column - Sidebar */}
-          <div className="lg:col-span-3 space-y-4 sm:space-y-6 order-2 lg:order-3">
+          <div className="lg:col-span-3 space-y-3 sm:space-y-6 order-2 lg:order-3">
             <StreakTracker userId={profile.id} />
             <FriendActivityFeed userId={profile.id} maxItems={10} />
             <WalletSnapshot userId={profile.id} />
             
             {/* Support Chat */}
             {user && (
-              <div className="rounded-xl border border-border bg-card/50 p-4">
+              <div className="rounded-xl border border-border bg-card/50 p-3">
                 <SupportChat userId={user.id} />
               </div>
             )}
@@ -289,10 +289,10 @@ export default function Dashboard() {
             >
               <Button
                 onClick={() => navigate("/achievements/hub")}
-                className="w-full"
-                size="lg"
+                className="w-full h-8 text-xs"
+                size="sm"
               >
-                <Trophy className="mr-2 h-5 w-5" />
+                <Trophy className="mr-1.5 h-3.5 w-3.5" />
                 Achievement Hub
               </Button>
             </motion.div>
