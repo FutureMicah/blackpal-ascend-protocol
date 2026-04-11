@@ -10,152 +10,99 @@ const BlackNotify = () => {
   const [notifications, setNotifications] = useState([
     { id: 1, type: "trade", title: "Trade Signal Alert", message: "EUR/USD bullish setup detected. Entry: 1.0850", time: "5m ago", read: false },
     { id: 2, type: "social", title: "New Comment", message: "Shadow Trader commented on your post", time: "1h ago", read: false },
-    { id: 3, type: "achievement", title: "Achievement Unlocked!", message: "You've completed 100 trades with 70%+ win rate", time: "2h ago", read: false },
-    { id: 4, type: "trade", title: "Stop Loss Hit", message: "GBP/USD position closed at SL: 1.2650", time: "3h ago", read: true },
+    { id: 3, type: "achievement", title: "Achievement Unlocked!", message: "100 trades with 70%+ win rate", time: "2h ago", read: false },
+    { id: 4, type: "trade", title: "Stop Loss Hit", message: "GBP/USD closed at SL: 1.2650", time: "3h ago", read: true },
     { id: 5, type: "social", title: "New Follower", message: "Dark Knight started following you", time: "5h ago", read: true },
   ]);
 
-  const markAllAsRead = () => {
-    setNotifications(notifications.map(n => ({ ...n, read: true })));
-  };
+  const markAllAsRead = () => setNotifications(notifications.map(n => ({ ...n, read: true })));
+  const deleteNotification = (id: number) => setNotifications(notifications.filter(n => n.id !== id));
 
-  const deleteNotification = (id: number) => {
-    setNotifications(notifications.filter(n => n.id !== id));
-  };
-
-  const getNotificationIcon = (type: string) => {
+  const getIcon = (type: string) => {
     switch (type) {
-      case "trade": return <TrendingUp className="w-5 h-5 text-primary" />;
-      case "social": return <MessageSquare className="w-5 h-5 text-blue-500" />;
-      case "achievement": return <Trophy className="w-5 h-5 text-gold" />;
-      default: return <Bell className="w-5 h-5 text-primary" />;
+      case "trade": return <TrendingUp className="w-3.5 h-3.5 text-primary" />;
+      case "social": return <MessageSquare className="w-3.5 h-3.5 text-blue-500" />;
+      case "achievement": return <Trophy className="w-3.5 h-3.5 text-yellow-500" />;
+      default: return <Bell className="w-3.5 h-3.5 text-primary" />;
     }
   };
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 relative overflow-hidden">
-      {/* Notification background effects */}
-      <div className="absolute inset-0 -z-10">
-        {[...Array(20)].map((_, i) => (
-          <div
-            key={`ring-${i}`}
-            className="absolute rounded-full border border-primary/10 animate-pulse"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              width: `${50 + Math.random() * 100}px`,
-              height: `${50 + Math.random() * 100}px`,
-              animationDelay: `${Math.random() * 3}s`,
-              animationDuration: `${3 + Math.random() * 3}s`,
-            }}
-          />
-        ))}
-      </div>
-
+    <div className="min-h-screen bg-background">
       <FloatingNav />
-
-      <div className="container mx-auto px-4 py-8 pt-24 max-w-4xl">
+      <div className="max-w-3xl mx-auto px-3 sm:px-6 pt-16 pb-8">
         {/* Header */}
-        <div className="text-center mb-12 animate-fade-in">
-          <div className="flex items-center justify-center gap-3 mb-4">
+        <div className="text-center mb-5">
+          <div className="flex items-center justify-center gap-2 mb-1">
             <div className="relative">
-              <Bell className="w-10 h-10 text-primary animate-pulse" />
-              {unreadCount > 0 && (
-                <Badge className="absolute -top-2 -right-2 bg-red-500 text-white px-2 py-0 text-xs">
-                  {unreadCount}
-                </Badge>
-              )}
+              <Bell className="w-5 h-5 text-primary" />
+              {unreadCount > 0 && <Badge className="absolute -top-1.5 -right-1.5 bg-red-500 text-white px-1 py-0 text-[8px] h-3.5 min-w-[14px] flex items-center justify-center">{unreadCount}</Badge>}
             </div>
-            <h1 className="text-5xl font-bold gradient-text-cyber">BlackNotify</h1>
+            <h1 className="text-lg sm:text-2xl font-bold">BlackNotify</h1>
           </div>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Stay updated with real-time alerts and never miss a trading opportunity
-          </p>
+          <p className="text-xs text-muted-foreground">Real-time alerts & updates</p>
         </div>
 
-        {/* Actions Bar */}
-        <Card className="glass-strong p-4 border-primary/20 mb-6 animate-slide-up">
+        {/* Actions */}
+        <Card className="p-2 mb-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" size="sm" onClick={markAllAsRead} className="text-primary">
-                <CheckCheck className="w-4 h-4 mr-2" />
-                Mark All Read
+            <div className="flex items-center gap-1">
+              <Button variant="ghost" size="sm" onClick={markAllAsRead} className="h-7 text-[10px] text-primary px-2">
+                <CheckCheck className="w-3 h-3 mr-1" /> Mark Read
               </Button>
-              <Button variant="ghost" size="sm" className="text-muted-foreground">
-                <Filter className="w-4 h-4 mr-2" />
-                Filter
+              <Button variant="ghost" size="sm" className="h-7 text-[10px] text-muted-foreground px-2">
+                <Filter className="w-3 h-3 mr-1" /> Filter
               </Button>
             </div>
-            <Button variant="ghost" size="sm" className="text-muted-foreground">
-              <Settings className="w-4 h-4 mr-2" />
-              Settings
+            <Button variant="ghost" size="sm" className="h-7 text-[10px] text-muted-foreground px-2">
+              <Settings className="w-3 h-3 mr-1" /> Settings
             </Button>
           </div>
         </Card>
 
-        {/* Notifications List */}
-        <div className="space-y-3">
-          {notifications.map((notification, idx) => (
-            <Card
-              key={notification.id}
-              className={`glass-strong p-5 border-primary/20 animate-slide-up hover:border-primary/40 transition-all group ${
-                !notification.read ? 'bg-primary/5' : ''
-              }`}
-              style={{ animationDelay: `${0.05 * idx}s` }}
-            >
-              <div className="flex items-start gap-4">
-                <div className={`p-3 rounded-full ${!notification.read ? 'bg-primary/20' : 'bg-background/50'}`}>
-                  {getNotificationIcon(notification.type)}
-                </div>
+        {/* Notifications */}
+        <div className="space-y-2">
+          {notifications.map((n) => (
+            <Card key={n.id} className={`p-2.5 transition-all group ${!n.read ? 'bg-primary/5 border-primary/20' : ''}`}>
+              <div className="flex items-start gap-2">
+                <div className={`p-1.5 rounded-full shrink-0 ${!n.read ? 'bg-primary/20' : 'bg-muted/30'}`}>{getIcon(n.type)}</div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-2 mb-1">
-                    <h3 className={`font-semibold ${!notification.read ? 'text-foreground' : 'text-muted-foreground'}`}>
-                      {notification.title}
-                    </h3>
-                    <span className="text-xs text-muted-foreground whitespace-nowrap">{notification.time}</span>
+                  <div className="flex items-start justify-between gap-1 mb-0.5">
+                    <h3 className={`text-[11px] font-semibold truncate ${!n.read ? '' : 'text-muted-foreground'}`}>{n.title}</h3>
+                    <span className="text-[8px] text-muted-foreground whitespace-nowrap shrink-0">{n.time}</span>
                   </div>
-                  <p className="text-sm text-muted-foreground">{notification.message}</p>
-                  {!notification.read && (
-                    <Badge variant="outline" className="mt-2 text-xs border-primary/30 text-primary">
-                      New
-                    </Badge>
-                  )}
+                  <p className="text-[10px] text-muted-foreground truncate">{n.message}</p>
+                  {!n.read && <Badge variant="outline" className="mt-1 text-[7px] border-primary/30 text-primary px-1 py-0">New</Badge>}
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => deleteNotification(notification.id)}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity text-red-500 hover:text-red-600"
-                >
-                  <Trash2 className="w-4 h-4" />
+                <Button variant="ghost" size="sm" onClick={() => deleteNotification(n.id)} className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0 text-red-500 shrink-0">
+                  <Trash2 className="w-3 h-3" />
                 </Button>
               </div>
             </Card>
           ))}
         </div>
 
-        {/* Notification Preferences */}
-        <Card className="glass-strong p-6 border-primary/20 mt-8 animate-slide-up" style={{ animationDelay: '0.5s' }}>
-          <h2 className="text-2xl font-bold gradient-text-cyber mb-6 flex items-center gap-2">
-            <Settings className="w-6 h-6" />
-            Notification Preferences
+        {/* Preferences */}
+        <Card className="p-3 mt-5">
+          <h2 className="text-xs font-bold mb-3 flex items-center gap-1.5">
+            <Settings className="w-3.5 h-3.5" /> Preferences
           </h2>
-          <div className="space-y-4">
+          <div className="space-y-2">
             {[
-              { title: "Trade Signals", desc: "Get notified when new trading opportunities are detected" },
-              { title: "Social Interactions", desc: "Likes, comments, and new followers" },
-              { title: "Achievements", desc: "Milestones and badge unlocks" },
-              { title: "Portfolio Updates", desc: "Daily performance summaries" },
-              { title: "Market Alerts", desc: "Major market movements and news" },
-            ].map((pref, idx) => (
-              <div key={idx} className="flex items-center justify-between p-4 rounded-lg bg-background/30">
-                <div className="flex-1">
-                  <h3 className="font-medium mb-1">{pref.title}</h3>
-                  <p className="text-sm text-muted-foreground">{pref.desc}</p>
+              { title: "Trade Signals", desc: "New trading opportunities" },
+              { title: "Social", desc: "Likes, comments, follows" },
+              { title: "Achievements", desc: "Milestones & badges" },
+              { title: "Portfolio", desc: "Daily summaries" },
+              { title: "Market Alerts", desc: "Major movements" },
+            ].map((p, i) => (
+              <div key={i} className="flex items-center justify-between p-2 rounded-lg bg-muted/20">
+                <div className="min-w-0">
+                  <h3 className="text-[10px] font-medium">{p.title}</h3>
+                  <p className="text-[9px] text-muted-foreground">{p.desc}</p>
                 </div>
-                <Switch defaultChecked />
+                <Switch defaultChecked className="scale-75" />
               </div>
             ))}
           </div>

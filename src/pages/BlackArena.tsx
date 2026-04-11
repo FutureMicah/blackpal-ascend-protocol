@@ -1,9 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  Bot, BarChart3, Sword, Radio, GraduationCap, 
-  Wallet, ArrowLeft, Sparkles
-} from "lucide-react";
+import { Bot, BarChart3, Sword, Radio, GraduationCap, Wallet, ArrowLeft, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { AITradingAssistant, AIAssistantTrigger } from "@/components/AITradingAssistant";
@@ -28,68 +25,44 @@ const BlackArena = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur-xl">
-        <div className="container flex items-center justify-between h-16 px-4">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => activeFeature ? setActiveFeature(null) : navigate("/dashboard")}>
-              <ArrowLeft className="w-5 h-5" />
+        <div className="flex items-center justify-between h-12 px-3">
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => activeFeature ? setActiveFeature(null) : navigate("/dashboard")}>
+              <ArrowLeft className="w-4 h-4" />
             </Button>
-            <h1 className="text-xl font-bold flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-primary" />
-              Black Arena
+            <h1 className="text-sm font-bold flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-primary" /> Black Arena
             </h1>
           </div>
-          <Button variant="outline" size="sm" onClick={() => navigate("/dashboard")}>
-            <Wallet className="w-4 h-4 mr-2" />
-            Dashboard
+          <Button variant="outline" size="sm" className="h-7 text-[10px] px-2" onClick={() => navigate("/dashboard")}>
+            <Wallet className="w-3 h-3 mr-1" /> Dashboard
           </Button>
         </div>
       </header>
 
-      <main className="container px-4 py-8">
+      <main className="px-3 py-4">
         <AnimatePresence mode="wait">
           {!activeFeature ? (
-            <motion.div
-              key="menu"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="space-y-8"
-            >
-              {/* Hero */}
-              <div className="text-center mb-12">
-                <h2 className="text-4xl font-bold mb-4">Premium Trading Hub</h2>
-                <p className="text-muted-foreground max-w-lg mx-auto">
-                  Access exclusive tools, compete in challenges, and level up your trading game
-                </p>
+            <motion.div key="menu" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4 max-w-3xl mx-auto">
+              <div className="text-center mb-4">
+                <h2 className="text-lg sm:text-2xl font-bold mb-1">Premium Trading Hub</h2>
+                <p className="text-xs text-muted-foreground max-w-md mx-auto">Exclusive tools, challenges, and mentorship</p>
               </div>
-
-              {/* Feature Grid */}
-              <div className="grid gap-6 md:grid-cols-2">
-                {features.map((feature, i) => (
-                  <motion.button
-                    key={feature.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.1 }}
-                    onClick={() => setActiveFeature(feature.id)}
-                    className={`p-6 rounded-2xl border border-border bg-gradient-to-br ${feature.color} to-transparent text-left transition-all hover:border-primary/50 hover:scale-[1.02]`}
-                  >
-                    <feature.icon className="w-10 h-10 text-primary mb-4" />
-                    <h3 className="text-xl font-semibold mb-1">{feature.label}</h3>
-                    <p className="text-muted-foreground text-sm">{feature.desc}</p>
+              <div className="grid gap-3 grid-cols-2">
+                {features.map((f, i) => (
+                  <motion.button key={f.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
+                    onClick={() => setActiveFeature(f.id)}
+                    className={`p-3 rounded-xl border border-border bg-gradient-to-br ${f.color} to-transparent text-left transition-all hover:border-primary/50`}>
+                    <f.icon className="w-6 h-6 text-primary mb-2" />
+                    <h3 className="text-xs font-semibold mb-0.5">{f.label}</h3>
+                    <p className="text-[9px] text-muted-foreground">{f.desc}</p>
                   </motion.button>
                 ))}
               </div>
             </motion.div>
           ) : (
-            <motion.div
-              key={activeFeature}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-            >
+            <motion.div key={activeFeature} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}>
               {activeFeature === "simulator" && <PaperTradingSimulator />}
               {activeFeature === "battlepass" && <BattlePassSystem />}
               {activeFeature === "rooms" && <LiveTradingRooms />}
@@ -99,7 +72,6 @@ const BlackArena = () => {
         </AnimatePresence>
       </main>
 
-      {/* AI Assistant */}
       <AITradingAssistant isOpen={showAI} onClose={() => setShowAI(false)} />
       {!showAI && <AIAssistantTrigger onClick={() => setShowAI(true)} />}
     </div>

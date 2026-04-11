@@ -31,10 +31,10 @@ export default function MarketHub() {
         <TradingViewWidget widgetType="ticker" height={46} theme="dark" />
       </div>
 
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-8">
-        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
-          <h1 className="text-3xl font-bold text-foreground">Market Hub</h1>
-          <p className="text-muted-foreground text-sm mt-1">Live markets, charts, screeners, and analysis tools</p>
+      <div className="max-w-[1400px] mx-auto px-3 sm:px-6 lg:px-8 pt-16 pb-6">
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-4">
+          <h1 className="text-lg sm:text-2xl font-bold text-foreground">Market Hub</h1>
+          <p className="text-[10px] text-muted-foreground mt-0.5">Live markets, charts, screeners & analysis</p>
         </motion.div>
 
         <Tabs defaultValue="overview">
