@@ -1041,6 +1041,107 @@ export type Database = {
           },
         ]
       }
+      copy_trading_follows: {
+        Row: {
+          allocation_percent: number
+          created_at: string
+          follower_id: string
+          id: string
+          is_active: boolean
+          leader_id: string
+          max_risk_per_trade: number
+          total_copied_trades: number
+          total_pnl: number
+          updated_at: string
+        }
+        Insert: {
+          allocation_percent?: number
+          created_at?: string
+          follower_id: string
+          id?: string
+          is_active?: boolean
+          leader_id: string
+          max_risk_per_trade?: number
+          total_copied_trades?: number
+          total_pnl?: number
+          updated_at?: string
+        }
+        Update: {
+          allocation_percent?: number
+          created_at?: string
+          follower_id?: string
+          id?: string
+          is_active?: boolean
+          leader_id?: string
+          max_risk_per_trade?: number
+          total_copied_trades?: number
+          total_pnl?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      copy_trading_positions: {
+        Row: {
+          closed_at: string | null
+          entry_price: number
+          exit_price: number | null
+          follow_id: string
+          follower_id: string
+          id: string
+          leader_id: string
+          lot_size: number
+          opened_at: string
+          pnl: number | null
+          side: string
+          sl: number | null
+          status: string
+          symbol: string
+          tp: number | null
+        }
+        Insert: {
+          closed_at?: string | null
+          entry_price: number
+          exit_price?: number | null
+          follow_id: string
+          follower_id: string
+          id?: string
+          leader_id: string
+          lot_size: number
+          opened_at?: string
+          pnl?: number | null
+          side: string
+          sl?: number | null
+          status?: string
+          symbol: string
+          tp?: number | null
+        }
+        Update: {
+          closed_at?: string | null
+          entry_price?: number
+          exit_price?: number | null
+          follow_id?: string
+          follower_id?: string
+          id?: string
+          leader_id?: string
+          lot_size?: number
+          opened_at?: string
+          pnl?: number | null
+          side?: string
+          sl?: number | null
+          status?: string
+          symbol?: string
+          tp?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "copy_trading_positions_follow_id_fkey"
+            columns: ["follow_id"]
+            isOneToOne: false
+            referencedRelation: "copy_trading_follows"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       crafted_achievements: {
         Row: {
           achievement_id: string
@@ -2094,6 +2195,42 @@ export type Database = {
         }
         Relationships: []
       }
+      price_alerts: {
+        Row: {
+          created_at: string
+          direction: string
+          id: string
+          is_active: boolean
+          is_triggered: boolean
+          symbol: string
+          target_price: number
+          triggered_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          direction?: string
+          id?: string
+          is_active?: boolean
+          is_triggered?: boolean
+          symbol: string
+          target_price: number
+          triggered_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          direction?: string
+          id?: string
+          is_active?: boolean
+          is_triggered?: boolean
+          symbol?: string
+          target_price?: number
+          triggered_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profile_challenges: {
         Row: {
           challenge_description: string
@@ -2992,6 +3129,60 @@ export type Database = {
         }
         Relationships: []
       }
+      trade_analytics_snapshots: {
+        Row: {
+          avg_risk_reward: number
+          best_trade: number
+          created_at: string
+          cumulative_pnl: number
+          daily_pnl: number
+          equity: number
+          id: string
+          losing_trades: number
+          max_drawdown: number
+          snapshot_date: string
+          total_trades: number
+          user_id: string
+          win_rate: number
+          winning_trades: number
+          worst_trade: number
+        }
+        Insert: {
+          avg_risk_reward?: number
+          best_trade?: number
+          created_at?: string
+          cumulative_pnl?: number
+          daily_pnl?: number
+          equity?: number
+          id?: string
+          losing_trades?: number
+          max_drawdown?: number
+          snapshot_date: string
+          total_trades?: number
+          user_id: string
+          win_rate?: number
+          winning_trades?: number
+          worst_trade?: number
+        }
+        Update: {
+          avg_risk_reward?: number
+          best_trade?: number
+          created_at?: string
+          cumulative_pnl?: number
+          daily_pnl?: number
+          equity?: number
+          id?: string
+          losing_trades?: number
+          max_drawdown?: number
+          snapshot_date?: string
+          total_trades?: number
+          user_id?: string
+          win_rate?: number
+          winning_trades?: number
+          worst_trade?: number
+        }
+        Relationships: []
+      }
       trader_accounts: {
         Row: {
           account_name: string
@@ -3701,6 +3892,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_watchlists: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          symbols: string[]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name?: string
+          symbols?: string[]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          symbols?: string[]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       webauthn_credentials: {
         Row: {
