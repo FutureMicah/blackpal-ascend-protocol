@@ -32,18 +32,19 @@ export default function Referrals() {
         setReferralCode(codes[0].code);
       }
 
-      // Get referral stats
+      // Get referral stats from friend_connections (users who joined via referral)
       const { data: refs } = await supabase
-        .from("referral_uses")
-        .select("*, profiles:referred_user_id(display_name, avatar_url)")
-        .eq("referrer_id", user.id)
+        .from("friend_connections")
+        .select("*, profiles:friend_id(display_name, avatar_url)")
+        .eq("user_id", user.id)
+        .eq("status", "accepted")
         .order("created_at", { ascending: false });
 
       if (refs) {
         setReferrals(refs);
         setStats({
           total: refs.length,
-          active: refs.filter((r: any) => r.status === "active").length,
+          active: refs.length,
           xpEarned: refs.length * 2,
         });
       }

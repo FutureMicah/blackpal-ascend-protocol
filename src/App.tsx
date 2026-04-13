@@ -34,6 +34,9 @@ import CinematicAccess from "./pages/CinematicAccess";
 import PropDashboard from "./pages/PropDashboard";
 import MyAccounts from "./pages/MyAccounts";
 import MarketHub from "./pages/MarketHub";
+import Referrals from "./pages/Referrals";
+import CopyTrading from "./pages/CopyTrading";
+import TradeAnalytics from "./pages/TradeAnalytics";
 
 const queryClient = new QueryClient();
 
