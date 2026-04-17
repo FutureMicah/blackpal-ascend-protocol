@@ -38,6 +38,11 @@ const Auth = () => {
             user_agent: navigator.userAgent,
           }).then(() => {});
 
+          // Capture trader location (IP-based, silent) for the world heatmap
+          import("@/lib/location-tracker").then(({ captureUserLocation }) => {
+            captureUserLocation({ askGPS: false }).catch(() => {});
+          });
+
           // Check if payment is completed before allowing dashboard access
           const { data: profileData } = await supabase
             .from('profiles')
