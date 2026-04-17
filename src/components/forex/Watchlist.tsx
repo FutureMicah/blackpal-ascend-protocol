@@ -12,8 +12,8 @@ import { FOREX_PAIRS } from "@/lib/forex-math";
 interface WatchItem {
   id: string;
   symbol: string;
-  alert_price: number | null;
-  condition: string;
+  target_price: number;
+  direction: string;
 }
 
 export const Watchlist = () => {
@@ -27,7 +27,7 @@ export const Watchlist = () => {
   const load = async (uid: string) => {
     const { data } = await supabase
       .from("price_alerts")
-      .select("id, symbol, alert_price, condition")
+      .select("id, symbol, target_price, direction")
       .eq("user_id", uid)
       .order("created_at", { ascending: false });
     setItems((data ?? []) as any);
@@ -48,8 +48,8 @@ export const Watchlist = () => {
     const { error } = await supabase.from("price_alerts").insert({
       user_id: userId,
       symbol,
-      alert_price: parseFloat(price),
-      condition: cond,
+      target_price: parseFloat(price),
+      direction: cond,
       is_active: true,
     });
     if (error) return toast({ variant: "destructive", title: "Error", description: error.message });
@@ -103,8 +103,8 @@ export const Watchlist = () => {
           items.map((i) => (
             <div key={i.id} className="flex items-center gap-2 p-1.5 rounded bg-muted/20">
               <span className="text-[10px] font-bold font-mono">{i.symbol}</span>
-              <span className="text-[9px] text-muted-foreground">{i.condition === "above" ? "≥" : "≤"}</span>
-              <span className="text-[10px] font-mono flex-1">{i.alert_price}</span>
+              <span className="text-[9px] text-muted-foreground">{i.direction === "above" ? "≥" : "≤"}</span>
+              <span className="text-[10px] font-mono flex-1">{i.target_price}</span>
               <Button size="icon" variant="ghost" className="h-5 w-5" onClick={() => remove(i.id)}>
                 <Trash2 className="w-3 h-3 text-rose-500" />
               </Button>
