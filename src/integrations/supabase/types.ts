@@ -1987,6 +1987,45 @@ export type Database = {
         }
         Relationships: []
       }
+      news_alerts: {
+        Row: {
+          created_at: string
+          currency: string
+          event_name: string
+          event_time: string
+          id: string
+          impact: string
+          is_active: boolean
+          notified: boolean
+          notify_minutes_before: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          currency: string
+          event_name: string
+          event_time: string
+          id?: string
+          impact: string
+          is_active?: boolean
+          notified?: boolean
+          notify_minutes_before?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          event_name?: string
+          event_time?: string
+          id?: string
+          impact?: string
+          is_active?: boolean
+          notified?: boolean
+          notify_minutes_before?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       paper_portfolios: {
         Row: {
           created_at: string
@@ -2848,6 +2887,51 @@ export type Database = {
         }
         Relationships: []
       }
+      risk_settings: {
+        Row: {
+          created_at: string
+          daily_loss_limit_pct: number
+          daily_pnl: number
+          id: string
+          is_locked: boolean
+          last_reset_date: string
+          lockout_reason: string | null
+          max_drawdown_pct: number
+          max_open_positions: number
+          starting_balance: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          daily_loss_limit_pct?: number
+          daily_pnl?: number
+          id?: string
+          is_locked?: boolean
+          last_reset_date?: string
+          lockout_reason?: string | null
+          max_drawdown_pct?: number
+          max_open_positions?: number
+          starting_balance?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          daily_loss_limit_pct?: number
+          daily_pnl?: number
+          id?: string
+          is_locked?: boolean
+          last_reset_date?: string
+          lockout_reason?: string | null
+          max_drawdown_pct?: number
+          max_open_positions?: number
+          starting_balance?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       room_messages: {
         Row: {
           content: string
@@ -3249,6 +3333,33 @@ export type Database = {
           win_rate?: number | null
           xp_earned?: number
           xp_required_next?: number
+        }
+        Relationships: []
+      }
+      trader_sentiment: {
+        Row: {
+          created_at: string
+          direction: string
+          id: string
+          symbol: string
+          user_id: string
+          vote_date: string
+        }
+        Insert: {
+          created_at?: string
+          direction: string
+          id?: string
+          symbol: string
+          user_id: string
+          vote_date?: string
+        }
+        Update: {
+          created_at?: string
+          direction?: string
+          id?: string
+          symbol?: string
+          user_id?: string
+          vote_date?: string
         }
         Relationships: []
       }
