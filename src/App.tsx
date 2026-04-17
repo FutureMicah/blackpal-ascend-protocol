@@ -37,6 +37,7 @@ import MarketHub from "./pages/MarketHub";
 import Referrals from "./pages/Referrals";
 import CopyTrading from "./pages/CopyTrading";
 import TradeAnalytics from "./pages/TradeAnalytics";
+import WorldMap from "./pages/WorldMap";
 
 const queryClient = new QueryClient();
 
@@ -80,6 +81,7 @@ const App = () => (
           <Route path="/referrals" element={<Referrals />} />
           <Route path="/copy-trading" element={<CopyTrading />} />
           <Route path="/trade-analytics" element={<TradeAnalytics />} />
+          <Route path="/world-map" element={<WorldMap />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

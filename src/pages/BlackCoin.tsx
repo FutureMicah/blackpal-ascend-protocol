@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Coins, TrendingUp, ArrowDownToLine, ArrowUpFromLine, RefreshCw, Zap, Gift, Trophy, Star, Loader2 } from "lucide-react";
 import { FloatingNav } from "@/components/FloatingNav";
+import { MetalloidCoin } from "@/components/MetalloidCoin";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -102,16 +103,21 @@ const BlackCoin = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
           <div className="lg:col-span-2 space-y-3">
-            {/* Balance */}
-            <Card className="p-3 sm:p-5">
-              <div className="flex items-center gap-1 text-[10px] text-muted-foreground mb-1">
-                <Coins className="w-3.5 h-3.5" /> Your Balance
+            {/* Balance + 3D coin */}
+            <Card className="p-3 sm:p-5 relative overflow-hidden">
+              <div className="absolute -right-4 -top-4 w-32 h-32 sm:w-40 sm:h-40 pointer-events-auto">
+                <MetalloidCoin />
               </div>
-              <div className="flex items-end gap-2 mb-1">
-                <h2 className="text-2xl sm:text-4xl font-bold font-mono">{balance.toLocaleString()}</h2>
-                <span className="text-sm text-muted-foreground mb-0.5">BTC</span>
+              <div className="relative z-10 max-w-[55%]">
+                <div className="flex items-center gap-1 text-[10px] text-muted-foreground mb-1">
+                  <Coins className="w-3.5 h-3.5" /> Your Balance
+                </div>
+                <div className="flex items-end gap-2 mb-1">
+                  <h2 className="text-2xl sm:text-4xl font-bold font-mono">{balance.toLocaleString()}</h2>
+                  <span className="text-sm text-muted-foreground mb-0.5">BTC</span>
+                </div>
+                <p className="text-[10px] text-muted-foreground">~${(balance * 0.001).toFixed(2)} USD</p>
               </div>
-              <p className="text-[10px] text-muted-foreground">~${(balance * 0.001).toFixed(2)} USD</p>
             </Card>
 
             {/* Action Tabs */}

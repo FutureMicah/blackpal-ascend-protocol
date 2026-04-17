@@ -3649,6 +3649,54 @@ export type Database = {
           },
         ]
       }
+      user_locations: {
+        Row: {
+          accuracy_source: string
+          city: string | null
+          country: string | null
+          country_code: string | null
+          created_at: string
+          id: string
+          is_online: boolean | null
+          last_seen_at: string
+          latitude: number | null
+          longitude: number | null
+          region: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          accuracy_source?: string
+          city?: string | null
+          country?: string | null
+          country_code?: string | null
+          created_at?: string
+          id?: string
+          is_online?: boolean | null
+          last_seen_at?: string
+          latitude?: number | null
+          longitude?: number | null
+          region?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          accuracy_source?: string
+          city?: string | null
+          country?: string | null
+          country_code?: string | null
+          created_at?: string
+          id?: string
+          is_online?: boolean | null
+          last_seen_at?: string
+          latitude?: number | null
+          longitude?: number | null
+          region?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_materials: {
         Row: {
           created_at: string
