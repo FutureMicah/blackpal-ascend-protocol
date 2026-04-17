@@ -1,4 +1,4 @@
-import { Home, Trophy, BarChart3, BookOpen, Vault, Users, CreditCard, Hammer, Coins, Bell, Menu, X, Search, Megaphone, Wallet, Globe, Headphones, Copy, Gift, Activity, Map } from "lucide-react";
+import { Home, Trophy, BarChart3, BookOpen, Vault, Users, CreditCard, Hammer, Coins, Bell, Menu, X, Search, Megaphone, Wallet, Globe, Headphones, Copy, Gift, Activity, Map, Wrench } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -16,6 +16,7 @@ const navItems = [
   { name: "My Accounts", path: "/my-accounts", icon: Wallet },
   { name: "Market Hub", path: "/market-hub", icon: Globe },
   { name: "Trader Atlas", path: "/world-map", icon: Map },
+  { name: "Forex Tools", path: "/forex-tools", icon: Wrench },
   { name: "Copy Trading", path: "/copy-trading", icon: Copy },
   { name: "Analytics", path: "/trade-analytics", icon: Activity },
   { name: "Referrals", path: "/referrals", icon: Gift },
