@@ -14,6 +14,66 @@ export type Database = {
   }
   public: {
     Tables: {
+      academy_products: {
+        Row: {
+          category: string | null
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          price_btax: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          price_btax: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          price_btax?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      academy_settings: {
+        Row: {
+          btax_to_naira_rate: number
+          operations_pool_balance: number
+          reward_pool_balance: number
+          scholarship_pool_balance: number
+          singleton: boolean
+          updated_at: string
+        }
+        Insert: {
+          btax_to_naira_rate?: number
+          operations_pool_balance?: number
+          reward_pool_balance?: number
+          scholarship_pool_balance?: number
+          singleton?: boolean
+          updated_at?: string
+        }
+        Update: {
+          btax_to_naira_rate?: number
+          operations_pool_balance?: number
+          reward_pool_balance?: number
+          scholarship_pool_balance?: number
+          singleton?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       account_requests: {
         Row: {
           admin_notes: string | null
@@ -2450,6 +2510,8 @@ export type Database = {
           created_at: string
           date_of_birth: string | null
           display_name: string
+          email: string | null
+          full_name: string | null
           github_handle: string | null
           google_id: string | null
           id: string
@@ -2504,6 +2566,8 @@ export type Database = {
           created_at?: string
           date_of_birth?: string | null
           display_name: string
+          email?: string | null
+          full_name?: string | null
           github_handle?: string | null
           google_id?: string | null
           id: string
@@ -2558,6 +2622,8 @@ export type Database = {
           created_at?: string
           date_of_birth?: string | null
           display_name?: string
+          email?: string | null
+          full_name?: string | null
           github_handle?: string | null
           google_id?: string | null
           id?: string
@@ -2824,6 +2890,55 @@ export type Database = {
           },
         ]
       }
+      purchases: {
+        Row: {
+          amount_btax: number
+          created_at: string
+          id: string
+          product_id: string
+          user_id: string
+          wallet_transaction_id: string | null
+        }
+        Insert: {
+          amount_btax: number
+          created_at?: string
+          id?: string
+          product_id: string
+          user_id: string
+          wallet_transaction_id?: string | null
+        }
+        Update: {
+          amount_btax?: number
+          created_at?: string
+          id?: string
+          product_id?: string
+          user_id?: string
+          wallet_transaction_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchases_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "academy_products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchases_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchases_wallet_transaction_id_fkey"
+            columns: ["wallet_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "wallet_transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       referral_codes: {
         Row: {
           code: string
@@ -2886,6 +3001,41 @@ export type Database = {
           status?: string
         }
         Relationships: []
+      }
+      reward_distributions: {
+        Row: {
+          btax_amount: number
+          created_at: string
+          id: string
+          note: string | null
+          reward_type: string | null
+          user_id: string
+        }
+        Insert: {
+          btax_amount: number
+          created_at?: string
+          id?: string
+          note?: string | null
+          reward_type?: string | null
+          user_id: string
+        }
+        Update: {
+          btax_amount?: number
+          created_at?: string
+          id?: string
+          note?: string | null
+          reward_type?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reward_distributions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       risk_settings: {
         Row: {
@@ -3051,6 +3201,48 @@ export type Database = {
             columns: ["season_id"]
             isOneToOne: false
             referencedRelation: "achievement_seasons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sponsor_allocations: {
+        Row: {
+          btax_amount: number
+          created_at: string
+          id: string
+          note: string | null
+          sponsor_user_id: string
+          student_user_id: string
+        }
+        Insert: {
+          btax_amount: number
+          created_at?: string
+          id?: string
+          note?: string | null
+          sponsor_user_id: string
+          student_user_id: string
+        }
+        Update: {
+          btax_amount?: number
+          created_at?: string
+          id?: string
+          note?: string | null
+          sponsor_user_id?: string
+          student_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sponsor_allocations_sponsor_user_id_fkey"
+            columns: ["sponsor_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sponsor_allocations_student_user_id_fkey"
+            columns: ["student_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -4079,6 +4271,94 @@ export type Database = {
         }
         Relationships: []
       }
+      wallet_transactions: {
+        Row: {
+          btax_amount: number
+          created_at: string
+          description: string | null
+          id: string
+          naira_amount: number
+          reference: string | null
+          status: string
+          type: string
+          wallet_id: string
+        }
+        Insert: {
+          btax_amount: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          naira_amount?: number
+          reference?: string | null
+          status?: string
+          type: string
+          wallet_id: string
+        }
+        Update: {
+          btax_amount?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          naira_amount?: number
+          reference?: string | null
+          status?: string
+          type?: string
+          wallet_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wallet_transactions_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "wallets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wallets: {
+        Row: {
+          btax_balance: number
+          btax_earned_total: number
+          btax_spent_total: number
+          created_at: string
+          id: string
+          naira_funded_total: number
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          btax_balance?: number
+          btax_earned_total?: number
+          btax_spent_total?: number
+          created_at?: string
+          id?: string
+          naira_funded_total?: number
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          btax_balance?: number
+          btax_earned_total?: number
+          btax_spent_total?: number
+          created_at?: string
+          id?: string
+          naira_funded_total?: number
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wallets_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       webauthn_credentials: {
         Row: {
           counter: number
@@ -4195,12 +4475,46 @@ export type Database = {
       }
     }
     Functions: {
+      allocate_sponsor_btax: {
+        Args: {
+          p_btax_amount: number
+          p_note?: string
+          p_student_user_id: string
+        }
+        Returns: string
+      }
+      fund_wallet: {
+        Args: {
+          p_description?: string
+          p_naira_amount: number
+          p_reference?: string
+          p_user_id: string
+        }
+        Returns: string
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
         Returns: boolean
+      }
+      reward_user: {
+        Args: {
+          p_btax_amount: number
+          p_note?: string
+          p_reward_type?: string
+          p_user_id: string
+        }
+        Returns: string
+      }
+      spend_wallet: {
+        Args: {
+          p_btax_amount: number
+          p_description?: string
+          p_reference?: string
+        }
+        Returns: string
       }
       update_achievement_streak: {
         Args: { user_id_param: string }
@@ -4217,6 +4531,7 @@ export type Database = {
         | "editor"
         | "customer_support"
         | "finance"
+        | "sponsor"
       payment_method:
         | "paystack"
         | "flutterwave"
@@ -4368,6 +4683,7 @@ export const Constants = {
         "editor",
         "customer_support",
         "finance",
+        "sponsor",
       ],
       payment_method: [
         "paystack",
