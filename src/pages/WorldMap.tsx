@@ -170,11 +170,11 @@ const WorldMap = () => {
               minZoom={2}
               maxZoom={18}
               scrollWheelZoom
-              style={{ height: "100%", width: "100%", background: "#0a0a0a" }}
+              style={{ height: "100%", width: "100%", background: "#dbeafe" }}
               worldCopyJump
             >
               <TileLayer
-                url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+                url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
                 attribution="&copy; OpenStreetMap &copy; CARTO"
               />
               <FlyTo pos={myPos} />

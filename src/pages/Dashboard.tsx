@@ -10,6 +10,7 @@ import { ProfileHeroCard } from "@/components/dashboard/ProfileHeroCard";
 import { XPReactor } from "@/components/dashboard/XPReactor";
 import { AchievementsCarousel } from "@/components/dashboard/AchievementsCarousel";
 import { WalletSnapshot } from "@/components/dashboard/WalletSnapshot";
+import { BtaxWalletOverview } from "@/components/dashboard/BtaxWalletOverview";
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 import { AchievementNotification } from "@/components/AchievementNotification";
 import { NotificationCenter } from "@/components/NotificationCenter";
@@ -273,6 +274,7 @@ export default function Dashboard() {
             <StreakTracker userId={profile.id} />
             <FriendActivityFeed userId={profile.id} maxItems={10} />
             <WalletSnapshot userId={profile.id} />
+            <BtaxWalletOverview userId={profile.id} />
             
             {/* Support Chat */}
             {user && (

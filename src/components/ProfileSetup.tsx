@@ -75,12 +75,16 @@ export const ProfileSetup = ({ userId, onComplete }: ProfileSetupProps) => {
         avatarUrl = publicUrl;
       }
 
-      // Create profile
+      // Profile row already exists (created by handle_new_user trigger).
+      // Upsert by id so we update existing fields and stay idempotent.
+      const { data: { user: authUser } } = await supabase.auth.getUser();
       const { error: profileError } = await supabase
         .from('profiles')
-        .insert({
+        .upsert({
           id: userId,
           display_name: displayName,
+          full_name: displayName,
+          email: authUser?.email ?? null,
           username: username || null,
           avatar_url: avatarUrl,
           country: country || null,
@@ -97,7 +101,7 @@ export const ProfileSetup = ({ userId, onComplete }: ProfileSetupProps) => {
           profile_visibility: profileVisibility,
           show_email: showEmail,
           theme_preference: themePreference
-        });
+        }, { onConflict: 'id' });
 
       if (profileError) throw profileError;
 
