@@ -39,13 +39,14 @@ export const KycStatusBanner = ({ userId }: Props) => {
 
   return (
     <div
-      className={`relative rounded-xl border p-3 sm:p-4 flex items-center gap-3 ${
+      className={`frost-card-dark relative p-3.5 sm:p-4 flex items-center gap-3 ${
         isPending
-          ? "border-amber-500/30 bg-amber-500/5"
+          ? "ring-1 ring-amber-400/25"
           : isRejected
-          ? "border-rose-500/30 bg-rose-500/5"
-          : "border-primary/30 bg-primary/5"
+          ? "ring-1 ring-rose-400/30"
+          : "ring-1 ring-cyan-400/20"
       }`}
+      style={{ borderRadius: 20 }}
     >
       {isPending ? (
         <Loader2 className="w-5 h-5 text-amber-400 animate-spin shrink-0" />
