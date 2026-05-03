@@ -197,56 +197,59 @@ export default function Dashboard() {
         onClose={() => setNotification(null)}
       />
 
-      {/* Particle background */}
-      <div className="fixed inset-0 pointer-events-none opacity-30">
-        <div className="absolute inset-0 bg-gradient-radial from-primary/5 via-transparent to-transparent" />
-      </div>
+      {/* Aurora canvas — replaces the flat radial */}
+      <div className="frost-aurora" />
 
       {/* Floating Navigation */}
       <FloatingNav />
 
       {/* Main content */}
       <div className="relative max-w-[1400px] mx-auto px-3 sm:px-6 lg:px-8 py-16 sm:py-24">
-        {/* Header with Leaderboard, Compare, and Notifications */}
-        <div className="flex justify-end gap-1.5 mb-3">
-          {user && <NotificationCenter userId={user.id} />}
-          <Button
-            variant="outline"
-            onClick={() => setShowSecurityPanel(true)}
-            className="flex items-center gap-1 h-7 px-2 text-[10px]"
-            size="sm"
-          >
-            <Fingerprint className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Security</span>
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => setShowComparison(true)}
-            className="flex items-center gap-1 h-7 px-2 text-[10px]"
-            size="sm"
-          >
-            <GitCompare className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Compare</span>
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => navigate("/leaderboard")}
-            className="flex items-center gap-1 h-7 px-2 text-[10px]"
-            size="sm"
-          >
-            <Trophy className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Leaderboard</span>
-          </Button>
+        {/* Editorial greeting + floating utility cluster */}
+        <div className="flex items-end justify-between gap-3 mb-5">
+          <div className="min-w-0">
+            <p className="text-[10px] uppercase tracking-[0.22em] text-white/50">
+              {new Date().toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" })}
+            </p>
+            <h1 className="text-2xl sm:text-4xl font-semibold tracking-tight text-white truncate">
+              {profile?.display_name ? `Hello, ${profile.display_name.split(" ")[0]}` : "Welcome back"}
+            </h1>
+          </div>
+          <div className="flex items-center gap-1.5 shrink-0">
+            {user && <NotificationCenter userId={user.id} />}
+            <button
+              onClick={() => setShowSecurityPanel(true)}
+              className="frost-fab"
+              aria-label="Security"
+              title="Security"
+            >
+              <Fingerprint className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => setShowComparison(true)}
+              className="frost-fab"
+              aria-label="Compare"
+              title="Compare"
+            >
+              <GitCompare className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => navigate("/leaderboard")}
+              className="frost-fab"
+              aria-label="Leaderboard"
+              title="Leaderboard"
+            >
+              <Trophy className="h-4 w-4" />
+            </button>
+          </div>
         </div>
-
 
         {/* KYC verification banner — soft gate */}
         {user && (
-          <div className="mb-3">
+          <div className="mb-4">
             <KycStatusBanner userId={user.id} />
           </div>
         )}
-
 
         {/* Profile Comparison Modal */}
         {showComparison && profile && (

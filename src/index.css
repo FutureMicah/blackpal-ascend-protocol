@@ -135,10 +135,115 @@ All colors MUST be HSL.
   .glass-card {
     @apply bg-card/30 backdrop-blur-xl border border-border/40 rounded-2xl shadow-2xl;
   }
-  
+
   .glass-strong {
     @apply bg-card/40 backdrop-blur-2xl border border-border/50 rounded-2xl shadow-2xl;
   }
+
+  /* ---- Frosted-glass system (NFT dashboard inspired) ---- */
+  /* Bright frosted card floating on dark canvas */
+  .frost-card {
+    position: relative;
+    border-radius: 28px;
+    background: linear-gradient(
+      155deg,
+      hsla(0, 0%, 100%, 0.92) 0%,
+      hsla(0, 0%, 100%, 0.78) 55%,
+      hsla(220, 30%, 96%, 0.74) 100%
+    );
+    color: hsl(220, 30%, 12%);
+    border: 1px solid hsla(0, 0%, 100%, 0.65);
+    box-shadow:
+      0 1px 0 hsla(0, 0%, 100%, 0.9) inset,
+      0 -1px 0 hsla(220, 30%, 80%, 0.25) inset,
+      0 30px 60px -25px hsla(220, 60%, 4%, 0.55),
+      0 12px 24px -18px hsla(220, 60%, 4%, 0.4);
+    -webkit-backdrop-filter: blur(28px) saturate(160%);
+    backdrop-filter: blur(28px) saturate(160%);
+  }
+  .frost-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background: radial-gradient(
+        120% 60% at 0% 0%,
+        hsla(0, 0%, 100%, 0.55) 0%,
+        transparent 55%
+      ),
+      radial-gradient(80% 50% at 100% 100%, hsla(220, 40%, 90%, 0.35) 0%, transparent 60%);
+    mix-blend-mode: screen;
+    opacity: 0.7;
+  }
+  .frost-card > * { position: relative; z-index: 1; }
+
+  /* Tinted/dark frost: stays on brand for the deep panels */
+  .frost-card-dark {
+    position: relative;
+    border-radius: 28px;
+    background: linear-gradient(
+      150deg,
+      hsla(220, 30%, 14%, 0.85) 0%,
+      hsla(220, 30%, 10%, 0.7) 100%
+    );
+    border: 1px solid hsla(0, 0%, 100%, 0.08);
+    box-shadow:
+      0 1px 0 hsla(0, 0%, 100%, 0.06) inset,
+      0 30px 60px -25px hsla(0, 0%, 0%, 0.7);
+    -webkit-backdrop-filter: blur(24px) saturate(150%);
+    backdrop-filter: blur(24px) saturate(150%);
+    color: hsl(0, 0%, 95%);
+  }
+
+  /* Pill chip used in headers/filters */
+  .frost-chip {
+    @apply inline-flex items-center gap-1.5 px-3 h-8 rounded-full text-xs font-medium;
+    background: hsla(0, 0%, 100%, 0.08);
+    border: 1px solid hsla(0, 0%, 100%, 0.12);
+    color: hsl(0, 0%, 92%);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    backdrop-filter: blur(14px) saturate(140%);
+  }
+  .frost-chip-active {
+    background: hsl(0, 0%, 98%);
+    color: hsl(220, 30%, 10%);
+    border-color: hsl(0, 0%, 98%);
+    box-shadow: 0 8px 18px -10px hsla(0, 0%, 0%, 0.6);
+  }
+
+  /* Floating circular utility button */
+  .frost-fab {
+    @apply inline-flex items-center justify-center w-10 h-10 rounded-full;
+    background: hsla(0, 0%, 100%, 0.08);
+    border: 1px solid hsla(0, 0%, 100%, 0.14);
+    color: hsl(0, 0%, 95%);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+    backdrop-filter: blur(18px) saturate(140%);
+    transition: transform .2s ease, background .2s ease;
+  }
+  .frost-fab:hover { transform: translateY(-1px); background: hsla(0, 0%, 100%, 0.14); }
+
+  /* Aurora canvas behind dashboards */
+  .frost-aurora {
+    position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden;
+    background:
+      radial-gradient(60% 50% at 12% 10%, hsla(185, 90%, 55%, 0.18), transparent 60%),
+      radial-gradient(50% 40% at 90% 0%, hsla(265, 80%, 60%, 0.18), transparent 65%),
+      radial-gradient(60% 50% at 80% 100%, hsla(40, 90%, 60%, 0.10), transparent 65%),
+      radial-gradient(50% 50% at 20% 100%, hsla(210, 80%, 50%, 0.14), transparent 70%),
+      hsl(220, 25%, 6%);
+  }
+  .frost-aurora::after {
+    content: "";
+    position: absolute; inset: 0;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.05 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    opacity: .35; mix-blend-mode: overlay;
+  }
+
+  .text-ink { color: hsl(220, 30%, 12%); }
+  .text-ink-soft { color: hsl(220, 15%, 38%); }
+
   
   .bg-gradient-radial {
     background: radial-gradient(circle, var(--tw-gradient-stops));

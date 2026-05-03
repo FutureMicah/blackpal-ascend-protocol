@@ -105,7 +105,7 @@ export const BtaxWalletOverview = ({ userId }: BtaxWalletOverviewProps) => {
 
   if (loading) {
     return (
-      <div className="glass-card p-5 space-y-3">
+      <div className="frost-card p-6 space-y-3">
         <Skeleton className="h-5 w-32" />
         <Skeleton className="h-12 w-40" />
         <Skeleton className="h-24 w-full" />
@@ -115,7 +115,7 @@ export const BtaxWalletOverview = ({ userId }: BtaxWalletOverviewProps) => {
 
   if (!wallet) {
     return (
-      <div className="glass-card p-5 text-center text-xs text-muted-foreground">
+      <div className="frost-card p-6 text-center text-xs text-ink-soft">
         No academy wallet yet. It will be created on your first activity.
       </div>
     );
@@ -123,81 +123,89 @@ export const BtaxWalletOverview = ({ userId }: BtaxWalletOverviewProps) => {
 
   return (
     <motion.div
-      className="glass-card p-5 space-y-4"
+      className="frost-card p-6 space-y-5"
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.45 }}
     >
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold flex items-center gap-2">
-          <Coins className="w-4 h-4 text-amber-400" />
-          Academy Wallet (BTAX)
+        <h2 className="text-[11px] font-semibold tracking-[0.18em] uppercase text-ink-soft">
+          Your Finance · BTAX
         </h2>
-        <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+        <span className="text-[10px] uppercase tracking-wider text-ink-soft">
           {wallet.status}
         </span>
       </div>
 
+      {/* Hero balance — oversized, editorial */}
       <div>
-        <div className="text-3xl font-bold tracking-tight">
-          {Number(wallet.btax_balance).toLocaleString()}{" "}
-          <span className="text-base font-medium text-muted-foreground">BTAX</span>
+        <div className="text-[11px] uppercase tracking-[0.2em] text-ink-soft">
+          Total balance
         </div>
-        <div className="text-[11px] text-muted-foreground mt-0.5">
+        <div className="mt-1 flex items-baseline gap-2">
+          <div className="text-[44px] leading-none font-semibold tracking-tight text-ink">
+            {Number(wallet.btax_balance).toLocaleString()}
+          </div>
+          <div className="text-base font-medium text-ink-soft">BTAX</div>
+        </div>
+        <div className="text-[11px] text-ink-soft mt-2">
           Funded ₦{Number(wallet.naira_funded_total).toLocaleString()} · Earned{" "}
           {Number(wallet.btax_earned_total).toLocaleString()} · Spent{" "}
           {Number(wallet.btax_spent_total).toLocaleString()}
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-2">
-        <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-2.5">
-          <div className="flex items-center gap-1.5 text-[10px] text-amber-400 uppercase tracking-wider">
+      <div className="grid grid-cols-2 gap-2.5">
+        <div className="rounded-2xl bg-amber-50 border border-amber-200/70 p-3">
+          <div className="flex items-center gap-1.5 text-[10px] text-amber-700 uppercase tracking-[0.18em] font-semibold">
             <Gift className="w-3 h-3" /> Rewards
           </div>
-          <div className="text-lg font-semibold mt-0.5">
+          <div className="text-xl font-semibold mt-1 text-ink">
             {breakdown.rewardBtax.toLocaleString()}
           </div>
         </div>
-        <div className="rounded-lg border border-sky-500/20 bg-sky-500/5 p-2.5">
-          <div className="flex items-center gap-1.5 text-[10px] text-sky-400 uppercase tracking-wider">
+        <div className="rounded-2xl bg-sky-50 border border-sky-200/70 p-3">
+          <div className="flex items-center gap-1.5 text-[10px] text-sky-700 uppercase tracking-[0.18em] font-semibold">
             <HandCoins className="w-3 h-3" /> Sponsored
           </div>
-          <div className="text-lg font-semibold mt-0.5">
+          <div className="text-xl font-semibold mt-1 text-ink">
             {breakdown.sponsorBtax.toLocaleString()}
           </div>
         </div>
       </div>
 
       <div>
-        <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">
+        <div className="text-[10px] uppercase tracking-[0.2em] text-ink-soft mb-2">
           Recent activity
         </div>
         {txs.length === 0 ? (
-          <div className="text-[11px] text-muted-foreground py-3 text-center">
+          <div className="text-[11px] text-ink-soft py-3 text-center">
             No transactions yet.
           </div>
         ) : (
-          <ul className="space-y-1">
+          <ul className="space-y-0.5">
             {txs.map((tx) => {
               const meta = TYPE_META[tx.type];
               const Icon = meta.icon;
               const sign = ["spend"].includes(tx.type) ? "−" : "+";
+              const isOut = tx.type === "spend";
               return (
                 <li
                   key={tx.id}
-                  className="flex items-center gap-2 text-[11px] py-1.5 px-2 rounded-md hover:bg-muted/30"
+                  className="flex items-center gap-2.5 text-[12px] py-2 px-2 rounded-xl hover:bg-black/[0.04]"
                 >
-                  <Icon className={`w-3.5 h-3.5 ${meta.tone}`} />
+                  <span className="w-7 h-7 rounded-full bg-white border border-black/5 shadow-sm flex items-center justify-center">
+                    <Icon className={`w-3.5 h-3.5 ${isOut ? "text-rose-500" : "text-emerald-500"}`} />
+                  </span>
                   <div className="flex-1 min-w-0">
-                    <div className="truncate">
+                    <div className="truncate text-ink font-medium">
                       {tx.description ?? meta.label}
                     </div>
-                    <div className="text-[9px] text-muted-foreground">
+                    <div className="text-[10px] text-ink-soft">
                       {new Date(tx.created_at).toLocaleString()}
                     </div>
                   </div>
-                  <div className={`font-mono font-semibold ${meta.tone}`}>
+                  <div className={`font-mono font-semibold ${isOut ? "text-rose-500" : "text-emerald-600"}`}>
                     {sign}
                     {Number(tx.btax_amount).toLocaleString()}
                   </div>
