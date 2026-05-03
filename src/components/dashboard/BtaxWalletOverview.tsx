@@ -105,7 +105,7 @@ export const BtaxWalletOverview = ({ userId }: BtaxWalletOverviewProps) => {
 
   if (loading) {
     return (
-      <div className="glass-card p-5 space-y-3">
+      <div className="frost-card p-6 space-y-3">
         <Skeleton className="h-5 w-32" />
         <Skeleton className="h-12 w-40" />
         <Skeleton className="h-24 w-full" />
@@ -115,7 +115,7 @@ export const BtaxWalletOverview = ({ userId }: BtaxWalletOverviewProps) => {
 
   if (!wallet) {
     return (
-      <div className="glass-card p-5 text-center text-xs text-muted-foreground">
+      <div className="frost-card p-6 text-center text-xs text-ink-soft">
         No academy wallet yet. It will be created on your first activity.
       </div>
     );
@@ -123,17 +123,16 @@ export const BtaxWalletOverview = ({ userId }: BtaxWalletOverviewProps) => {
 
   return (
     <motion.div
-      className="glass-card p-5 space-y-4"
+      className="frost-card p-6 space-y-5"
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.45 }}
     >
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold flex items-center gap-2">
-          <Coins className="w-4 h-4 text-amber-400" />
-          Academy Wallet (BTAX)
+        <h2 className="text-[11px] font-semibold tracking-[0.18em] uppercase text-ink-soft">
+          Your Finance · BTAX
         </h2>
-        <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+        <span className="text-[10px] uppercase tracking-wider text-ink-soft">
           {wallet.status}
         </span>
       </div>
