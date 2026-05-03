@@ -39,6 +39,7 @@ import CopyTrading from "./pages/CopyTrading";
 import TradeAnalytics from "./pages/TradeAnalytics";
 import WorldMap from "./pages/WorldMap";
 import ForexTools from "./pages/ForexTools";
+import VerifyIdentity from "./pages/VerifyIdentity";
 
 const queryClient = new QueryClient();
 
@@ -84,6 +85,7 @@ const App = () => (
           <Route path="/trade-analytics" element={<TradeAnalytics />} />
           <Route path="/world-map" element={<WorldMap />} />
           <Route path="/forex-tools" element={<ForexTools />} />
+          <Route path="/verify-identity" element={<VerifyIdentity />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
