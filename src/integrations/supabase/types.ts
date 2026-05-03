@@ -1764,6 +1764,54 @@ export type Database = {
           },
         ]
       }
+      kyc_submissions: {
+        Row: {
+          country: string | null
+          created_at: string
+          date_of_birth: string | null
+          document_path: string
+          document_type: string
+          full_legal_name: string | null
+          id: string
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          country?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          document_path: string
+          document_type: string
+          full_legal_name?: string | null
+          id?: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          country?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          document_path?: string
+          document_type?: string
+          full_legal_name?: string | null
+          id?: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       login_activity: {
         Row: {
           city: string | null
