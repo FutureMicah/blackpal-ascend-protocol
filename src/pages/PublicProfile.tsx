@@ -300,7 +300,7 @@ export default function PublicProfile() {
         <div className="absolute inset-0 bg-gradient-radial from-primary/5 via-transparent to-transparent" />
       </div>
 
-      <div className="relative max-w-5xl mx-auto px-4 sm:px-6 py-20 sm:py-24">
+      <div className={`relative ${layoutClasses.wrapper}`}>
         {/* Back & Share Buttons */}
         <div className="flex items-center justify-between mb-4 sm:mb-6">
           <Button
@@ -493,7 +493,7 @@ export default function PublicProfile() {
 
           {/* Right Column - Stats & Achievements */}
           <motion.div
-            className="lg:col-span-2 space-y-6"
+            className={layoutClasses.right}
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
