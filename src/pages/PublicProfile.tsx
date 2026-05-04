@@ -342,10 +342,10 @@ export default function PublicProfile() {
           </Dialog>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div className={layoutClasses.grid}>
           {/* Left Column - Profile Info */}
           <motion.div
-            className="lg:col-span-1"
+            className={layoutClasses.left}
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6 }}
