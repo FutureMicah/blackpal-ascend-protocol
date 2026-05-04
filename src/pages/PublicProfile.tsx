@@ -306,7 +306,7 @@ export default function PublicProfile() {
   return (
     <div
       className={`min-h-screen ${getBackgroundClass(profile?.theme_background || "default")} ${getFontClass(profile?.theme_font || "inter")}`}
-      style={accentStyle}
+      style={{ ...accentStyle, ...getBackgroundStyle(profile?.theme_background || "default") }}
     >
       <FloatingNav />
 
