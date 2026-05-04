@@ -243,8 +243,56 @@ export default function PublicProfile() {
     return fonts[font] || fonts.inter;
   };
 
+  // Map accent color choice -> HSL value that overrides --primary on this scope
+  const getAccentHsl = (color: string) => {
+    const map: Record<string, string> = {
+      purple: "280 100% 70%",
+      blue: "217 91% 60%",
+      green: "142 71% 45%",
+      orange: "25 95% 53%",
+      pink: "330 81% 60%",
+      cyan: "189 85% 43%",
+    };
+    return map[color] || map.purple;
+  };
+
+  const getLayoutClasses = (layout: string) => {
+    switch (layout) {
+      case "centered":
+        return {
+          wrapper: "max-w-2xl mx-auto px-4 sm:px-6 py-20 sm:py-24",
+          grid: "grid grid-cols-1 gap-6",
+          left: "",
+          right: "space-y-6",
+        };
+      case "minimal":
+        return {
+          wrapper: "max-w-4xl mx-auto px-6 sm:px-10 py-24 sm:py-32",
+          grid: "grid grid-cols-1 gap-10",
+          left: "",
+          right: "space-y-10",
+        };
+      default:
+        return {
+          wrapper: "max-w-5xl mx-auto px-4 sm:px-6 py-20 sm:py-24",
+          grid: "grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6",
+          left: "lg:col-span-1",
+          right: "lg:col-span-2 space-y-6",
+        };
+    }
+  };
+
+  const layoutClasses = getLayoutClasses(profile?.theme_layout || "standard");
+  const accentStyle = {
+    ["--primary" as any]: getAccentHsl(profile?.theme_accent_color || "purple"),
+    ["--ring" as any]: getAccentHsl(profile?.theme_accent_color || "purple"),
+  } as React.CSSProperties;
+
   return (
-    <div className={`min-h-screen ${getBackgroundClass(profile?.theme_background || "default")} ${getFontClass(profile?.theme_font || "inter")}`}>
+    <div
+      className={`min-h-screen ${getBackgroundClass(profile?.theme_background || "default")} ${getFontClass(profile?.theme_font || "inter")}`}
+      style={accentStyle}
+    >
       <FloatingNav />
 
       {/* Background Effects */}
