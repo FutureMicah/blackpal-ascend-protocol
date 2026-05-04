@@ -244,6 +244,73 @@ All colors MUST be HSL.
   .text-ink { color: hsl(220, 30%, 12%); }
   .text-ink-soft { color: hsl(220, 15%, 38%); }
 
+  /* ---- Patterned theme backgrounds for PublicProfile ---- */
+  /* Shared SVG mandala motif tinted via currentColor of the wrapper */
+  .theme-pattern {
+    position: relative;
+    isolation: isolate;
+  }
+  .theme-pattern::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background-image:
+      radial-gradient(1200px 600px at 10% 0%, hsla(0,0%,100%,0.06), transparent 60%),
+      radial-gradient(900px 500px at 100% 100%, hsla(0,0%,100%,0.04), transparent 65%),
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240' viewBox='0 0 240 240'><g fill='none' stroke='white' stroke-opacity='0.08' stroke-width='1'><circle cx='120' cy='120' r='100'/><circle cx='120' cy='120' r='70'/><circle cx='120' cy='120' r='40'/><path d='M120 20 L120 220 M20 120 L220 120 M40 40 L200 200 M200 40 L40 200'/><path d='M120 60 l20 30 l30 -10 l-10 35 l30 25 l-35 5 l-5 35 l-30 -20 l-30 20 l-5 -35 l-35 -5 l30 -25 l-10 -35 l30 10 z'/></g></svg>");
+    background-size: auto, auto, 240px 240px;
+    background-repeat: no-repeat, no-repeat, repeat;
+    opacity: 0.55;
+  }
+  /* Color variants — base gradient + mandala overlay */
+  .theme-bg-royal-blue {
+    background:
+      radial-gradient(80% 60% at 20% 10%, hsl(220 80% 22%) 0%, transparent 60%),
+      radial-gradient(80% 60% at 100% 100%, hsl(210 90% 12%) 0%, transparent 70%),
+      linear-gradient(160deg, hsl(220 60% 8%), hsl(215 70% 14%));
+  }
+  .theme-bg-royal-purple {
+    background:
+      radial-gradient(80% 60% at 0% 0%, hsl(280 70% 20%) 0%, transparent 60%),
+      radial-gradient(80% 60% at 100% 100%, hsl(265 80% 12%) 0%, transparent 70%),
+      linear-gradient(160deg, hsl(270 50% 8%), hsl(280 60% 14%));
+  }
+  .theme-bg-emerald {
+    background:
+      radial-gradient(80% 60% at 0% 0%, hsl(160 60% 18%) 0%, transparent 60%),
+      radial-gradient(80% 60% at 100% 100%, hsl(150 70% 10%) 0%, transparent 70%),
+      linear-gradient(160deg, hsl(160 40% 7%), hsl(150 50% 12%));
+  }
+  .theme-bg-royal-gold {
+    background:
+      radial-gradient(80% 60% at 0% 0%, hsl(38 60% 18%) 0%, transparent 60%),
+      radial-gradient(80% 60% at 100% 100%, hsl(28 70% 10%) 0%, transparent 70%),
+      linear-gradient(160deg, hsl(30 40% 7%), hsl(35 50% 12%));
+  }
+  .theme-bg-rose {
+    background:
+      radial-gradient(80% 60% at 0% 0%, hsl(340 60% 20%) 0%, transparent 60%),
+      radial-gradient(80% 60% at 100% 100%, hsl(350 70% 12%) 0%, transparent 70%),
+      linear-gradient(160deg, hsl(345 40% 8%), hsl(335 50% 14%));
+  }
+
+  /* Hero image-backed themes */
+  .theme-bg-heritage-frost,
+  .theme-bg-liquid-glass {
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+  }
+  .theme-bg-heritage-frost::after,
+  .theme-bg-liquid-glass::after {
+    content: "";
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background: linear-gradient(180deg, hsla(220, 40%, 4%, 0.35), hsla(220, 40%, 4%, 0.55));
+  }
+
   
   .bg-gradient-radial {
     background: radial-gradient(circle, var(--tw-gradient-stops));

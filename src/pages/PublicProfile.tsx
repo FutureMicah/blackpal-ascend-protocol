@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import heritageFrostBg from "@/assets/theme-heritage-frost.jpg";
+import liquidGlassBg from "@/assets/theme-liquid-glass.jpg";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
@@ -229,8 +231,21 @@ export default function PublicProfile() {
       ocean: "bg-gradient-to-br from-blue-900 to-cyan-900",
       sunset: "bg-gradient-to-br from-orange-900 to-red-900",
       forest: "bg-gradient-to-br from-green-900 to-emerald-900",
+      "royal-blue": "theme-pattern theme-bg-royal-blue",
+      "royal-purple": "theme-pattern theme-bg-royal-purple",
+      emerald: "theme-pattern theme-bg-emerald",
+      "royal-gold": "theme-pattern theme-bg-royal-gold",
+      rose: "theme-pattern theme-bg-rose",
+      "heritage-frost": "theme-bg-heritage-frost",
+      "liquid-glass": "theme-bg-liquid-glass",
     };
     return backgrounds[bg] || backgrounds.default;
+  };
+
+  const getBackgroundStyle = (bg: string): React.CSSProperties => {
+    if (bg === "heritage-frost") return { backgroundImage: `url(${heritageFrostBg})` };
+    if (bg === "liquid-glass") return { backgroundImage: `url(${liquidGlassBg})` };
+    return {};
   };
 
   const getFontClass = (font: string) => {
@@ -291,7 +306,7 @@ export default function PublicProfile() {
   return (
     <div
       className={`min-h-screen ${getBackgroundClass(profile?.theme_background || "default")} ${getFontClass(profile?.theme_font || "inter")}`}
-      style={accentStyle}
+      style={{ ...accentStyle, ...getBackgroundStyle(profile?.theme_background || "default") }}
     >
       <FloatingNav />
 

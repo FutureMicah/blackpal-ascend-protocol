@@ -16,12 +16,19 @@ interface ProfileThemeCustomizerProps {
 }
 
 const backgrounds = [
-  { id: "default", name: "Default", gradient: "from-background to-background" },
-  { id: "dark", name: "Dark Night", gradient: "from-gray-900 to-black" },
-  { id: "purple", name: "Purple Dream", gradient: "from-purple-900 to-indigo-900" },
-  { id: "ocean", name: "Ocean Blue", gradient: "from-blue-900 to-cyan-900" },
-  { id: "sunset", name: "Sunset", gradient: "from-orange-900 to-red-900" },
-  { id: "forest", name: "Forest", gradient: "from-green-900 to-emerald-900" },
+  { id: "default", name: "Default", preview: "bg-gradient-to-br from-background to-background border" },
+  { id: "dark", name: "Dark Night", preview: "bg-gradient-to-br from-gray-900 to-black" },
+  { id: "heritage-frost", name: "Heritage Frost", preview: "bg-gradient-to-br from-sky-100 via-white to-amber-100" },
+  { id: "liquid-glass", name: "Liquid Glass", preview: "bg-gradient-to-br from-sky-200 via-white to-slate-200" },
+  { id: "royal-blue", name: "Royal Blue", preview: "theme-pattern theme-bg-royal-blue" },
+  { id: "royal-purple", name: "Royal Purple", preview: "theme-pattern theme-bg-royal-purple" },
+  { id: "emerald", name: "Emerald Heritage", preview: "theme-pattern theme-bg-emerald" },
+  { id: "royal-gold", name: "Royal Gold", preview: "theme-pattern theme-bg-royal-gold" },
+  { id: "rose", name: "Rose Crown", preview: "theme-pattern theme-bg-rose" },
+  { id: "purple", name: "Purple Dream", preview: "bg-gradient-to-br from-purple-900 to-indigo-900" },
+  { id: "ocean", name: "Ocean Blue", preview: "bg-gradient-to-br from-blue-900 to-cyan-900" },
+  { id: "sunset", name: "Sunset", preview: "bg-gradient-to-br from-orange-900 to-red-900" },
+  { id: "forest", name: "Forest", preview: "bg-gradient-to-br from-green-900 to-emerald-900" },
 ];
 
 const fonts = [
@@ -102,7 +109,7 @@ export const ProfileThemeCustomizer = ({
                       : "border-border hover:border-primary/50"
                   }`}
                 >
-                  <div className={`h-16 rounded-md bg-gradient-to-br ${bg.gradient} mb-2`} />
+                  <div className={`h-16 rounded-md mb-2 overflow-hidden relative ${bg.preview}`} />
                   <p className="text-sm font-medium">{bg.name}</p>
                 </button>
               ))}
