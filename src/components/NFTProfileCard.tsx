@@ -462,13 +462,7 @@ export function NFTProfileCard({ userId, onClose }: NFTProfileCardProps) {
               <motion.div
                 aria-hidden
                 className="absolute inset-0 rounded-[32px] pointer-events-none mix-blend-overlay"
-                style={{
-                  background: useTransform(
-                    [sheenX, sheenY] as any,
-                    ([x, y]: any) =>
-                      `radial-gradient(60% 50% at ${x} ${y}, rgba(255,255,255,0.55), rgba(255,255,255,0) 60%)`
-                  ),
-                }}
+                style={{ background: sheenBg as any }}
               />
             </motion.div>
           </div>
