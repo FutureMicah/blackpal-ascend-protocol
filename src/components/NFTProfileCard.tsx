@@ -68,6 +68,11 @@ export function NFTProfileCard({ userId, onClose }: NFTProfileCardProps) {
   const rotateY = useTransform(sx, (v) => v);
   const sheenX = useTransform(sx, [-12, 12], ["20%", "80%"]);
   const sheenY = useTransform(sy, [-12, 12], ["20%", "80%"]);
+  const sheenBg = useTransform(
+    [sheenX, sheenY] as any,
+    ([x, y]: any) =>
+      `radial-gradient(60% 50% at ${x} ${y}, rgba(255,255,255,0.55), rgba(255,255,255,0) 60%)`
+  );
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
