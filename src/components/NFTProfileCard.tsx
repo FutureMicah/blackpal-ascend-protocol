@@ -69,6 +69,10 @@ interface ProfileData {
   streak_days?: number;
   payment_tier?: string;
   created_at?: string;
+  theme_background?: string;
+  theme_font?: string;
+  theme_layout?: string;
+  theme_accent_color?: string;
 }
 
 interface Achievement {
