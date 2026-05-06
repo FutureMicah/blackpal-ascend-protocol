@@ -230,11 +230,15 @@ export function NFTProfileCard({ userId, onClose }: NFTProfileCardProps) {
           <div className="flex justify-center">
             <motion.div
               ref={cardRef}
-              initial={{ rotateY: -6, rotateX: 4 }}
-              animate={{ rotateY: [-2, 2, -2], rotateX: [2, -2, 2] }}
-              transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
-              style={{ transformStyle: "preserve-3d", perspective: "1200px" }}
-              className="relative w-full max-w-[440px]"
+              onPointerMove={handlePointerMove}
+              onPointerLeave={handlePointerLeave}
+              style={{
+                transformStyle: "preserve-3d",
+                perspective: "1200px",
+                rotateX,
+                rotateY,
+              }}
+              className="relative w-full max-w-[440px] touch-none"
             >
               {/* Outer chrome frame */}
               <div
