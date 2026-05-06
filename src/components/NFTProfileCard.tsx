@@ -453,17 +453,17 @@ export function NFTProfileCard({ userId, onClose }: NFTProfileCardProps) {
                 </div>
               </div>
 
-              {/* Floating reflective sheen */}
+              {/* Reactive glare that tracks tilt / pointer */}
               <motion.div
                 aria-hidden
                 className="absolute inset-0 rounded-[32px] pointer-events-none mix-blend-overlay"
                 style={{
-                  background:
-                    "linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.35) 50%, transparent 70%)",
-                  backgroundSize: "200% 100%",
+                  background: useTransform(
+                    [sheenX, sheenY] as any,
+                    ([x, y]: any) =>
+                      `radial-gradient(60% 50% at ${x} ${y}, rgba(255,255,255,0.55), rgba(255,255,255,0) 60%)`
+                  ),
                 }}
-                animate={{ backgroundPosition: ["200% 0%", "-200% 0%"] }}
-                transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
               />
             </motion.div>
           </div>
