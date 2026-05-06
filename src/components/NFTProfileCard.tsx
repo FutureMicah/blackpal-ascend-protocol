@@ -341,9 +341,17 @@ export function NFTProfileCard({ userId, onClose }: NFTProfileCardProps) {
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center bg-black/95 backdrop-blur-xl p-3 sm:p-6 overflow-y-auto">
+    <div
+      className={`fixed inset-0 z-50 flex items-start sm:items-center justify-center backdrop-blur-xl p-3 sm:p-6 overflow-y-auto ${BG_CLASS[themed.background] || ""} ${FONT_CLASS[themed.font] || ""}`}
+      style={{
+        ...accentVarStyle,
+        ...bgImageStyle(themed.background),
+        backgroundColor: themed.background === "default" ? "rgba(0,0,0,0.95)" : undefined,
+      }}
+      data-layout={themed.layout}
+    >
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: reduceMotion ? 0 : 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-6xl"
       >
