@@ -307,16 +307,22 @@ export default function PublicProfile() {
     }
   };
 
-  const layoutClasses = getLayoutClasses(profile?.theme_layout || "standard");
+  const effectiveBg = previewTheme?.background ?? profile?.theme_background ?? "default";
+  const effectiveFont = previewTheme?.font ?? profile?.theme_font ?? "inter";
+  const effectiveLayout = previewTheme?.layout ?? profile?.theme_layout ?? "standard";
+  const effectiveAccent = previewTheme?.accentColor ?? profile?.theme_accent_color ?? "purple";
+
+  const layoutClasses = getLayoutClasses(effectiveLayout);
   const accentStyle = {
-    ["--primary" as any]: getAccentHsl(profile?.theme_accent_color || "purple"),
-    ["--ring" as any]: getAccentHsl(profile?.theme_accent_color || "purple"),
+    ["--primary" as any]: getAccentHsl(effectiveAccent),
+    ["--ring" as any]: getAccentHsl(effectiveAccent),
+    ["--accent" as any]: getAccentHsl(effectiveAccent),
   } as React.CSSProperties;
 
   return (
     <div
-      className={`min-h-screen ${getBackgroundClass(profile?.theme_background || "default")} ${getFontClass(profile?.theme_font || "inter")}`}
-      style={{ ...accentStyle, ...getBackgroundStyle(profile?.theme_background || "default") }}
+      className={`min-h-screen ${getBackgroundClass(effectiveBg)} ${getFontClass(effectiveFont)}`}
+      style={{ ...accentStyle, ...getBackgroundStyle(effectiveBg) }}
     >
       <FloatingNav />
 
