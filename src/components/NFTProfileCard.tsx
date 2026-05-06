@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { Download, X, Crown, Shield, Sparkles, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -6,7 +6,49 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useThemePreview, mergeTheme } from "@/hooks/use-theme-preview";
+import { usePrefersReducedMotion } from "@/hooks/use-reduced-motion";
 import html2canvas from "html2canvas";
+import heritageFrostBg from "@/assets/theme-heritage-frost.jpg";
+import liquidGlassBg from "@/assets/theme-liquid-glass.jpg";
+
+const ACCENT_HSL: Record<string, string> = {
+  purple: "280 100% 70%",
+  blue: "217 91% 60%",
+  green: "142 71% 45%",
+  orange: "25 95% 53%",
+  pink: "330 81% 60%",
+  cyan: "189 85% 43%",
+};
+
+const FONT_CLASS: Record<string, string> = {
+  inter: "font-sans",
+  playfair: "font-serif",
+  mono: "font-mono",
+  raleway: "font-raleway",
+};
+
+const BG_CLASS: Record<string, string> = {
+  default: "",
+  dark: "bg-gradient-to-br from-gray-900 to-black",
+  purple: "bg-gradient-to-br from-purple-900 to-indigo-900",
+  ocean: "bg-gradient-to-br from-blue-900 to-cyan-900",
+  sunset: "bg-gradient-to-br from-orange-900 to-red-900",
+  forest: "bg-gradient-to-br from-green-900 to-emerald-900",
+  "royal-blue": "theme-pattern theme-bg-royal-blue",
+  "royal-purple": "theme-pattern theme-bg-royal-purple",
+  emerald: "theme-pattern theme-bg-emerald",
+  "royal-gold": "theme-pattern theme-bg-royal-gold",
+  rose: "theme-pattern theme-bg-rose",
+  "heritage-frost": "theme-bg-heritage-frost",
+  "liquid-glass": "theme-bg-liquid-glass",
+};
+
+const bgImageStyle = (bg: string): React.CSSProperties => {
+  if (bg === "heritage-frost") return { backgroundImage: `url(${heritageFrostBg})` };
+  if (bg === "liquid-glass") return { backgroundImage: `url(${liquidGlassBg})` };
+  return {};
+};
 
 interface NFTProfileCardProps {
   userId: string;
