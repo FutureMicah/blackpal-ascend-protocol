@@ -67,11 +67,16 @@ export const ProfileThemeCustomizer = ({
 }: ProfileThemeCustomizerProps) => {
   const [theme, setTheme] = useState<ProfileTheme>(currentTheme);
 
-  // Live preview: emit any change immediately; clear preview on unmount
+  // Live preview: throttle emissions through rAF so dragging colour swatches
+  // doesn't queue dozens of state updates per frame on low-end phones.
   useEffect(() => {
-    emitThemePreview(theme);
+    let raf = 0;
+    raf = requestAnimationFrame(() => emitThemePreview(theme));
+    return () => cancelAnimationFrame(raf);
   }, [theme]);
 
+  // Always clear the preview when the customizer leaves the tree, no matter
+  // how it was dismissed (save, cancel, escape, route change).
   useEffect(() => {
     return () => emitThemePreview(null);
   }, []);
@@ -83,6 +88,8 @@ export const ProfileThemeCustomizer = ({
   };
 
   const handleCancel = () => {
+    // Reset to persisted theme immediately before closing.
+    setTheme(currentTheme);
     emitThemePreview(null);
     onClose();
   };
