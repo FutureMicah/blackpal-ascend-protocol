@@ -100,12 +100,38 @@ export function NFTProfileCard({ userId, onClose }: NFTProfileCardProps) {
   const [exporting, setExporting] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  const reduceMotion = usePrefersReducedMotion();
+
+  // Live theme preview (subscribes to customizer events)
+  const previewTheme = useThemePreview();
+  const themed = mergeTheme(
+    {
+      background: profile?.theme_background,
+      font: profile?.theme_font,
+      layout: profile?.theme_layout,
+      accentColor: profile?.theme_accent_color,
+    },
+    previewTheme
+  );
+  const accentVarStyle = useMemo(
+    () =>
+      ({
+        ["--primary" as any]: ACCENT_HSL[themed.accentColor] || ACCENT_HSL.purple,
+        ["--ring" as any]: ACCENT_HSL[themed.accentColor] || ACCENT_HSL.purple,
+        ["--accent" as any]: ACCENT_HSL[themed.accentColor] || ACCENT_HSL.purple,
+      } as React.CSSProperties),
+    [themed.accentColor]
+  );
 
   // Reactive tilt — pointer (desktop) + device orientation (mobile)
+  // Reduced-motion users get a frozen card with no springs at all.
   const tiltX = useMotionValue(0);
   const tiltY = useMotionValue(0);
-  const sx = useSpring(tiltX, { stiffness: 120, damping: 14, mass: 0.4 });
-  const sy = useSpring(tiltY, { stiffness: 120, damping: 14, mass: 0.4 });
+  const springCfg = reduceMotion
+    ? { stiffness: 0, damping: 100, mass: 1 }
+    : { stiffness: 110, damping: 16, mass: 0.5 };
+  const sx = useSpring(tiltX, springCfg);
+  const sy = useSpring(tiltY, springCfg);
   const rotateX = useTransform(sy, (v) => v);
   const rotateY = useTransform(sx, (v) => v);
   const sheenX = useTransform(sx, [-12, 12], ["20%", "80%"]);
@@ -116,42 +142,98 @@ export function NFTProfileCard({ userId, onClose }: NFTProfileCardProps) {
       `radial-gradient(60% 50% at ${x} ${y}, rgba(255,255,255,0.55), rgba(255,255,255,0) 60%)`
   );
 
+  // rAF-throttled setter so the spring isn't fed > 1 update per frame
+  // (essential for jank-free dragging on low-end Android).
+  const rafRef = useRef<number | null>(null);
+  const pendingRef = useRef<{ x: number; y: number } | null>(null);
+  const queueTilt = (x: number, y: number) => {
+    pendingRef.current = { x, y };
+    if (rafRef.current != null) return;
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = null;
+      const p = pendingRef.current;
+      if (!p) return;
+      tiltX.set(p.x);
+      tiltY.set(p.y);
+    });
+  };
+  useEffect(() => () => {
+    if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
+  }, []);
+
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (reduceMotion) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const px = (e.clientX - rect.left) / rect.width - 0.5;
     const py = (e.clientY - rect.top) / rect.height - 0.5;
-    tiltX.set(px * 18);
-    tiltY.set(-py * 18);
+    queueTilt(px * 18, -py * 18);
   };
-  const handlePointerLeave = () => {
-    tiltX.set(0);
-    tiltY.set(0);
-  };
+  const handlePointerLeave = () => queueTilt(0, 0);
 
-  // Device orientation for phones — gentle parallax
+  // Device orientation — clamp, calibrate against the user's resting hold,
+  // and degrade silently when permission is denied or unsupported.
   useEffect(() => {
-    const enable = async () => {
-      const DOE: any = (window as any).DeviceOrientationEvent;
-      if (DOE && typeof DOE.requestPermission === "function") {
+    if (reduceMotion) return;
+    if (typeof window === "undefined" || !("DeviceOrientationEvent" in window)) return;
+
+    let calibration: { gamma: number; beta: number } | null = null;
+    let calibrationFrames = 0;
+    let removed = false;
+
+    const clamp = (v: number, lim: number) => Math.max(-lim, Math.min(lim, v));
+    const onOrient = (ev: DeviceOrientationEvent) => {
+      const g = ev.gamma ?? 0; // left/right [-90..90]
+      const b = ev.beta ?? 0;  // front/back [-180..180]
+      // Use the first ~10 readings as a "neutral hold" baseline.
+      if (!calibration && calibrationFrames < 10) {
+        calibrationFrames++;
+        if (calibrationFrames === 10) calibration = { gamma: g, beta: b };
+        return;
+      }
+      const dg = clamp(g - (calibration?.gamma ?? 0), 25);
+      const db = clamp(b - (calibration?.beta ?? 0), 25);
+      // Dead-zone of 1.5° eliminates micro-jitter
+      const ax = Math.abs(dg) < 1.5 ? 0 : dg;
+      const ay = Math.abs(db) < 1.5 ? 0 : db;
+      queueTilt((ax / 25) * 10, (ay / 25) * 10);
+    };
+
+    const attach = () => {
+      window.addEventListener("deviceorientation", onOrient, { passive: true });
+    };
+
+    const DOE: any = (window as any).DeviceOrientationEvent;
+    if (DOE && typeof DOE.requestPermission === "function") {
+      // iOS 13+ — must be triggered from a user gesture; we listen for the
+      // first tap on the modal and request permission then. If denied, the
+      // card falls back to its neutral resting state (no jumpiness).
+      const ask = async () => {
         try {
           const res = await DOE.requestPermission();
-          if (res !== "granted") return;
-        } catch { return; }
-      }
-      const onOrient = (ev: DeviceOrientationEvent) => {
-        // gamma: left/right [-90..90], beta: front/back [-180..180]
-        const g = Math.max(-25, Math.min(25, ev.gamma ?? 0));
-        const b = Math.max(-25, Math.min(25, (ev.beta ?? 0) - 30));
-        tiltX.set((g / 25) * 12);
-        tiltY.set((b / 25) * 12);
+          if (res === "granted" && !removed) attach();
+        } catch {
+          /* denied — silent fallback */
+        } finally {
+          window.removeEventListener("touchend", ask);
+          window.removeEventListener("click", ask);
+        }
       };
-      window.addEventListener("deviceorientation", onOrient, true);
-      return () => window.removeEventListener("deviceorientation", onOrient, true);
+      window.addEventListener("touchend", ask, { once: true });
+      window.addEventListener("click", ask, { once: true });
+      return () => {
+        removed = true;
+        window.removeEventListener("touchend", ask);
+        window.removeEventListener("click", ask);
+        window.removeEventListener("deviceorientation", onOrient);
+      };
+    }
+
+    attach();
+    return () => {
+      removed = true;
+      window.removeEventListener("deviceorientation", onOrient);
     };
-    let cleanup: any;
-    enable().then((c) => (cleanup = c));
-    return () => cleanup && cleanup();
-  }, []);
+  }, [reduceMotion]);
 
 
   useEffect(() => {
