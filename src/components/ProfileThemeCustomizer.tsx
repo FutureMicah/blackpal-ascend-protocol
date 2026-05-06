@@ -65,10 +65,25 @@ export const ProfileThemeCustomizer = ({
   onSave,
   onClose,
 }: ProfileThemeCustomizerProps) => {
-  const [theme, setTheme] = useState(currentTheme);
+  const [theme, setTheme] = useState<ProfileTheme>(currentTheme);
+
+  // Live preview: emit any change immediately; clear preview on unmount
+  useEffect(() => {
+    emitThemePreview(theme);
+  }, [theme]);
+
+  useEffect(() => {
+    return () => emitThemePreview(null);
+  }, []);
 
   const handleSave = () => {
     onSave(theme);
+    emitThemePreview(null);
+    onClose();
+  };
+
+  const handleCancel = () => {
+    emitThemePreview(null);
     onClose();
   };
 
