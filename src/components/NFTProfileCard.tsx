@@ -59,6 +59,54 @@ export function NFTProfileCard({ userId, onClose }: NFTProfileCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
+  // Reactive tilt — pointer (desktop) + device orientation (mobile)
+  const tiltX = useMotionValue(0);
+  const tiltY = useMotionValue(0);
+  const sx = useSpring(tiltX, { stiffness: 120, damping: 14, mass: 0.4 });
+  const sy = useSpring(tiltY, { stiffness: 120, damping: 14, mass: 0.4 });
+  const rotateX = useTransform(sy, (v) => v);
+  const rotateY = useTransform(sx, (v) => v);
+  const sheenX = useTransform(sx, [-12, 12], ["20%", "80%"]);
+  const sheenY = useTransform(sy, [-12, 12], ["20%", "80%"]);
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const px = (e.clientX - rect.left) / rect.width - 0.5;
+    const py = (e.clientY - rect.top) / rect.height - 0.5;
+    tiltX.set(px * 18);
+    tiltY.set(-py * 18);
+  };
+  const handlePointerLeave = () => {
+    tiltX.set(0);
+    tiltY.set(0);
+  };
+
+  // Device orientation for phones — gentle parallax
+  useEffect(() => {
+    const enable = async () => {
+      const DOE: any = (window as any).DeviceOrientationEvent;
+      if (DOE && typeof DOE.requestPermission === "function") {
+        try {
+          const res = await DOE.requestPermission();
+          if (res !== "granted") return;
+        } catch { return; }
+      }
+      const onOrient = (ev: DeviceOrientationEvent) => {
+        // gamma: left/right [-90..90], beta: front/back [-180..180]
+        const g = Math.max(-25, Math.min(25, ev.gamma ?? 0));
+        const b = Math.max(-25, Math.min(25, (ev.beta ?? 0) - 30));
+        tiltX.set((g / 25) * 12);
+        tiltY.set((b / 25) * 12);
+      };
+      window.addEventListener("deviceorientation", onOrient, true);
+      return () => window.removeEventListener("deviceorientation", onOrient, true);
+    };
+    let cleanup: any;
+    enable().then((c) => (cleanup = c));
+    return () => cleanup && cleanup();
+  }, []);
+
+
   useEffect(() => {
     (async () => {
       try {
