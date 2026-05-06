@@ -17,6 +17,7 @@ import { ProfileShowcaseDisplay } from "@/components/ProfileShowcaseDisplay";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { QRCodeSVG } from "qrcode.react";
 import { Input } from "@/components/ui/input";
+import { useThemePreview } from "@/hooks/use-theme-preview";
 
 export default function PublicProfile() {
   const { userId } = useParams<{ userId: string }>();
@@ -24,7 +25,7 @@ export default function PublicProfile() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<any>(null);
-  const [previewTheme, setPreviewTheme] = useState<any>(null);
+  const previewTheme = useThemePreview();
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [achievements, setAchievements] = useState<any[]>([]);
   const [stats, setStats] = useState({
@@ -32,15 +33,6 @@ export default function PublicProfile() {
     rareAchievements: 0,
     totalXP: 0,
   });
-
-  useEffect(() => {
-    const handler = (e: Event) => {
-      const detail = (e as CustomEvent).detail;
-      setPreviewTheme(detail || null);
-    };
-    window.addEventListener("blackpal:theme-preview", handler);
-    return () => window.removeEventListener("blackpal:theme-preview", handler);
-  }, []);
 
   useEffect(() => {
     loadProfile();

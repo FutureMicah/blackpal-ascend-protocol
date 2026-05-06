@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { Download, X, Crown, Shield, Sparkles, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -6,7 +6,49 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useThemePreview, mergeTheme } from "@/hooks/use-theme-preview";
+import { usePrefersReducedMotion } from "@/hooks/use-reduced-motion";
 import html2canvas from "html2canvas";
+import heritageFrostBg from "@/assets/theme-heritage-frost.jpg";
+import liquidGlassBg from "@/assets/theme-liquid-glass.jpg";
+
+const ACCENT_HSL: Record<string, string> = {
+  purple: "280 100% 70%",
+  blue: "217 91% 60%",
+  green: "142 71% 45%",
+  orange: "25 95% 53%",
+  pink: "330 81% 60%",
+  cyan: "189 85% 43%",
+};
+
+const FONT_CLASS: Record<string, string> = {
+  inter: "font-sans",
+  playfair: "font-serif",
+  mono: "font-mono",
+  raleway: "font-raleway",
+};
+
+const BG_CLASS: Record<string, string> = {
+  default: "",
+  dark: "bg-gradient-to-br from-gray-900 to-black",
+  purple: "bg-gradient-to-br from-purple-900 to-indigo-900",
+  ocean: "bg-gradient-to-br from-blue-900 to-cyan-900",
+  sunset: "bg-gradient-to-br from-orange-900 to-red-900",
+  forest: "bg-gradient-to-br from-green-900 to-emerald-900",
+  "royal-blue": "theme-pattern theme-bg-royal-blue",
+  "royal-purple": "theme-pattern theme-bg-royal-purple",
+  emerald: "theme-pattern theme-bg-emerald",
+  "royal-gold": "theme-pattern theme-bg-royal-gold",
+  rose: "theme-pattern theme-bg-rose",
+  "heritage-frost": "theme-bg-heritage-frost",
+  "liquid-glass": "theme-bg-liquid-glass",
+};
+
+const bgImageStyle = (bg: string): React.CSSProperties => {
+  if (bg === "heritage-frost") return { backgroundImage: `url(${heritageFrostBg})` };
+  if (bg === "liquid-glass") return { backgroundImage: `url(${liquidGlassBg})` };
+  return {};
+};
 
 interface NFTProfileCardProps {
   userId: string;
@@ -27,6 +69,10 @@ interface ProfileData {
   streak_days?: number;
   payment_tier?: string;
   created_at?: string;
+  theme_background?: string;
+  theme_font?: string;
+  theme_layout?: string;
+  theme_accent_color?: string;
 }
 
 interface Achievement {
@@ -58,12 +104,38 @@ export function NFTProfileCard({ userId, onClose }: NFTProfileCardProps) {
   const [exporting, setExporting] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  const reduceMotion = usePrefersReducedMotion();
+
+  // Live theme preview (subscribes to customizer events)
+  const previewTheme = useThemePreview();
+  const themed = mergeTheme(
+    {
+      background: profile?.theme_background,
+      font: profile?.theme_font,
+      layout: profile?.theme_layout,
+      accentColor: profile?.theme_accent_color,
+    },
+    previewTheme
+  );
+  const accentVarStyle = useMemo(
+    () =>
+      ({
+        ["--primary" as any]: ACCENT_HSL[themed.accentColor] || ACCENT_HSL.purple,
+        ["--ring" as any]: ACCENT_HSL[themed.accentColor] || ACCENT_HSL.purple,
+        ["--accent" as any]: ACCENT_HSL[themed.accentColor] || ACCENT_HSL.purple,
+      } as React.CSSProperties),
+    [themed.accentColor]
+  );
 
   // Reactive tilt — pointer (desktop) + device orientation (mobile)
+  // Reduced-motion users get a frozen card with no springs at all.
   const tiltX = useMotionValue(0);
   const tiltY = useMotionValue(0);
-  const sx = useSpring(tiltX, { stiffness: 120, damping: 14, mass: 0.4 });
-  const sy = useSpring(tiltY, { stiffness: 120, damping: 14, mass: 0.4 });
+  const springCfg = reduceMotion
+    ? { stiffness: 0, damping: 100, mass: 1 }
+    : { stiffness: 110, damping: 16, mass: 0.5 };
+  const sx = useSpring(tiltX, springCfg);
+  const sy = useSpring(tiltY, springCfg);
   const rotateX = useTransform(sy, (v) => v);
   const rotateY = useTransform(sx, (v) => v);
   const sheenX = useTransform(sx, [-12, 12], ["20%", "80%"]);
@@ -74,42 +146,98 @@ export function NFTProfileCard({ userId, onClose }: NFTProfileCardProps) {
       `radial-gradient(60% 50% at ${x} ${y}, rgba(255,255,255,0.55), rgba(255,255,255,0) 60%)`
   );
 
+  // rAF-throttled setter so the spring isn't fed > 1 update per frame
+  // (essential for jank-free dragging on low-end Android).
+  const rafRef = useRef<number | null>(null);
+  const pendingRef = useRef<{ x: number; y: number } | null>(null);
+  const queueTilt = (x: number, y: number) => {
+    pendingRef.current = { x, y };
+    if (rafRef.current != null) return;
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = null;
+      const p = pendingRef.current;
+      if (!p) return;
+      tiltX.set(p.x);
+      tiltY.set(p.y);
+    });
+  };
+  useEffect(() => () => {
+    if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
+  }, []);
+
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (reduceMotion) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const px = (e.clientX - rect.left) / rect.width - 0.5;
     const py = (e.clientY - rect.top) / rect.height - 0.5;
-    tiltX.set(px * 18);
-    tiltY.set(-py * 18);
+    queueTilt(px * 18, -py * 18);
   };
-  const handlePointerLeave = () => {
-    tiltX.set(0);
-    tiltY.set(0);
-  };
+  const handlePointerLeave = () => queueTilt(0, 0);
 
-  // Device orientation for phones — gentle parallax
+  // Device orientation — clamp, calibrate against the user's resting hold,
+  // and degrade silently when permission is denied or unsupported.
   useEffect(() => {
-    const enable = async () => {
-      const DOE: any = (window as any).DeviceOrientationEvent;
-      if (DOE && typeof DOE.requestPermission === "function") {
+    if (reduceMotion) return;
+    if (typeof window === "undefined" || !("DeviceOrientationEvent" in window)) return;
+
+    let calibration: { gamma: number; beta: number } | null = null;
+    let calibrationFrames = 0;
+    let removed = false;
+
+    const clamp = (v: number, lim: number) => Math.max(-lim, Math.min(lim, v));
+    const onOrient = (ev: DeviceOrientationEvent) => {
+      const g = ev.gamma ?? 0; // left/right [-90..90]
+      const b = ev.beta ?? 0;  // front/back [-180..180]
+      // Use the first ~10 readings as a "neutral hold" baseline.
+      if (!calibration && calibrationFrames < 10) {
+        calibrationFrames++;
+        if (calibrationFrames === 10) calibration = { gamma: g, beta: b };
+        return;
+      }
+      const dg = clamp(g - (calibration?.gamma ?? 0), 25);
+      const db = clamp(b - (calibration?.beta ?? 0), 25);
+      // Dead-zone of 1.5° eliminates micro-jitter
+      const ax = Math.abs(dg) < 1.5 ? 0 : dg;
+      const ay = Math.abs(db) < 1.5 ? 0 : db;
+      queueTilt((ax / 25) * 10, (ay / 25) * 10);
+    };
+
+    const attach = () => {
+      window.addEventListener("deviceorientation", onOrient, { passive: true });
+    };
+
+    const DOE: any = (window as any).DeviceOrientationEvent;
+    if (DOE && typeof DOE.requestPermission === "function") {
+      // iOS 13+ — must be triggered from a user gesture; we listen for the
+      // first tap on the modal and request permission then. If denied, the
+      // card falls back to its neutral resting state (no jumpiness).
+      const ask = async () => {
         try {
           const res = await DOE.requestPermission();
-          if (res !== "granted") return;
-        } catch { return; }
-      }
-      const onOrient = (ev: DeviceOrientationEvent) => {
-        // gamma: left/right [-90..90], beta: front/back [-180..180]
-        const g = Math.max(-25, Math.min(25, ev.gamma ?? 0));
-        const b = Math.max(-25, Math.min(25, (ev.beta ?? 0) - 30));
-        tiltX.set((g / 25) * 12);
-        tiltY.set((b / 25) * 12);
+          if (res === "granted" && !removed) attach();
+        } catch {
+          /* denied — silent fallback */
+        } finally {
+          window.removeEventListener("touchend", ask);
+          window.removeEventListener("click", ask);
+        }
       };
-      window.addEventListener("deviceorientation", onOrient, true);
-      return () => window.removeEventListener("deviceorientation", onOrient, true);
+      window.addEventListener("touchend", ask, { once: true });
+      window.addEventListener("click", ask, { once: true });
+      return () => {
+        removed = true;
+        window.removeEventListener("touchend", ask);
+        window.removeEventListener("click", ask);
+        window.removeEventListener("deviceorientation", onOrient);
+      };
+    }
+
+    attach();
+    return () => {
+      removed = true;
+      window.removeEventListener("deviceorientation", onOrient);
     };
-    let cleanup: any;
-    enable().then((c) => (cleanup = c));
-    return () => cleanup && cleanup();
-  }, []);
+  }, [reduceMotion]);
 
 
   useEffect(() => {
@@ -213,9 +341,17 @@ export function NFTProfileCard({ userId, onClose }: NFTProfileCardProps) {
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center bg-black/95 backdrop-blur-xl p-3 sm:p-6 overflow-y-auto">
+    <div
+      className={`fixed inset-0 z-50 flex items-start sm:items-center justify-center backdrop-blur-xl p-3 sm:p-6 overflow-y-auto ${BG_CLASS[themed.background] || ""} ${FONT_CLASS[themed.font] || ""}`}
+      style={{
+        ...accentVarStyle,
+        ...bgImageStyle(themed.background),
+        backgroundColor: themed.background === "default" ? "rgba(0,0,0,0.95)" : undefined,
+      }}
+      data-layout={themed.layout}
+    >
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: reduceMotion ? 0 : 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-6xl"
       >
