@@ -2,18 +2,25 @@ import { motion } from "framer-motion";
 import { X, Palette, Type, Layout } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
+export type ProfileTheme = {
+  background: string;
+  font: string;
+  layout: string;
+  accentColor: string;
+};
 
 interface ProfileThemeCustomizerProps {
-  currentTheme: {
-    background: string;
-    font: string;
-    layout: string;
-    accentColor: string;
-  };
-  onSave: (theme: { background: string; font: string; layout: string; accentColor: string }) => void;
+  currentTheme: ProfileTheme;
+  onSave: (theme: ProfileTheme) => void;
   onClose: () => void;
 }
+
+// Broadcast a live preview to any listening surface (PublicProfile, NFTProfileCard, etc.)
+export const emitThemePreview = (theme: ProfileTheme | null) => {
+  window.dispatchEvent(new CustomEvent("blackpal:theme-preview", { detail: theme }));
+};
 
 const backgrounds = [
   { id: "default", name: "Default", preview: "bg-gradient-to-br from-background to-background border" },
