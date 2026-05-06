@@ -24,6 +24,7 @@ export default function PublicProfile() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<any>(null);
+  const [previewTheme, setPreviewTheme] = useState<any>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [achievements, setAchievements] = useState<any[]>([]);
   const [stats, setStats] = useState({
@@ -31,6 +32,15 @@ export default function PublicProfile() {
     rareAchievements: 0,
     totalXP: 0,
   });
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      setPreviewTheme(detail || null);
+    };
+    window.addEventListener("blackpal:theme-preview", handler);
+    return () => window.removeEventListener("blackpal:theme-preview", handler);
+  }, []);
 
   useEffect(() => {
     loadProfile();
