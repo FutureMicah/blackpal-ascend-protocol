@@ -93,7 +93,7 @@ export const ProfileThemeCustomizer = ({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/95 backdrop-blur-lg"
-      onClick={onClose}
+      onClick={handleCancel}
     >
       <motion.div
         initial={{ scale: 0.9, y: 20 }}
@@ -107,7 +107,7 @@ export const ProfileThemeCustomizer = ({
             <Palette className="w-5 h-5 text-primary" />
             <h2 className="text-2xl font-bold">Customize Your Theme</h2>
           </div>
-          <Button variant="ghost" size="icon" onClick={onClose}>
+          <Button variant="ghost" size="icon" onClick={handleCancel}>
             <X className="w-5 h-5" />
           </Button>
         </div>
@@ -213,7 +213,7 @@ export const ProfileThemeCustomizer = ({
 
         {/* Footer */}
         <div className="p-6 border-t border-border flex gap-3">
-          <Button variant="outline" onClick={onClose} className="flex-1">
+          <Button variant="outline" onClick={handleCancel} className="flex-1">
             Cancel
           </Button>
           <Button onClick={handleSave} className="flex-1">
