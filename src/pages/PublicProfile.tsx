@@ -24,6 +24,7 @@ export default function PublicProfile() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<any>(null);
+  const [previewTheme, setPreviewTheme] = useState<any>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [achievements, setAchievements] = useState<any[]>([]);
   const [stats, setStats] = useState({
@@ -31,6 +32,15 @@ export default function PublicProfile() {
     rareAchievements: 0,
     totalXP: 0,
   });
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      setPreviewTheme(detail || null);
+    };
+    window.addEventListener("blackpal:theme-preview", handler);
+    return () => window.removeEventListener("blackpal:theme-preview", handler);
+  }, []);
 
   useEffect(() => {
     loadProfile();
@@ -297,16 +307,22 @@ export default function PublicProfile() {
     }
   };
 
-  const layoutClasses = getLayoutClasses(profile?.theme_layout || "standard");
+  const effectiveBg = previewTheme?.background ?? profile?.theme_background ?? "default";
+  const effectiveFont = previewTheme?.font ?? profile?.theme_font ?? "inter";
+  const effectiveLayout = previewTheme?.layout ?? profile?.theme_layout ?? "standard";
+  const effectiveAccent = previewTheme?.accentColor ?? profile?.theme_accent_color ?? "purple";
+
+  const layoutClasses = getLayoutClasses(effectiveLayout);
   const accentStyle = {
-    ["--primary" as any]: getAccentHsl(profile?.theme_accent_color || "purple"),
-    ["--ring" as any]: getAccentHsl(profile?.theme_accent_color || "purple"),
+    ["--primary" as any]: getAccentHsl(effectiveAccent),
+    ["--ring" as any]: getAccentHsl(effectiveAccent),
+    ["--accent" as any]: getAccentHsl(effectiveAccent),
   } as React.CSSProperties;
 
   return (
     <div
-      className={`min-h-screen ${getBackgroundClass(profile?.theme_background || "default")} ${getFontClass(profile?.theme_font || "inter")}`}
-      style={{ ...accentStyle, ...getBackgroundStyle(profile?.theme_background || "default") }}
+      className={`min-h-screen ${getBackgroundClass(effectiveBg)} ${getFontClass(effectiveFont)}`}
+      style={{ ...accentStyle, ...getBackgroundStyle(effectiveBg) }}
     >
       <FloatingNav />
 

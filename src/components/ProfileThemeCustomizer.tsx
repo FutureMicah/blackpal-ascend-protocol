@@ -2,18 +2,25 @@ import { motion } from "framer-motion";
 import { X, Palette, Type, Layout } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
+export type ProfileTheme = {
+  background: string;
+  font: string;
+  layout: string;
+  accentColor: string;
+};
 
 interface ProfileThemeCustomizerProps {
-  currentTheme: {
-    background: string;
-    font: string;
-    layout: string;
-    accentColor: string;
-  };
-  onSave: (theme: { background: string; font: string; layout: string; accentColor: string }) => void;
+  currentTheme: ProfileTheme;
+  onSave: (theme: ProfileTheme) => void;
   onClose: () => void;
 }
+
+// Broadcast a live preview to any listening surface (PublicProfile, NFTProfileCard, etc.)
+export const emitThemePreview = (theme: ProfileTheme | null) => {
+  window.dispatchEvent(new CustomEvent("blackpal:theme-preview", { detail: theme }));
+};
 
 const backgrounds = [
   { id: "default", name: "Default", preview: "bg-gradient-to-br from-background to-background border" },
@@ -58,10 +65,25 @@ export const ProfileThemeCustomizer = ({
   onSave,
   onClose,
 }: ProfileThemeCustomizerProps) => {
-  const [theme, setTheme] = useState(currentTheme);
+  const [theme, setTheme] = useState<ProfileTheme>(currentTheme);
+
+  // Live preview: emit any change immediately; clear preview on unmount
+  useEffect(() => {
+    emitThemePreview(theme);
+  }, [theme]);
+
+  useEffect(() => {
+    return () => emitThemePreview(null);
+  }, []);
 
   const handleSave = () => {
     onSave(theme);
+    emitThemePreview(null);
+    onClose();
+  };
+
+  const handleCancel = () => {
+    emitThemePreview(null);
     onClose();
   };
 
@@ -71,7 +93,7 @@ export const ProfileThemeCustomizer = ({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/95 backdrop-blur-lg"
-      onClick={onClose}
+      onClick={handleCancel}
     >
       <motion.div
         initial={{ scale: 0.9, y: 20 }}
@@ -85,7 +107,7 @@ export const ProfileThemeCustomizer = ({
             <Palette className="w-5 h-5 text-primary" />
             <h2 className="text-2xl font-bold">Customize Your Theme</h2>
           </div>
-          <Button variant="ghost" size="icon" onClick={onClose}>
+          <Button variant="ghost" size="icon" onClick={handleCancel}>
             <X className="w-5 h-5" />
           </Button>
         </div>
@@ -191,7 +213,7 @@ export const ProfileThemeCustomizer = ({
 
         {/* Footer */}
         <div className="p-6 border-t border-border flex gap-3">
-          <Button variant="outline" onClick={onClose} className="flex-1">
+          <Button variant="outline" onClick={handleCancel} className="flex-1">
             Cancel
           </Button>
           <Button onClick={handleSave} className="flex-1">

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { Download, X, Crown, Shield, Sparkles, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -58,6 +58,59 @@ export function NFTProfileCard({ userId, onClose }: NFTProfileCardProps) {
   const [exporting, setExporting] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+
+  // Reactive tilt — pointer (desktop) + device orientation (mobile)
+  const tiltX = useMotionValue(0);
+  const tiltY = useMotionValue(0);
+  const sx = useSpring(tiltX, { stiffness: 120, damping: 14, mass: 0.4 });
+  const sy = useSpring(tiltY, { stiffness: 120, damping: 14, mass: 0.4 });
+  const rotateX = useTransform(sy, (v) => v);
+  const rotateY = useTransform(sx, (v) => v);
+  const sheenX = useTransform(sx, [-12, 12], ["20%", "80%"]);
+  const sheenY = useTransform(sy, [-12, 12], ["20%", "80%"]);
+  const sheenBg = useTransform(
+    [sheenX, sheenY] as any,
+    ([x, y]: any) =>
+      `radial-gradient(60% 50% at ${x} ${y}, rgba(255,255,255,0.55), rgba(255,255,255,0) 60%)`
+  );
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const px = (e.clientX - rect.left) / rect.width - 0.5;
+    const py = (e.clientY - rect.top) / rect.height - 0.5;
+    tiltX.set(px * 18);
+    tiltY.set(-py * 18);
+  };
+  const handlePointerLeave = () => {
+    tiltX.set(0);
+    tiltY.set(0);
+  };
+
+  // Device orientation for phones — gentle parallax
+  useEffect(() => {
+    const enable = async () => {
+      const DOE: any = (window as any).DeviceOrientationEvent;
+      if (DOE && typeof DOE.requestPermission === "function") {
+        try {
+          const res = await DOE.requestPermission();
+          if (res !== "granted") return;
+        } catch { return; }
+      }
+      const onOrient = (ev: DeviceOrientationEvent) => {
+        // gamma: left/right [-90..90], beta: front/back [-180..180]
+        const g = Math.max(-25, Math.min(25, ev.gamma ?? 0));
+        const b = Math.max(-25, Math.min(25, (ev.beta ?? 0) - 30));
+        tiltX.set((g / 25) * 12);
+        tiltY.set((b / 25) * 12);
+      };
+      window.addEventListener("deviceorientation", onOrient, true);
+      return () => window.removeEventListener("deviceorientation", onOrient, true);
+    };
+    let cleanup: any;
+    enable().then((c) => (cleanup = c));
+    return () => cleanup && cleanup();
+  }, []);
+
 
   useEffect(() => {
     (async () => {
@@ -182,11 +235,15 @@ export function NFTProfileCard({ userId, onClose }: NFTProfileCardProps) {
           <div className="flex justify-center">
             <motion.div
               ref={cardRef}
-              initial={{ rotateY: -6, rotateX: 4 }}
-              animate={{ rotateY: [-2, 2, -2], rotateX: [2, -2, 2] }}
-              transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
-              style={{ transformStyle: "preserve-3d", perspective: "1200px" }}
-              className="relative w-full max-w-[440px]"
+              onPointerMove={handlePointerMove}
+              onPointerLeave={handlePointerLeave}
+              style={{
+                transformStyle: "preserve-3d",
+                perspective: "1200px",
+                rotateX,
+                rotateY,
+              }}
+              className="relative w-full max-w-[440px] touch-none"
             >
               {/* Outer chrome frame */}
               <div
@@ -401,17 +458,11 @@ export function NFTProfileCard({ userId, onClose }: NFTProfileCardProps) {
                 </div>
               </div>
 
-              {/* Floating reflective sheen */}
+              {/* Reactive glare that tracks tilt / pointer */}
               <motion.div
                 aria-hidden
                 className="absolute inset-0 rounded-[32px] pointer-events-none mix-blend-overlay"
-                style={{
-                  background:
-                    "linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.35) 50%, transparent 70%)",
-                  backgroundSize: "200% 100%",
-                }}
-                animate={{ backgroundPosition: ["200% 0%", "-200% 0%"] }}
-                transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
+                style={{ background: sheenBg as any }}
               />
             </motion.div>
           </div>
