@@ -114,9 +114,9 @@ const BlackCoin = () => {
                 </div>
                 <div className="flex items-end gap-2 mb-1">
                   <h2 className="text-2xl sm:text-4xl font-bold font-mono">{balance.toLocaleString()}</h2>
-                  <span className="text-sm text-muted-foreground mb-0.5">BTC</span>
+                  <span className="text-sm text-muted-foreground mb-0.5">BTAX</span>
                 </div>
-                <p className="text-[10px] text-muted-foreground">~${(balance * 0.001).toFixed(2)} USD</p>
+                <p className="text-[10px] text-muted-foreground">~₦{(balance * 100).toLocaleString()}</p>
               </div>
             </Card>
 
