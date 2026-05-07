@@ -20,6 +20,7 @@ import { format } from "date-fns";
 import { AdminBroadcastChannel } from "@/components/AdminBroadcastChannel";
 import { AdminPropManager } from "@/components/AdminPropManager";
 import { AdminSupportTickets } from "@/components/AdminSupportTickets";
+import { CurrencyConverter } from "@/components/CurrencyConverter";
 import logo from "@/assets/blackpal-logo.jpg";
 
 type AdminRole = "super_admin" | "admin" | "editor" | "customer_support" | "finance";
