@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Coins, TrendingUp, ArrowDownToLine, ArrowUpFromLine, RefreshCw, Zap, Gift, Trophy, Star, Loader2 } from "lucide-react";
 import { FloatingNav } from "@/components/FloatingNav";
+import { CurrencyConverter } from "@/components/CurrencyConverter";
 import { MetalloidCoin } from "@/components/MetalloidCoin";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -47,7 +48,7 @@ const BlackCoin = () => {
       const { error } = await supabase.from("profiles").update({ virtual_currency: balance + amount }).eq("id", userId);
       if (error) throw error;
       setBalance(prev => prev + amount); setDepositAmount("");
-      toast({ title: "Deposit successful!", description: `+${amount} BTC added` });
+      toast({ title: "Deposit successful!", description: `+${amount} BTAX added` });
     } catch (error: any) { toast({ variant: "destructive", title: "Error", description: error.message }); } finally { setProcessing(false); }
   };
 
@@ -61,7 +62,7 @@ const BlackCoin = () => {
       const { error } = await supabase.from("profiles").update({ virtual_currency: balance - amount }).eq("id", userId);
       if (error) throw error;
       setBalance(prev => prev - amount); setWithdrawAmount("");
-      toast({ title: "Withdrawal initiated!", description: `${amount} BTC pending` });
+      toast({ title: "Withdrawal initiated!", description: `${amount} BTAX pending` });
     } catch (error: any) { toast({ variant: "destructive", title: "Error", description: error.message }); } finally { setProcessing(false); }
   };
 
@@ -69,7 +70,7 @@ const BlackCoin = () => {
     if (!convertAmount) return;
     const amount = parseInt(convertAmount);
     if (isNaN(amount) || amount <= 0 || amount > balance) { toast({ variant: "destructive", title: "Invalid" }); return; }
-    toast({ title: "Conversion complete!", description: `${amount} BTC converted` });
+    toast({ title: "Conversion complete!", description: `${amount} BTAX converted` });
     setConvertAmount("");
   };
 
@@ -80,7 +81,7 @@ const BlackCoin = () => {
       const { data: profile } = await supabase.from("profiles").select("virtual_currency, xp_points").eq("id", userId).single();
       await supabase.from("profiles").update({ virtual_currency: (profile?.virtual_currency || 0) + coins, xp_points: (profile?.xp_points || 0) + Math.floor(coins / 10) }).eq("id", userId);
       setBalance(prev => prev + coins);
-      toast({ title: "Claimed!", description: `+${coins} BTC for ${name}` });
+      toast({ title: "Claimed!", description: `+${coins} BTAX for ${name}` });
     } catch (error: any) { toast({ variant: "destructive", title: "Error", description: error.message }); } finally { setProcessing(false); }
   };
 
@@ -114,9 +115,9 @@ const BlackCoin = () => {
                 </div>
                 <div className="flex items-end gap-2 mb-1">
                   <h2 className="text-2xl sm:text-4xl font-bold font-mono">{balance.toLocaleString()}</h2>
-                  <span className="text-sm text-muted-foreground mb-0.5">BTC</span>
+                  <span className="text-sm text-muted-foreground mb-0.5">BTAX</span>
                 </div>
-                <p className="text-[10px] text-muted-foreground">~${(balance * 0.001).toFixed(2)} USD</p>
+                <p className="text-[10px] text-muted-foreground">~₦{(balance * 100).toLocaleString()}</p>
               </div>
             </Card>
 
@@ -142,12 +143,12 @@ const BlackCoin = () => {
                     ))}
                   </div>
                 </TabsContent>
-                <TabsContent value="convert" className="space-y-2">
-                  <h3 className="text-xs font-bold">Convert Currency</h3>
-                  <div className="flex gap-2">
-                    <Input type="number" placeholder="Amount" value={convertAmount} onChange={e => setConvertAmount(e.target.value)} className="flex-1 h-8 text-xs" />
-                    <Button onClick={handleConvert} disabled={processing || !convertAmount} className="h-8 text-xs">{processing ? <Loader2 className="w-3 h-3 animate-spin" /> : "Convert"}</Button>
-                  </div>
+                <TabsContent value="convert" className="space-y-3">
+                  <h3 className="text-xs font-bold">Naira ↔ BTAX Converter</h3>
+                  <CurrencyConverter compact={false} />
+                  <p className="text-[9px] text-muted-foreground text-center">
+                    Use the converter to plan funding amounts before depositing.
+                  </p>
                 </TabsContent>
                 <TabsContent value="withdraw" className="space-y-2">
                   <h3 className="text-xs font-bold">Withdraw Funds</h3>
@@ -155,7 +156,7 @@ const BlackCoin = () => {
                     <Input type="number" placeholder="Amount" value={withdrawAmount} onChange={e => setWithdrawAmount(e.target.value)} className="flex-1 h-8 text-xs" />
                     <Button onClick={handleWithdraw} disabled={processing || !withdrawAmount} className="h-8 text-xs bg-red-600 hover:bg-red-700">{processing ? <Loader2 className="w-3 h-3 animate-spin" /> : "Withdraw"}</Button>
                   </div>
-                  <p className="text-[9px] text-yellow-500">Available: {balance.toLocaleString()} BTC</p>
+                  <p className="text-[9px] text-yellow-500">Available: {balance.toLocaleString()} BTAX</p>
                 </TabsContent>
               </Tabs>
             </Card>
@@ -176,7 +177,7 @@ const BlackCoin = () => {
                     <r.icon className={`w-4 h-4 ${r.color} shrink-0`} />
                     <div className="flex-1 min-w-0">
                       <p className="text-[10px] font-medium truncate">{r.title}</p>
-                      <p className="text-[9px] text-primary">+{r.coins} BTC</p>
+                      <p className="text-[9px] text-primary">+{r.coins} BTAX</p>
                     </div>
                     <Button size="sm" variant="outline" className="h-6 text-[9px] px-2 shrink-0" onClick={() => claimReward(r.coins, r.title)} disabled={processing}>Claim</Button>
                   </div>
@@ -195,7 +196,7 @@ const BlackCoin = () => {
                     <item.icon className="w-4 h-4 text-primary shrink-0" />
                     <div className="flex-1 min-w-0">
                       <p className="text-[10px] font-medium truncate">{item.name}</p>
-                      <p className="text-[9px] text-primary">{item.cost.toLocaleString()} BTC</p>
+                      <p className="text-[9px] text-primary">{item.cost.toLocaleString()} BTAX</p>
                     </div>
                     <Button size="sm" className="h-6 text-[9px] px-2 shrink-0" disabled={balance < item.cost} variant={balance >= item.cost ? "default" : "outline"}>
                       {balance >= item.cost ? "Buy" : "Locked"}

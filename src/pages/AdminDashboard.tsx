@@ -20,6 +20,7 @@ import { format } from "date-fns";
 import { AdminBroadcastChannel } from "@/components/AdminBroadcastChannel";
 import { AdminPropManager } from "@/components/AdminPropManager";
 import { AdminSupportTickets } from "@/components/AdminSupportTickets";
+import { CurrencyConverter } from "@/components/CurrencyConverter";
 import logo from "@/assets/blackpal-logo.jpg";
 
 type AdminRole = "super_admin" | "admin" | "editor" | "customer_support" | "finance";
@@ -326,7 +327,7 @@ export default function AdminDashboard() {
             { label: "Unpaid", value: stats.unpaidUsers, icon: X, color: "text-destructive" },
             { label: "Pending Pay", value: stats.pendingPayments, icon: Activity, color: "text-yellow-500" },
             { label: "Total Payments", value: stats.totalPayments, icon: CreditCard, color: "text-primary" },
-            { label: "Revenue", value: `₦${(stats.totalRevenue * 1000).toLocaleString()}`, icon: DollarSign, color: "text-green-500" },
+            { label: "Revenue", value: `₦${(stats.totalRevenue * 1000).toLocaleString()}`, icon: DollarSign, color: "text-green-500", subtext: `≈ ${((stats.totalRevenue * 1000) / 100).toLocaleString()} BTAX` },
             { label: "Achievements", value: stats.totalAchievements, icon: Trophy, color: "text-yellow-500" },
             { label: "Proofs Pending", value: pendingProofs.length, icon: FileText, color: "text-orange-500" },
           ].map((stat) => (
@@ -335,6 +336,9 @@ export default function AdminDashboard() {
                 <stat.icon className={`w-5 h-5 ${stat.color} mb-1`} />
                 <p className="text-xl font-bold text-foreground">{stat.value}</p>
                 <p className="text-[10px] text-muted-foreground">{stat.label}</p>
+                {(stat as any).subtext && (
+                  <p className="text-[9px] text-muted-foreground/80">{(stat as any).subtext}</p>
+                )}
               </CardContent>
             </Card>
           ))}
@@ -552,7 +556,10 @@ export default function AdminDashboard() {
                         <TableRow key={p.id}>
                           <TableCell className="text-sm">{user?.display_name || p.user_id?.slice(0, 8)}</TableCell>
                           <TableCell className="capitalize text-sm">{p.payment_method}</TableCell>
-                          <TableCell>₦{((Number(p.amount_usd) || 0) * 1000).toLocaleString()}</TableCell>
+                          <TableCell>
+                            ₦{((Number(p.amount_usd) || 0) * 1000).toLocaleString()}
+                            <span className="block text-[9px] text-muted-foreground">≈ {(((Number(p.amount_usd) || 0) * 1000) / 100).toLocaleString()} BTAX</span>
+                          </TableCell>
                           <TableCell>
                             <Badge variant={p.payment_status === "completed" ? "default" : p.payment_status === "failed" ? "destructive" : "secondary"}>
                               {p.payment_status}
@@ -791,6 +798,20 @@ export default function AdminDashboard() {
                   </CardContent>
                 </Card>
 
+                <Card className="border-border bg-card/80">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-sm">
+                      <Wallet className="w-4 h-4" /> Naira ↔ BTAX Converter
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <CurrencyConverter compact />
+                    <p className="text-[10px] text-muted-foreground mt-2">
+                      All in-app pricing now displays in BTAX. Naira remains the funding currency for the ₦1,000 activation fee.
+                    </p>
+                  </CardContent>
+                </Card>
+
                 <Card className="border-border bg-card/80 md:col-span-2">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-sm"><Globe className="w-4 h-4" /> Payment Accounts</CardTitle>
@@ -888,7 +909,7 @@ export default function AdminDashboard() {
                   {[
                     { label: "XP", value: selectedUser.xp_points || 0 },
                     { label: "Level", value: selectedUser.rank_level || 1 },
-                    { label: "Currency", value: selectedUser.virtual_currency || 0 },
+                    { label: "BTAX", value: (selectedUser.virtual_currency || 0).toLocaleString() },
                     { label: "Streak", value: selectedUser.achievement_streak || 0 },
                   ].map(item => (
                     <div key={item.label} className="p-2 rounded-lg bg-muted/30 border border-border text-center">

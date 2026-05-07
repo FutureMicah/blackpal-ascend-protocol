@@ -28,90 +28,65 @@ export const WalletSnapshot = ({ userId }: WalletSnapshotProps) => {
     loadBalance();
   }, [userId]);
 
-  const usdEquivalent = (balance * 0.001).toFixed(2);
+  const nairaEquivalent = (balance * 100).toLocaleString();
 
   return (
     <motion.div
-      className="glass-card p-6 space-y-4"
+      className="nft-hero p-5 space-y-4"
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: 0.4 }}
     >
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
-          <Wallet className="w-5 h-5 text-primary" />
-          Wallet
-        </h2>
+        <div className="flex items-center gap-2 text-white/80 text-[10px] uppercase tracking-[0.2em]">
+          <Wallet className="w-3.5 h-3.5" />
+          My balance
+        </div>
+        <span className="text-[10px] text-white/70 font-mono">~₦{nairaEquivalent}</span>
       </div>
 
-      {/* Coin Visual */}
-      <div className="relative h-20 flex items-center justify-center">
-        <motion.div
-          className="absolute w-16 h-16 rounded-full bg-gradient-to-br from-yellow-500/30 to-amber-500/30 blur-xl"
-          animate={{
-            scale: [1, 1.1, 1],
-            rotate: [0, 180, 360],
-          }}
-          transition={{
-            duration: 4,
-            repeat: Infinity,
-            ease: "linear",
-          }}
-        />
-        <motion.div
-          className="relative w-14 h-14 rounded-full bg-gradient-to-br from-yellow-500 to-amber-500 flex items-center justify-center shadow-lg"
-          animate={{
-            rotateY: 360,
-          }}
-          transition={{
-            duration: 3,
-            repeat: Infinity,
-            ease: "linear",
-          }}
-        >
-          <span className="text-xl font-bold text-white">₿</span>
-        </motion.div>
+      <div>
+        <div className="flex items-baseline gap-2">
+          <div className="text-4xl font-semibold tracking-tight text-white">
+            {balance.toLocaleString()}
+          </div>
+          <span className="text-base font-medium text-white/80">BTAX</span>
+        </div>
+        <p className="text-[10px] text-white/60 mt-1">Yearly rewards · live</p>
       </div>
 
-      {/* Balance */}
-      <div className="text-center space-y-1">
-        <div className="text-3xl font-bold text-foreground">{balance.toLocaleString()} BTC</div>
-        <div className="text-sm text-muted-foreground">~${usdEquivalent} USD</div>
-      </div>
-
-      {/* Quick Actions - Functional buttons */}
+      {/* Quick Actions */}
       <div className="grid grid-cols-3 gap-2">
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="flex-col h-auto py-3 gap-1"
+        <Button
+          variant="secondary"
+          size="sm"
+          className="flex-col h-auto py-2.5 gap-1 bg-white/15 hover:bg-white/25 text-white border-0 backdrop-blur"
           onClick={() => navigate("/blackcoin?action=deposit")}
         >
           <ArrowDownToLine className="w-4 h-4" />
-          <span className="text-xs">Deposit</span>
+          <span className="text-[10px]">Receive</span>
         </Button>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="flex-col h-auto py-3 gap-1"
+        <Button
+          variant="secondary"
+          size="sm"
+          className="flex-col h-auto py-2.5 gap-1 bg-white text-[hsl(248_84%_30%)] hover:bg-white/90 border-0"
           onClick={() => navigate("/blackcoin?action=convert")}
         >
           <RefreshCw className="w-4 h-4" />
-          <span className="text-xs">Convert</span>
+          <span className="text-[10px] font-semibold">Convert</span>
         </Button>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="flex-col h-auto py-3 gap-1"
+        <Button
+          variant="secondary"
+          size="sm"
+          className="flex-col h-auto py-2.5 gap-1 bg-white/15 hover:bg-white/25 text-white border-0 backdrop-blur"
           onClick={() => navigate("/blackcoin?action=withdraw")}
         >
           <ArrowUpFromLine className="w-4 h-4" />
-          <span className="text-xs">Withdraw</span>
+          <span className="text-[10px]">Send</span>
         </Button>
       </div>
 
-      {/* Notice */}
-      <div className="text-xs text-muted-foreground text-center pt-2 border-t border-border">
+      <div className="text-[10px] text-white/60 text-center pt-2 border-t border-white/10">
         Complete KYC to enable withdrawals
       </div>
     </motion.div>

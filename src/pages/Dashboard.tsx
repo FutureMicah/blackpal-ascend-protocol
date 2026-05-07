@@ -24,6 +24,7 @@ import { useRealtimeNotifications } from "@/hooks/use-realtime-notifications";
 import { SessionLockScreen } from "@/components/security/SessionLockScreen";
 import { SecurityPanel } from "@/components/security/SecurityPanel";
 import { SupportChat } from "@/components/SupportChat";
+import { CurrencyConverter } from "@/components/CurrencyConverter";
 
 export default function Dashboard() {
   const [user, setUser] = useState<any>(null);
@@ -287,6 +288,7 @@ export default function Dashboard() {
             <FriendActivityFeed userId={profile.id} maxItems={10} />
             <WalletSnapshot userId={profile.id} />
             <BtaxWalletOverview userId={profile.id} />
+            <CurrencyConverter compact />
             
             {/* Support Chat */}
             {user && (

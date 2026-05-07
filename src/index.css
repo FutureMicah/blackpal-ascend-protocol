@@ -8,62 +8,60 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* BlackPAL Ascend - Ultra Premium Design System */
-    /* Deep space foundation */
-    --background: 220 20% 8%;
-    --foreground: 0 0% 95%;
+    /* BlackPAL Ascend — Violet/Indigo NFT-trader palette (IMG_9797) */
+    /* Deep night-blue canvas */
+    --background: 232 38% 9%;
+    --foreground: 0 0% 96%;
 
-    /* Glass morphism surfaces */
-    --card: 220 15% 12%;
-    --card-foreground: 0 0% 95%;
+    /* Floating cards: cool deep navy */
+    --card: 232 32% 14%;
+    --card-foreground: 0 0% 96%;
 
-    --popover: 220 18% 10%;
-    --popover-foreground: 0 0% 95%;
+    --popover: 232 30% 12%;
+    --popover-foreground: 0 0% 96%;
 
-    /* Electric cyan primary */
-    --primary: 185 100% 50%;
-    --primary-foreground: 220 20% 8%;
+    /* Royal violet primary (matches reference) */
+    --primary: 248 84% 65%;
+    --primary-foreground: 0 0% 100%;
 
-    /* Voltage blue secondary */
-    --secondary: 210 100% 60%;
-    --secondary-foreground: 0 0% 95%;
+    /* Indigo-blue secondary */
+    --secondary: 224 86% 62%;
+    --secondary-foreground: 0 0% 100%;
 
-    /* Muted dark tones */
-    --muted: 220 15% 25%;
-    --muted-foreground: 220 10% 60%;
+    --muted: 232 22% 22%;
+    --muted-foreground: 232 14% 68%;
 
-    /* Electric accent */
-    --accent: 185 100% 50%;
-    --accent-foreground: 220 20% 8%;
+    --accent: 268 86% 70%;
+    --accent-foreground: 0 0% 100%;
 
-    /* Danger red */
-    --destructive: 0 85% 60%;
+    --destructive: 0 80% 62%;
     --destructive-foreground: 0 0% 98%;
 
-    /* Borders and inputs - subtle glow */
-    --border: 220 15% 20%;
-    --input: 220 15% 18%;
-    --ring: 185 100% 50%;
+    --border: 232 24% 22%;
+    --input: 232 22% 18%;
+    --ring: 248 84% 65%;
 
-    --radius: 0.75rem;
+    --radius: 1rem;
 
-    /* Custom voltage tokens */
-    --electric-cyan: 185 100% 50%;
-    --voltage-blue: 210 100% 60%;
-    --silver-white: 0 0% 95%;
-    --deep-black: 220 20% 8%;
-    --glass-blur: 220 15% 12%;
-    
+    /* Brand tokens */
+    --violet-royal: 248 84% 65%;
+    --indigo-deep: 224 86% 62%;
+    --gold-soft: 42 96% 62%;
+    --silver-white: 0 0% 96%;
+    --deep-night: 232 38% 9%;
+    --glass-blur: 232 32% 14%;
+
     /* Gradients */
-    --gradient-voltage: linear-gradient(135deg, hsl(185 100% 50%), hsl(210 100% 60%));
-    --gradient-silver: linear-gradient(135deg, hsl(0 0% 95%), hsl(210 100% 60%));
-    --gradient-glass: linear-gradient(135deg, hsl(220 15% 12% / 0.6), hsl(220 15% 18% / 0.4));
-    
+    --gradient-voltage: linear-gradient(135deg, hsl(248 84% 65%), hsl(224 86% 62%));
+    --gradient-silver: linear-gradient(135deg, hsl(0 0% 96%), hsl(248 84% 65%));
+    --gradient-glass: linear-gradient(135deg, hsl(232 32% 14% / 0.7), hsl(232 22% 18% / 0.5));
+    --gradient-hero: linear-gradient(135deg, hsl(248 84% 65%) 0%, hsl(224 86% 62%) 55%, hsl(268 86% 70%) 100%);
+
     /* Shadows */
-    --shadow-voltage: 0 0 40px hsl(185 100% 50% / 0.3);
-    --shadow-glow: 0 0 20px hsl(210 100% 60% / 0.4);
-    --shadow-glass: 0 20px 60px hsl(220 20% 5% / 0.5);
-    
+    --shadow-voltage: 0 20px 60px -20px hsl(248 84% 65% / 0.45);
+    --shadow-glow: 0 0 28px hsl(224 86% 62% / 0.45);
+    --shadow-glass: 0 24px 60px hsl(232 60% 4% / 0.55);
+
     /* Animations */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-voltage: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
@@ -224,21 +222,56 @@ All colors MUST be HSL.
   }
   .frost-fab:hover { transform: translateY(-1px); background: hsla(0, 0%, 100%, 0.14); }
 
-  /* Aurora canvas behind dashboards */
+  /* Aurora canvas behind dashboards — violet/indigo wash */
   .frost-aurora {
     position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden;
     background:
-      radial-gradient(60% 50% at 12% 10%, hsla(185, 90%, 55%, 0.18), transparent 60%),
-      radial-gradient(50% 40% at 90% 0%, hsla(265, 80%, 60%, 0.18), transparent 65%),
-      radial-gradient(60% 50% at 80% 100%, hsla(40, 90%, 60%, 0.10), transparent 65%),
-      radial-gradient(50% 50% at 20% 100%, hsla(210, 80%, 50%, 0.14), transparent 70%),
-      hsl(220, 25%, 6%);
+      radial-gradient(60% 50% at 12% 10%, hsla(248, 84%, 65%, 0.28), transparent 60%),
+      radial-gradient(50% 40% at 90% 0%, hsla(268, 86%, 70%, 0.22), transparent 65%),
+      radial-gradient(60% 50% at 80% 100%, hsla(42, 96%, 62%, 0.10), transparent 65%),
+      radial-gradient(50% 50% at 20% 100%, hsla(224, 86%, 62%, 0.20), transparent 70%),
+      hsl(232, 38%, 9%);
   }
   .frost-aurora::after {
     content: "";
     position: absolute; inset: 0;
     background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.05 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
     opacity: .35; mix-blend-mode: overlay;
+  }
+
+  /* NFT-trader hero card (IMG_9797 reference) */
+  .nft-hero {
+    position: relative;
+    border-radius: 28px;
+    background:
+      radial-gradient(120% 80% at 0% 0%, hsla(0,0%,100%,0.18), transparent 55%),
+      linear-gradient(135deg, hsl(248 84% 62%), hsl(224 86% 56%) 60%, hsl(268 86% 60%));
+    color: hsl(0 0% 100%);
+    border: 1px solid hsla(0,0%,100%,0.18);
+    box-shadow:
+      0 1px 0 hsla(0,0%,100%,0.25) inset,
+      0 30px 60px -25px hsla(248,80%,30%,0.7),
+      0 12px 24px -18px hsla(232,60%,4%,0.6);
+    overflow: hidden;
+  }
+  .nft-hero::before {
+    content: "";
+    position: absolute; inset: 0;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'><g fill='none' stroke='white' stroke-opacity='0.08' stroke-width='1'><circle cx='200' cy='200' r='180'/><circle cx='200' cy='200' r='120'/><circle cx='200' cy='200' r='60'/><path d='M40 40 L360 360 M360 40 L40 360'/></g></svg>");
+    background-size: 320px 320px;
+    background-position: top right;
+    background-repeat: no-repeat;
+    opacity: 0.45;
+    pointer-events: none;
+  }
+  .nft-hero > * { position: relative; z-index: 1; }
+
+  /* Soft inner card on dark canvas (NFT collection rail item) */
+  .nft-tile {
+    border-radius: 22px;
+    background: linear-gradient(160deg, hsla(232,32%,18%,0.92), hsla(232,32%,12%,0.88));
+    border: 1px solid hsla(0,0%,100%,0.06);
+    box-shadow: 0 14px 30px -18px hsla(232,60%,4%,0.7);
   }
 
   .text-ink { color: hsl(220, 30%, 12%); }
