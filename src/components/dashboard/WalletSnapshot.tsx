@@ -28,7 +28,7 @@ export const WalletSnapshot = ({ userId }: WalletSnapshotProps) => {
     loadBalance();
   }, [userId]);
 
-  const usdEquivalent = (balance * 0.001).toFixed(2);
+  const nairaEquivalent = (balance * 100).toLocaleString();
 
   return (
     <motion.div
@@ -69,14 +69,14 @@ export const WalletSnapshot = ({ userId }: WalletSnapshotProps) => {
             ease: "linear",
           }}
         >
-          <span className="text-xl font-bold text-white">₿</span>
+          <span className="text-xl font-bold text-white">B</span>
         </motion.div>
       </div>
 
       {/* Balance */}
       <div className="text-center space-y-1">
-        <div className="text-3xl font-bold text-foreground">{balance.toLocaleString()} BTC</div>
-        <div className="text-sm text-muted-foreground">~${usdEquivalent} USD</div>
+        <div className="text-3xl font-bold text-foreground">{balance.toLocaleString()} BTAX</div>
+        <div className="text-sm text-muted-foreground">~₦{nairaEquivalent}</div>
       </div>
 
       {/* Quick Actions - Functional buttons */}
