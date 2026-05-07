@@ -336,6 +336,9 @@ export default function AdminDashboard() {
                 <stat.icon className={`w-5 h-5 ${stat.color} mb-1`} />
                 <p className="text-xl font-bold text-foreground">{stat.value}</p>
                 <p className="text-[10px] text-muted-foreground">{stat.label}</p>
+                {(stat as any).subtext && (
+                  <p className="text-[9px] text-muted-foreground/80">{(stat as any).subtext}</p>
+                )}
               </CardContent>
             </Card>
           ))}
