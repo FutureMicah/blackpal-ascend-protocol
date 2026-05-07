@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Coins, TrendingUp, ArrowDownToLine, ArrowUpFromLine, RefreshCw, Zap, Gift, Trophy, Star, Loader2 } from "lucide-react";
 import { FloatingNav } from "@/components/FloatingNav";
+import { CurrencyConverter } from "@/components/CurrencyConverter";
 import { MetalloidCoin } from "@/components/MetalloidCoin";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -142,12 +143,12 @@ const BlackCoin = () => {
                     ))}
                   </div>
                 </TabsContent>
-                <TabsContent value="convert" className="space-y-2">
-                  <h3 className="text-xs font-bold">Convert Currency</h3>
-                  <div className="flex gap-2">
-                    <Input type="number" placeholder="Amount" value={convertAmount} onChange={e => setConvertAmount(e.target.value)} className="flex-1 h-8 text-xs" />
-                    <Button onClick={handleConvert} disabled={processing || !convertAmount} className="h-8 text-xs">{processing ? <Loader2 className="w-3 h-3 animate-spin" /> : "Convert"}</Button>
-                  </div>
+                <TabsContent value="convert" className="space-y-3">
+                  <h3 className="text-xs font-bold">Naira ↔ BTAX Converter</h3>
+                  <CurrencyConverter compact={false} />
+                  <p className="text-[9px] text-muted-foreground text-center">
+                    Use the converter to plan funding amounts before depositing.
+                  </p>
                 </TabsContent>
                 <TabsContent value="withdraw" className="space-y-2">
                   <h3 className="text-xs font-bold">Withdraw Funds</h3>
