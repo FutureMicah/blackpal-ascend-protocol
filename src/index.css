@@ -8,62 +8,60 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* BlackPAL Ascend - Ultra Premium Design System */
-    /* Deep space foundation */
-    --background: 220 20% 8%;
-    --foreground: 0 0% 95%;
+    /* BlackPAL Ascend — Violet/Indigo NFT-trader palette (IMG_9797) */
+    /* Deep night-blue canvas */
+    --background: 232 38% 9%;
+    --foreground: 0 0% 96%;
 
-    /* Glass morphism surfaces */
-    --card: 220 15% 12%;
-    --card-foreground: 0 0% 95%;
+    /* Floating cards: cool deep navy */
+    --card: 232 32% 14%;
+    --card-foreground: 0 0% 96%;
 
-    --popover: 220 18% 10%;
-    --popover-foreground: 0 0% 95%;
+    --popover: 232 30% 12%;
+    --popover-foreground: 0 0% 96%;
 
-    /* Electric cyan primary */
-    --primary: 185 100% 50%;
-    --primary-foreground: 220 20% 8%;
+    /* Royal violet primary (matches reference) */
+    --primary: 248 84% 65%;
+    --primary-foreground: 0 0% 100%;
 
-    /* Voltage blue secondary */
-    --secondary: 210 100% 60%;
-    --secondary-foreground: 0 0% 95%;
+    /* Indigo-blue secondary */
+    --secondary: 224 86% 62%;
+    --secondary-foreground: 0 0% 100%;
 
-    /* Muted dark tones */
-    --muted: 220 15% 25%;
-    --muted-foreground: 220 10% 60%;
+    --muted: 232 22% 22%;
+    --muted-foreground: 232 14% 68%;
 
-    /* Electric accent */
-    --accent: 185 100% 50%;
-    --accent-foreground: 220 20% 8%;
+    --accent: 268 86% 70%;
+    --accent-foreground: 0 0% 100%;
 
-    /* Danger red */
-    --destructive: 0 85% 60%;
+    --destructive: 0 80% 62%;
     --destructive-foreground: 0 0% 98%;
 
-    /* Borders and inputs - subtle glow */
-    --border: 220 15% 20%;
-    --input: 220 15% 18%;
-    --ring: 185 100% 50%;
+    --border: 232 24% 22%;
+    --input: 232 22% 18%;
+    --ring: 248 84% 65%;
 
-    --radius: 0.75rem;
+    --radius: 1rem;
 
-    /* Custom voltage tokens */
-    --electric-cyan: 185 100% 50%;
-    --voltage-blue: 210 100% 60%;
-    --silver-white: 0 0% 95%;
-    --deep-black: 220 20% 8%;
-    --glass-blur: 220 15% 12%;
-    
+    /* Brand tokens */
+    --violet-royal: 248 84% 65%;
+    --indigo-deep: 224 86% 62%;
+    --gold-soft: 42 96% 62%;
+    --silver-white: 0 0% 96%;
+    --deep-night: 232 38% 9%;
+    --glass-blur: 232 32% 14%;
+
     /* Gradients */
-    --gradient-voltage: linear-gradient(135deg, hsl(185 100% 50%), hsl(210 100% 60%));
-    --gradient-silver: linear-gradient(135deg, hsl(0 0% 95%), hsl(210 100% 60%));
-    --gradient-glass: linear-gradient(135deg, hsl(220 15% 12% / 0.6), hsl(220 15% 18% / 0.4));
-    
+    --gradient-voltage: linear-gradient(135deg, hsl(248 84% 65%), hsl(224 86% 62%));
+    --gradient-silver: linear-gradient(135deg, hsl(0 0% 96%), hsl(248 84% 65%));
+    --gradient-glass: linear-gradient(135deg, hsl(232 32% 14% / 0.7), hsl(232 22% 18% / 0.5));
+    --gradient-hero: linear-gradient(135deg, hsl(248 84% 65%) 0%, hsl(224 86% 62%) 55%, hsl(268 86% 70%) 100%);
+
     /* Shadows */
-    --shadow-voltage: 0 0 40px hsl(185 100% 50% / 0.3);
-    --shadow-glow: 0 0 20px hsl(210 100% 60% / 0.4);
-    --shadow-glass: 0 20px 60px hsl(220 20% 5% / 0.5);
-    
+    --shadow-voltage: 0 20px 60px -20px hsl(248 84% 65% / 0.45);
+    --shadow-glow: 0 0 28px hsl(224 86% 62% / 0.45);
+    --shadow-glass: 0 24px 60px hsl(232 60% 4% / 0.55);
+
     /* Animations */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-voltage: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
