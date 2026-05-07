@@ -795,6 +795,20 @@ export default function AdminDashboard() {
                   </CardContent>
                 </Card>
 
+                <Card className="border-border bg-card/80">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-sm">
+                      <Wallet className="w-4 h-4" /> Naira ↔ BTAX Converter
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <CurrencyConverter compact />
+                    <p className="text-[10px] text-muted-foreground mt-2">
+                      All in-app pricing now displays in BTAX. Naira remains the funding currency for the ₦1,000 activation fee.
+                    </p>
+                  </CardContent>
+                </Card>
+
                 <Card className="border-border bg-card/80 md:col-span-2">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-sm"><Globe className="w-4 h-4" /> Payment Accounts</CardTitle>
