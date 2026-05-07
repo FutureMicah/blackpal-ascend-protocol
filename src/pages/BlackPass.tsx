@@ -17,9 +17,9 @@ const BlackPass = () => {
   const [purchasing, setPurchasing] = useState<string | null>(null);
 
   const tiers = [
-    { id: "silver", name: "Silver", price: 4900, priceDisplay: "4,900 BTC", icon: Star, color: "from-gray-400 to-gray-600", features: ["Basic trading signals", "Community forum", "Weekly analysis", "Email support", "Basic charting"] },
-    { id: "gold", name: "Gold", price: 9900, priceDisplay: "9,900 BTC", icon: Gem, color: "from-yellow-500 to-yellow-600", popular: true, features: ["All Silver features", "Advanced signals", "Daily insights", "Priority support", "Advanced charting", "Custom indicators"] },
-    { id: "diamond", name: "Diamond", price: 19900, priceDisplay: "19,900 BTC", icon: Crown, color: "from-cyan-400 to-blue-600", features: ["All Gold features", "Real-time alerts", "1-on-1 mentorship", "VIP community", "Custom strategies", "Portfolio analytics", "API access"] },
+    { id: "silver", name: "Silver", price: 4900, priceDisplay: "4,900 BTAX", icon: Star, color: "from-gray-400 to-gray-600", features: ["Basic trading signals", "Community forum", "Weekly analysis", "Email support", "Basic charting"] },
+    { id: "gold", name: "Gold", price: 9900, priceDisplay: "9,900 BTAX", icon: Gem, color: "from-yellow-500 to-yellow-600", popular: true, features: ["All Silver features", "Advanced signals", "Daily insights", "Priority support", "Advanced charting", "Custom indicators"] },
+    { id: "diamond", name: "Diamond", price: 19900, priceDisplay: "19,900 BTAX", icon: Crown, color: "from-cyan-400 to-blue-600", features: ["All Gold features", "Real-time alerts", "1-on-1 mentorship", "VIP community", "Custom strategies", "Portfolio analytics", "API access"] },
   ];
 
   useEffect(() => {
@@ -47,7 +47,7 @@ const BlackPass = () => {
       const { data: profile } = await supabase.from("profiles").select("virtual_currency").eq("id", userId).single();
       const balance = profile?.virtual_currency || 0;
       if (balance < price) {
-        toast({ variant: "destructive", title: "Insufficient balance", description: `Need ${price.toLocaleString()} BTC` });
+        toast({ variant: "destructive", title: "Insufficient balance", description: `Need ${price.toLocaleString()} BTAX` });
         navigate("/blackcoin?action=deposit"); return;
       }
       const { error } = await supabase.from("profiles").update({ virtual_currency: balance - price, citizenship_rank: tierId }).eq("id", userId);

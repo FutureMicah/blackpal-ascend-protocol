@@ -326,7 +326,7 @@ export default function AdminDashboard() {
             { label: "Unpaid", value: stats.unpaidUsers, icon: X, color: "text-destructive" },
             { label: "Pending Pay", value: stats.pendingPayments, icon: Activity, color: "text-yellow-500" },
             { label: "Total Payments", value: stats.totalPayments, icon: CreditCard, color: "text-primary" },
-            { label: "Revenue", value: `₦${(stats.totalRevenue * 1000).toLocaleString()}`, icon: DollarSign, color: "text-green-500" },
+            { label: "Revenue", value: `₦${(stats.totalRevenue * 1000).toLocaleString()}`, icon: DollarSign, color: "text-green-500", subtext: `≈ ${((stats.totalRevenue * 1000) / 100).toLocaleString()} BTAX` },
             { label: "Achievements", value: stats.totalAchievements, icon: Trophy, color: "text-yellow-500" },
             { label: "Proofs Pending", value: pendingProofs.length, icon: FileText, color: "text-orange-500" },
           ].map((stat) => (
@@ -552,7 +552,10 @@ export default function AdminDashboard() {
                         <TableRow key={p.id}>
                           <TableCell className="text-sm">{user?.display_name || p.user_id?.slice(0, 8)}</TableCell>
                           <TableCell className="capitalize text-sm">{p.payment_method}</TableCell>
-                          <TableCell>₦{((Number(p.amount_usd) || 0) * 1000).toLocaleString()}</TableCell>
+                          <TableCell>
+                            ₦{((Number(p.amount_usd) || 0) * 1000).toLocaleString()}
+                            <span className="block text-[9px] text-muted-foreground">≈ {(((Number(p.amount_usd) || 0) * 1000) / 100).toLocaleString()} BTAX</span>
+                          </TableCell>
                           <TableCell>
                             <Badge variant={p.payment_status === "completed" ? "default" : p.payment_status === "failed" ? "destructive" : "secondary"}>
                               {p.payment_status}
@@ -888,7 +891,7 @@ export default function AdminDashboard() {
                   {[
                     { label: "XP", value: selectedUser.xp_points || 0 },
                     { label: "Level", value: selectedUser.rank_level || 1 },
-                    { label: "Currency", value: selectedUser.virtual_currency || 0 },
+                    { label: "BTAX", value: (selectedUser.virtual_currency || 0).toLocaleString() },
                     { label: "Streak", value: selectedUser.achievement_streak || 0 },
                   ].map(item => (
                     <div key={item.label} className="p-2 rounded-lg bg-muted/30 border border-border text-center">
