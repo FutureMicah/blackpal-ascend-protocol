@@ -57,7 +57,7 @@ export const CurrencyConverter = ({
       const now = new Date();
       setRate((prev) => {
         if (prev !== r || force) {
-          setHistory((h) => [{ rate: r, at: now, source: "academy_settings" }, ...h].slice(0, 5));
+          setHistory((h) => [{ rate: r, at: now, source: "academy_settings" as const }, ...h].slice(0, 5));
         }
         return r;
       });
@@ -67,7 +67,7 @@ export const CurrencyConverter = ({
       setRateError("Couldn't load live rate. Using default ₦100/BTAX.");
       setRate(DEFAULT_BTAX_TO_NAIRA);
       setSource("default-fallback");
-      setHistory((h) => [{ rate: DEFAULT_BTAX_TO_NAIRA, at: new Date(), source: "default-fallback" }, ...h].slice(0, 5));
+      setHistory((h) => [{ rate: DEFAULT_BTAX_TO_NAIRA, at: new Date(), source: "default-fallback" as const }, ...h].slice(0, 5));
     } finally {
       setLoadingRate(false);
     }
