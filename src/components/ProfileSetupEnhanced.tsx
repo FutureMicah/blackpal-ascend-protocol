@@ -497,11 +497,14 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
 
       if (error) throw error;
 
+      // Broadcast so GlobalThemeProvider re-applies the new theme app-wide
+      window.dispatchEvent(new CustomEvent("blackpal:theme-saved"));
+
       toast({
         title: "Theme saved!",
-        description: "Your profile theme has been updated",
+        description: "Your new theme is now live across the entire app.",
       });
-      
+
       loadProfile(); // Reload to trigger gamification
     } catch (error) {
       console.error("Error saving theme:", error);
