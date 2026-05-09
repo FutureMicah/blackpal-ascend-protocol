@@ -497,6 +497,59 @@ const WorldMap = () => {
           </Card>
         </div>
 
+        {/* Privacy-respecting incoming connection requests.
+            Shows only display name + city/country — no bio, no email, no avatar URL. */}
+        {incomingRequests.length > 0 && (
+          <Card className="p-3 mb-3" aria-label="Incoming connection requests">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-xs font-bold flex items-center gap-1.5">
+                <Users className="w-3 h-3 text-primary" />
+                Connection Requests
+                <Badge variant="secondary" className="text-[9px]">{incomingRequests.length}</Badge>
+              </h2>
+              <span className="text-[9px] text-muted-foreground">Privacy-safe view</span>
+            </div>
+            <div className="space-y-1.5">
+              {incomingRequests.map((r) => (
+                <div
+                  key={r.id}
+                  className="flex items-center gap-2 p-2 rounded-md bg-muted/30 border border-border/40"
+                >
+                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-white text-xs font-bold shrink-0">
+                    {(r.display_name ?? "?").slice(0, 1).toUpperCase()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold truncate">{r.display_name ?? "Trader"}</p>
+                    <p className="text-[10px] text-muted-foreground truncate">
+                      {r.city ?? "—"}{r.country ? `, ${r.country}` : ""}
+                    </p>
+                  </div>
+                  <Button
+                    size="sm"
+                    className="h-6 text-[10px] px-2 focus-visible:ring-2 focus-visible:ring-primary"
+                    onClick={() => respondToRequest(r.id, r.from_user_id, true)}
+                    aria-label={`Accept request from ${r.display_name ?? "trader"}`}
+                  >
+                    Accept
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-6 text-[10px] px-2 focus-visible:ring-2 focus-visible:ring-destructive"
+                    onClick={() => respondToRequest(r.id, r.from_user_id, false)}
+                    aria-label={`Decline request from ${r.display_name ?? "trader"}`}
+                  >
+                    Decline
+                  </Button>
+                </div>
+              ))}
+            </div>
+            <p className="text-[9px] text-muted-foreground mt-2">
+              Only display name + general location are shown until you accept.
+            </p>
+          </Card>
+        )}
+
         {/* Map area */}
         <Card id="atlas-view-panel" role="tabpanel" aria-label={view === "globe" ? "3D globe view" : "2D map view"} className="relative overflow-hidden h-[60vh] sm:h-[68vh] mb-3 rounded-3xl border-white/10 shadow-2xl">
           {loading ? (
