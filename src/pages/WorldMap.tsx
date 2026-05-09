@@ -119,6 +119,10 @@ const WorldMap = () => {
   const [myPos, setMyPos] = useState<[number, number] | null>(null);
   const [topCountries, setTopCountries] = useState<{ country: string; count: number }[]>([]);
   const [search, setSearch] = useState("");
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [connStatus, setConnStatus] = useState<Record<string, "none" | "sent" | "accepted" | "pending">>({});
+  const [connectingId, setConnectingId] = useState<string | null>(null);
+  const [verifyRealtime, setVerifyRealtime] = useState(false);
 
   // Debounced GPS setter — coalesces rapid location updates so the globe/map
   // doesn't re-render on every GPS sample. Throttle ms is user-tunable.
