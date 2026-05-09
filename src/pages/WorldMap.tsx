@@ -717,8 +717,25 @@ const WorldMap = () => {
             className="mt-2 focus-visible:ring-2 focus-visible:ring-primary"
             aria-label="GPS update throttle in milliseconds"
           />
-          <p className="text-[9px] text-muted-foreground mt-1">
-            Last GPS tick: {lastGpsAt ? lastGpsAt.toLocaleTimeString() : "—"} · ticks: {gpsTickCount}
+          <div className="flex items-center justify-between mt-2 gap-2">
+            <p className="text-[9px] text-muted-foreground">
+              Last GPS tick: {lastGpsAt ? lastGpsAt.toLocaleTimeString() : "—"} · ticks: {gpsTickCount}
+            </p>
+            <Button
+              size="sm"
+              variant={liveGps ? "default" : "outline"}
+              className="h-6 text-[10px] px-2 focus-visible:ring-2 focus-visible:ring-primary"
+              onClick={() => setLiveGps((v) => !v)}
+              aria-pressed={liveGps}
+              title="Toggle continuous GPS — throttle slider controls re-render frequency"
+            >
+              {liveGps ? "Live GPS: ON" : "Live GPS: OFF"}
+            </Button>
+          </div>
+          <p className="text-[9px] text-muted-foreground/70 mt-1">
+            {liveGps
+              ? `Tracking continuously — coalescing samples to 1 update / ${gpsThrottleMs}ms`
+              : "Toggle Live GPS to use the throttle slider for continuous tracking."}
           </p>
         </Card>
 
