@@ -1,7 +1,7 @@
 import {
-  Home, Trophy, BarChart3, BookOpen, Vault, Users, CreditCard, Hammer, Coins,
-  Bell, Menu, Search, Megaphone, Wallet, Globe, Copy, Gift, Activity, Map,
-  Wrench, LineChart, Shield, User as UserIcon, LogOut, Sparkles,
+  Home, Trophy, BarChart3, BookOpen, Vault, Users, Megaphone as MegaIcon,
+  CreditCard, Hammer, Coins, Bell, Menu, Search, Megaphone, Wallet, Globe,
+  Gift, Activity, Map, Wrench, User as UserIcon, LogOut, Sparkles,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
@@ -21,7 +21,7 @@ import { Badge } from "@/components/ui/badge";
 // Priority items always visible in header (kept to 3)
 const priorityItems = [
   { name: "Dashboard", path: "/dashboard", icon: Home },
-  { name: "Contest", path: "/contest", icon: Sparkles, comingSoon: true },
+  { name: "Contest", path: "/contest", icon: Sparkles },
   { name: "Market", path: "/market-hub", icon: Globe },
 ];
 
@@ -29,7 +29,7 @@ const priorityItems = [
 const mobileBottomTabs = [
   { name: "Dashboard", path: "/dashboard", icon: Home },
   { name: "Portfolio", path: "/my-accounts", icon: Wallet },
-  { name: "Contest", path: "/contest", icon: Sparkles, comingSoon: true },
+  { name: "Contest", path: "/contest", icon: Sparkles },
   { name: "Vault", path: "/blackvault", icon: Vault },
 ];
 
@@ -40,9 +40,8 @@ const drawerGroups: { label: string; items: { name: string; path: string; icon: 
     items: [
       { name: "Portfolio", path: "/my-accounts", icon: Wallet },
       { name: "Market Hub", path: "/market-hub", icon: Globe },
-      { name: "Trade Terminal", path: "/cinematic-core", icon: LineChart },
+      { name: "Contest", path: "/contest", icon: Sparkles },
       { name: "Forex Tools", path: "/forex-tools", icon: Wrench },
-      { name: "Copy Trading", path: "/copy-trading", icon: Copy },
       { name: "Analytics", path: "/trade-analytics", icon: Activity },
       { name: "Transactions", path: "/blackvault", icon: Vault },
     ],
@@ -64,9 +63,9 @@ const drawerGroups: { label: string; items: { name: string; path: string; icon: 
       { name: "Achievements", path: "/achievements", icon: Trophy },
       { name: "Leaderboard", path: "/leaderboard", icon: BarChart3 },
       { name: "BlackBoard", path: "/blackboard", icon: BookOpen },
-      { name: "BlackPass", path: "/blackpass", icon: CreditCard },
+      { name: "Academy Tools", path: "/blackpass", icon: MegaIcon },
       { name: "BlackForge", path: "/blackforge", icon: Hammer },
-      { name: "BlackCoin", path: "/blackcoin", icon: Coins },
+      { name: "BTAX", path: "/btax", icon: Coins },
     ],
   },
   {
@@ -74,7 +73,6 @@ const drawerGroups: { label: string; items: { name: string; path: string; icon: 
     items: [
       { name: "Profile", path: "/profile/edit", icon: UserIcon },
       { name: "Notifications", path: "/blacknotify", icon: Bell },
-      { name: "Admin", path: "/admin", icon: Shield },
     ],
   },
 ];
