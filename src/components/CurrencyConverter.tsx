@@ -40,6 +40,7 @@ export const CurrencyConverter = ({
   compact = false,
   showDataSourcePanel = false,
   showRateHistory = false,
+  verifyRealtime = false,
 }: CurrencyConverterProps) => {
   const [rate, setRate] = useState<number>(DEFAULT_BTAX_TO_NAIRA);
   const [loadingRate, setLoadingRate] = useState(true);
@@ -51,6 +52,20 @@ export const CurrencyConverter = ({
   const [history, setHistory] = useState<RateHistoryEntry[]>([]);
   const [source, setSource] = useState<"academy_settings" | "default-fallback" | "loading">("loading");
 
+  const emitRefresh = useCallback(
+    (entry: RateHistoryEntry) => {
+      if (!verifyRealtime) return;
+      // eslint-disable-next-line no-console
+      console.info(
+        `[BlackPal][rate-refresh] ${entry.at.toISOString()} · 1 BTAX = ₦${entry.rate} · source=${entry.source}`
+      );
+      window.dispatchEvent(
+        new CustomEvent("blackpal:rate-refresh", { detail: entry })
+      );
+    },
+    [verifyRealtime]
+  );
+
   const loadRate = useCallback(async (force = false) => {
     setLoadingRate(true);
     setRateError(null);
@@ -58,19 +73,23 @@ export const CurrencyConverter = ({
       if (force) clearBtaxRateCache();
       const r = await getBtaxToNairaRate(force);
       const now = new Date();
+      const entry: RateHistoryEntry = { rate: r, at: now, source: "academy_settings" };
       setRate(r);
-      setHistory((h) => [{ rate: r, at: now, source: "academy_settings" as const }, ...h].slice(0, 5));
+      setHistory((h) => [entry, ...h].slice(0, 5));
       setLastUpdated(now);
       setSource("academy_settings");
+      emitRefresh(entry);
     } catch (e: any) {
+      const entry: RateHistoryEntry = { rate: DEFAULT_BTAX_TO_NAIRA, at: new Date(), source: "default-fallback" };
       setRateError("Couldn't load live rate. Using default ₦100/BTAX.");
       setRate(DEFAULT_BTAX_TO_NAIRA);
       setSource("default-fallback");
-      setHistory((h) => [{ rate: DEFAULT_BTAX_TO_NAIRA, at: new Date(), source: "default-fallback" as const }, ...h].slice(0, 5));
+      setHistory((h) => [entry, ...h].slice(0, 5));
+      emitRefresh(entry);
     } finally {
       setLoadingRate(false);
     }
-  }, []);
+  }, [emitRefresh]);
 
   useEffect(() => {
     const id = setInterval(() => forceTick((n) => n + 1), 30_000);
