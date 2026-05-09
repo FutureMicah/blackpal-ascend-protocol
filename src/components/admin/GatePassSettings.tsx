@@ -11,7 +11,6 @@ export const GatePassSettings = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [rowId, setRowId] = useState<string | null>(null);
   const [usd, setUsd] = useState("2.00");
   const [rate, setRate] = useState("1500.00");
 
@@ -19,11 +18,10 @@ export const GatePassSettings = () => {
     (async () => {
       const { data, error } = await supabase
         .from("academy_settings")
-        .select("id, gate_pass_usd, usd_to_ngn_rate")
-        .limit(1)
-        .single();
+        .select("gate_pass_usd, usd_to_ngn_rate")
+        .eq("singleton", true)
+        .maybeSingle();
       if (!error && data) {
-        setRowId(data.id);
         setUsd(String(data.gate_pass_usd ?? "2.00"));
         setRate(String(data.usd_to_ngn_rate ?? "1500.00"));
       }
@@ -32,7 +30,6 @@ export const GatePassSettings = () => {
   }, []);
 
   const save = async () => {
-    if (!rowId) return;
     const usdNum = Number(usd);
     const rateNum = Number(rate);
     if (!isFinite(usdNum) || usdNum <= 0 || !isFinite(rateNum) || rateNum <= 0) {
@@ -43,7 +40,7 @@ export const GatePassSettings = () => {
     const { error } = await supabase
       .from("academy_settings")
       .update({ gate_pass_usd: usdNum, usd_to_ngn_rate: rateNum })
-      .eq("id", rowId);
+      .eq("singleton", true);
     setSaving(false);
     if (error) {
       toast({ title: "Save failed", description: error.message, variant: "destructive" });
@@ -51,7 +48,7 @@ export const GatePassSettings = () => {
     }
     toast({
       title: "Settings saved",
-      description: `Gate pass is now $${usdNum.toFixed(2)} ≈ ₦${(usdNum * rateNum).toLocaleString()}.`,
+      description: `Gate pass is now $${usdNum.toFixed(2)} ≈ ₦${Math.round(usdNum * rateNum).toLocaleString()}.`,
     });
   };
 
