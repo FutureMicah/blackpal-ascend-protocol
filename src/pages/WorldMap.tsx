@@ -313,6 +313,12 @@ const WorldMap = () => {
             </div>
           ) : (
             <div className="relative w-full h-full">
+              {enriching && (
+                <div className="absolute top-16 left-1/2 -translate-x-1/2 z-[1001] flex items-center gap-2 rounded-full bg-white/95 backdrop-blur-xl border border-white/40 shadow px-3 py-1.5 text-[10px] text-foreground">
+                  <Loader2 className="w-3 h-3 animate-spin text-primary" />
+                  Loading trader profiles…
+                </div>
+              )}
               <MapContainer
                 center={myPos ?? [20, 0]}
                 zoom={3}
