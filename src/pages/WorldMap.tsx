@@ -43,7 +43,10 @@ interface Trader {
 
 const WorldMap = () => {
   const { toast } = useToast();
-  const [view, setView] = useState<"globe" | "map">("globe");
+  const [projection, setProjection] = useState<AtlasProjection>("globe");
+  const [atlasStyle, setAtlasStyle] = useState<AtlasStyleId>("cinematic");
+  const [showHeatmap, setShowHeatmap] = useState(false);
+  const [acceptedFriendIds, setAcceptedFriendIds] = useState<string[]>([]);
   const [traders, setTraders] = useState<Trader[]>([]);
   const [loading, setLoading] = useState(true);
   const [enriching, setEnriching] = useState(false);
