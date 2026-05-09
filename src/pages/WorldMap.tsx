@@ -1,7 +1,7 @@
 // Trader Atlas — redesigned.
 // 3D view: photoreal earth in deep space (image 1 weather aesthetic) with glass rail overlays.
 // 2D view: Snap-Map / Apple-Maps hybrid with avatar bubble markers and floating cards (images 2 & 3).
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { MapContainer, TileLayer, Marker, Tooltip, useMap, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
