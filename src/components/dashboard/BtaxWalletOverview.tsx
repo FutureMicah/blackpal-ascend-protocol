@@ -117,10 +117,12 @@ export const BtaxWalletOverview = ({ userId }: BtaxWalletOverviewProps) => {
   if (!wallet) {
     return (
       <div className="frost-card p-6 text-center text-xs text-ink-soft">
-        No academy wallet yet. It will be created on your first activity.
+        Your academy wallet will appear here once an admin sets it up.
       </div>
     );
   }
+
+  const nairaToBtax = Number(wallet.naira_balance || 0) / 100; // 1 BTAX = ₦100
 
   return (
     <motion.div
@@ -131,14 +133,14 @@ export const BtaxWalletOverview = ({ userId }: BtaxWalletOverviewProps) => {
     >
       <div className="flex items-center justify-between">
         <h2 className="text-[11px] font-semibold tracking-[0.18em] uppercase text-ink-soft">
-          Your Finance · BTAX
+          My Academy Wallet
         </h2>
         <div className="flex items-center gap-2">
           <a
             href="/wallet/topup"
             className="text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition focus-visible:ring-2 focus-visible:ring-primary"
           >
-            Top up ₦
+            Request top-up
           </a>
           <span className="text-[10px] uppercase tracking-wider text-ink-soft">
             {wallet.status}
@@ -146,10 +148,36 @@ export const BtaxWalletOverview = ({ userId }: BtaxWalletOverviewProps) => {
         </div>
       </div>
 
-      {/* Hero balance — oversized, editorial */}
+      {/* Naira balance — admin controlled, used to convert into BTAX */}
+      <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4">
+        <div className="flex items-center justify-between">
+          <div className="text-[11px] uppercase tracking-[0.2em] text-ink-soft">
+            Naira balance
+          </div>
+          <span className="text-[9px] uppercase tracking-wider text-ink-soft">
+            Set by admin
+          </span>
+        </div>
+        <div className="mt-1 flex items-baseline gap-2">
+          <div className="text-[32px] leading-none font-semibold tracking-tight text-ink">
+            ₦{Number(wallet.naira_balance || 0).toLocaleString()}
+          </div>
+        </div>
+        <div className="text-[11px] text-ink-soft mt-2 flex items-center justify-between">
+          <span>Convertible to {nairaToBtax.toLocaleString()} BTAX (₦100 = 1 BTAX)</span>
+          <a
+            href="/blackcoin?action=convert"
+            className="text-primary font-semibold hover:underline"
+          >
+            Convert →
+          </a>
+        </div>
+      </div>
+
+      {/* BTAX balance */}
       <div>
         <div className="text-[11px] uppercase tracking-[0.2em] text-ink-soft">
-          Total balance
+          BTAX balance
         </div>
         <div className="mt-1 flex items-baseline gap-2">
           <div className="text-[44px] leading-none font-semibold tracking-tight text-ink">
@@ -158,8 +186,7 @@ export const BtaxWalletOverview = ({ userId }: BtaxWalletOverviewProps) => {
           <div className="text-base font-medium text-ink-soft">BTAX</div>
         </div>
         <div className="text-[11px] text-ink-soft mt-2">
-          Funded {Number((wallet.naira_funded_total || 0) / 100).toLocaleString()} BTAX · Earned{" "}
-          {Number(wallet.btax_earned_total).toLocaleString()} · Spent{" "}
+          Earned {Number(wallet.btax_earned_total).toLocaleString()} · Spent{" "}
           {Number(wallet.btax_spent_total).toLocaleString()}
         </div>
       </div>
