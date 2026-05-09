@@ -199,13 +199,7 @@ export const AdminAnnouncements = () => {
               </p>
               <p>
                 <span className="text-muted-foreground">Window:</span>{" "}
-                {(() => {
-                  // Uses the shared pure predicate so the preview matches the
-                  // RLS rule applied at publish time exactly.
-                  // eslint-disable-next-line @typescript-eslint/no-var-requires
-                  const { describeAnnouncementWindow } = require("@/lib/announcement-targeting");
-                  return describeAnnouncementWindow({ starts_at: startsAt || null, ends_at: endsAt || null });
-                })()}
+                {describeAnnouncementWindow({ starts_at: startsAt || null, ends_at: endsAt || null })}
               </p>
               <div className="rounded border border-border/60 bg-background p-2 mt-1">
                 <p className="font-bold text-xs">{title || "(title)"}</p>
