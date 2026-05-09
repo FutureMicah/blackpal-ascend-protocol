@@ -259,23 +259,41 @@ const WorldMap = () => {
               Live world map of every BlackPal trader
             </p>
           </div>
-          <div className="flex gap-1 bg-muted/30 p-1 rounded-full">
+          <div
+            className="flex gap-1 bg-muted/30 p-1 rounded-full"
+            role="tablist"
+            aria-label="Trader Atlas view"
+            onKeyDown={(e) => {
+              if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+                e.preventDefault();
+                setView((v) => (v === "globe" ? "map" : "globe"));
+              }
+            }}
+          >
             <Button
               size="sm"
               variant={view === "globe" ? "default" : "ghost"}
-              className="h-7 text-[10px] px-3 rounded-full"
+              className="h-7 text-[10px] px-3 rounded-full focus-visible:ring-2 focus-visible:ring-primary"
               onClick={() => setView("globe")}
+              role="tab"
+              aria-selected={view === "globe"}
+              aria-controls="atlas-view-panel"
+              tabIndex={view === "globe" ? 0 : -1}
             >
-              <Globe2 className="w-3 h-3 mr-1" />
+              <Globe2 className="w-3 h-3 mr-1" aria-hidden="true" />
               3D
             </Button>
             <Button
               size="sm"
               variant={view === "map" ? "default" : "ghost"}
-              className="h-7 text-[10px] px-3 rounded-full"
+              className="h-7 text-[10px] px-3 rounded-full focus-visible:ring-2 focus-visible:ring-primary"
               onClick={() => setView("map")}
+              role="tab"
+              aria-selected={view === "map"}
+              aria-controls="atlas-view-panel"
+              tabIndex={view === "map" ? 0 : -1}
             >
-              <MapIcon className="w-3 h-3 mr-1" />
+              <MapIcon className="w-3 h-3 mr-1" aria-hidden="true" />
               2D
             </Button>
           </div>
