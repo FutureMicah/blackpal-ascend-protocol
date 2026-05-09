@@ -82,6 +82,7 @@ const WorldMap = () => {
   const [view, setView] = useState<"globe" | "map">("globe");
   const [traders, setTraders] = useState<Trader[]>([]);
   const [loading, setLoading] = useState(true);
+  const [enriching, setEnriching] = useState(false);
   const [myPos, setMyPos] = useState<[number, number] | null>(null);
   const [topCountries, setTopCountries] = useState<{ country: string; count: number }[]>([]);
   const [search, setSearch] = useState("");
@@ -98,26 +99,9 @@ const WorldMap = () => {
         .not("longitude", "is", null);
 
       const list = (data ?? []) as Trader[];
-
-      // Enrich with display_name + avatar
-      if (list.length) {
-        const ids = list.map((t) => t.user_id);
-        const { data: profs } = await supabase
-          .from("profiles")
-          .select("id, display_name, avatar_url, xp")
-          .in("id", ids);
-        const map = new Map((profs ?? []).map((p: any) => [p.id, p]));
-        list.forEach((t) => {
-          const p = map.get(t.user_id) as any;
-          if (p) {
-            t.display_name = p.display_name;
-            t.avatar_url = p.avatar_url;
-            t.xp = p.xp;
-          }
-        });
-      }
-
+      // Stage 1: render locations immediately so the map isn't empty
       setTraders(list);
+      setLoading(false);
 
       const counts: Record<string, number> = {};
       list.forEach((t) => {
@@ -129,7 +113,25 @@ const WorldMap = () => {
           .sort((a, b) => b.count - a.count)
           .slice(0, 5)
       );
-      setLoading(false);
+
+      // Stage 2: enrich with display_name + avatar (skeleton overlay shown)
+      if (list.length) {
+        setEnriching(true);
+        const ids = list.map((t) => t.user_id);
+        const { data: profs } = await supabase
+          .from("profiles")
+          .select("id, display_name, avatar_url, xp")
+          .in("id", ids);
+        const profMap = new Map((profs ?? []).map((p: any) => [p.id, p]));
+        const enriched = list.map((t) => {
+          const p = profMap.get(t.user_id) as any;
+          return p
+            ? { ...t, display_name: p.display_name, avatar_url: p.avatar_url, xp: p.xp }
+            : t;
+        });
+        setTraders(enriched);
+        setEnriching(false);
+      }
     };
     init();
 
@@ -232,12 +234,32 @@ const WorldMap = () => {
         {/* Map area */}
         <Card className="relative overflow-hidden h-[60vh] sm:h-[68vh] mb-3 rounded-3xl border-white/10 shadow-2xl">
           {loading ? (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <Loader2 className="w-6 h-6 animate-spin text-primary" />
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gradient-to-b from-[#1a1530] to-[#05060c]">
+              <Loader2 className="w-7 h-7 animate-spin text-primary" />
+              <p className="text-[10px] text-white/60 uppercase tracking-widest">
+                Locating traders…
+              </p>
+              {/* Skeleton "pins" */}
+              <div className="flex gap-2 mt-2">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="w-9 h-9 rounded-full bg-white/10 animate-pulse"
+                    style={{ animationDelay: `${i * 120}ms` }}
+                  />
+                ))}
+              </div>
             </div>
           ) : view === "globe" ? (
             <div className="relative w-full h-full" style={{ background: "radial-gradient(ellipse at center, #1a1530 0%, #05060c 70%)" }}>
               <TraderGlobe traders={filtered} />
+
+              {enriching && (
+                <div className="absolute top-3 left-1/2 -translate-x-1/2 z-[1001] flex items-center gap-2 rounded-full bg-black/60 backdrop-blur-xl border border-white/15 px-3 py-1.5 text-[10px] text-white/90">
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                  Loading trader profiles…
+                </div>
+              )}
 
               {/* Left glass icon rail (image 1 aesthetic) */}
               <div className="absolute left-3 top-1/2 -translate-y-1/2 flex flex-col gap-2 z-[1000]">
@@ -291,6 +313,12 @@ const WorldMap = () => {
             </div>
           ) : (
             <div className="relative w-full h-full">
+              {enriching && (
+                <div className="absolute top-16 left-1/2 -translate-x-1/2 z-[1001] flex items-center gap-2 rounded-full bg-white/95 backdrop-blur-xl border border-white/40 shadow px-3 py-1.5 text-[10px] text-foreground">
+                  <Loader2 className="w-3 h-3 animate-spin text-primary" />
+                  Loading trader profiles…
+                </div>
+              )}
               <MapContainer
                 center={myPos ?? [20, 0]}
                 zoom={3}

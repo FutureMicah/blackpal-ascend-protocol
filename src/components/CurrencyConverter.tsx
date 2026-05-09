@@ -154,9 +154,18 @@ export const CurrencyConverter = ({
       </div>
 
       {!compact && (
-        <p className="text-[10px] text-muted-foreground text-center pt-1">
-          Live rate from academy settings · 1 BTAX = ₦{rate.toLocaleString()}
-        </p>
+        <div className="space-y-1 pt-1">
+          <p className="text-[10px] text-muted-foreground text-center">
+            Live rate from academy settings · 1 BTAX = ₦{rate.toLocaleString()}
+          </p>
+          <p
+            data-testid="naira-context-note"
+            className="text-[9px] text-muted-foreground/80 text-center leading-snug px-1"
+          >
+            Naira (₦) only appears here and on the ₦1,000 activation fee receipt.
+            Wallet balances, rewards, and admin stats are denominated in BTAX.
+          </p>
+        </div>
       )}
     </Card>
   );
