@@ -29,6 +29,9 @@ interface CurrencyConverterProps {
   compact?: boolean;
   showDataSourcePanel?: boolean;
   showRateHistory?: boolean;
+  /** When true, every successful rate refresh dispatches a `blackpal:rate-refresh`
+   *  CustomEvent on `window` and a console.info log so devs can verify live updates. */
+  verifyRealtime?: boolean;
 }
 
 export const CurrencyConverter = ({
