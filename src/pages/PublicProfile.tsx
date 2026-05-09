@@ -59,8 +59,8 @@ export default function PublicProfile() {
       // Fetch profile — owner gets all columns, others only safe public fields.
       const { PUBLIC_PROFILE_FIELDS } = await import("@/lib/profile-fields");
       const isOwner = user?.id === userId;
-      const { data: profileData, error: profileError } = await supabase
-        .from("profiles")
+      const { data: profileData, error: profileError } = await (supabase
+        .from("profiles") as any)
         .select(isOwner ? "*" : PUBLIC_PROFILE_FIELDS)
         .eq("id", userId)
         .single();
