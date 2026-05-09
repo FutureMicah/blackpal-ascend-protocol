@@ -59,20 +59,22 @@ function Globe({ traders }: { traders: Trader[] }) {
     <group ref={ref}>
       <mesh>
         <sphereGeometry args={[1, 96, 96]} />
-        <meshStandardMaterial
+        {/* Use a near-flat material so the entire globe is lit evenly
+            (no harsh terminator / dark hemisphere). */}
+        <meshPhongMaterial
           map={earthTex}
           bumpMap={bumpTex}
-          bumpScale={0.05}
-          roughness={0.85}
-          metalness={0.1}
+          bumpScale={0.04}
+          shininess={6}
+          specular={new THREE.Color("#1a2540")}
           emissive={new THREE.Color("#0a1530")}
-          emissiveIntensity={0.15}
+          emissiveIntensity={0.18}
         />
       </mesh>
       {/* Subtle cloud layer */}
       <mesh ref={cloudsRef} scale={1.012}>
         <sphereGeometry args={[1, 64, 64]} />
-        <meshStandardMaterial map={cloudTex} transparent opacity={0.25} depthWrite={false} />
+        <meshBasicMaterial map={cloudTex} transparent opacity={0.22} depthWrite={false} />
       </mesh>
       {/* Outer atmosphere glow */}
       <mesh scale={1.08}>
@@ -95,20 +97,39 @@ function Globe({ traders }: { traders: Trader[] }) {
   );
 }
 
+function GlobeFallback() {
+  return (
+    <Html center>
+      <div
+        role="status"
+        aria-live="polite"
+        className="flex items-center gap-2 rounded-full bg-black/60 backdrop-blur-xl border border-white/15 px-3 py-1.5 text-[10px] text-white/90"
+      >
+        <span className="w-2 h-2 rounded-full bg-primary animate-pulse" aria-hidden="true" />
+        Loading globe…
+      </div>
+    </Html>
+  );
+}
+
 export const TraderGlobe = ({ traders }: { traders: Trader[] }) => {
   return (
     <Canvas
       camera={{ position: [0, 0, 2.6], fov: 50 }}
       style={{ background: "transparent" }}
+      shadows={false}
+      dpr={[1, 1.5]}
+      gl={{ antialias: true, alpha: true }}
+      aria-label="3D globe showing live trader locations"
     >
-      {/* Deep-space lighting: warm sun + cool fill */}
-      <ambientLight intensity={0.35} />
-      <directionalLight position={[5, 3, 5]} intensity={2.2} color="#fff7ed" />
-      <directionalLight position={[-5, -2, -3]} intensity={0.25} color="#7dd3fc" />
-      <Suspense fallback={null}>
+      {/* Even, shadow-free lighting so no dark hemisphere appears on the globe. */}
+      <ambientLight intensity={1.1} />
+      <hemisphereLight args={["#bfdbfe", "#0b1024", 0.7]} />
+      <directionalLight position={[5, 3, 5]} intensity={0.6} color="#ffffff" castShadow={false} />
+      <Suspense fallback={<GlobeFallback />}>
         <Globe traders={traders} />
       </Suspense>
-      <OrbitControls enablePan={false} minDistance={1.6} maxDistance={5} autoRotate={false} />
+      <OrbitControls enablePan={false} minDistance={1.6} maxDistance={5} autoRotate={false} enableDamping />
     </Canvas>
   );
 };
