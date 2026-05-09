@@ -24,19 +24,24 @@ function latLngToVec3(lat: number, lng: number, radius: number) {
 
 function Globe({ traders }: { traders: Trader[] }) {
   const ref = useRef<THREE.Group>(null!);
-  // Daylight blue-marble texture (Snap Map vibe: bright continents, blue oceans)
+  // Photoreal earth-from-space (dark side visible) — matches deep-space aesthetic of ref image 1
   const earthTex = useLoader(
     THREE.TextureLoader,
     "https://unpkg.com/three-globe@2.31.0/example/img/earth-blue-marble.jpg"
   );
-  // Subtle bump for terrain definition
   const bumpTex = useLoader(
     THREE.TextureLoader,
     "https://unpkg.com/three-globe@2.31.0/example/img/earth-topology.png"
   );
+  const cloudTex = useLoader(
+    THREE.TextureLoader,
+    "https://unpkg.com/three-globe@2.31.0/example/img/earth-water.png"
+  );
+  const cloudsRef = useRef<THREE.Mesh>(null!);
 
   useFrame(() => {
-    if (ref.current) ref.current.rotation.y += 0.0008;
+    if (ref.current) ref.current.rotation.y += 0.0009;
+    if (cloudsRef.current) cloudsRef.current.rotation.y += 0.0014;
   });
 
   const pins = useMemo(
@@ -53,29 +58,36 @@ function Globe({ traders }: { traders: Trader[] }) {
   return (
     <group ref={ref}>
       <mesh>
-        <sphereGeometry args={[1, 64, 64]} />
+        <sphereGeometry args={[1, 96, 96]} />
         <meshStandardMaterial
           map={earthTex}
           bumpMap={bumpTex}
-          bumpScale={0.04}
-          roughness={0.75}
-          metalness={0.05}
+          bumpScale={0.05}
+          roughness={0.85}
+          metalness={0.1}
+          emissive={new THREE.Color("#0a1530")}
+          emissiveIntensity={0.15}
         />
       </mesh>
-      {/* Soft cyan atmosphere — Snap Map daylight feel */}
-      <mesh scale={1.06}>
+      {/* Subtle cloud layer */}
+      <mesh ref={cloudsRef} scale={1.012}>
+        <sphereGeometry args={[1, 64, 64]} />
+        <meshStandardMaterial map={cloudTex} transparent opacity={0.25} depthWrite={false} />
+      </mesh>
+      {/* Outer atmosphere glow */}
+      <mesh scale={1.08}>
         <sphereGeometry args={[1, 32, 32]} />
-        <meshBasicMaterial color="#7dd3fc" transparent opacity={0.18} side={THREE.BackSide} />
+        <meshBasicMaterial color="#3b82f6" transparent opacity={0.12} side={THREE.BackSide} />
       </mesh>
       {pins.map((p) => (
         <group key={p.user_id} position={p.pos}>
           <mesh>
             <sphereGeometry args={[0.014, 12, 12]} />
-            <meshBasicMaterial color="#f59e0b" />
+            <meshBasicMaterial color="#fbbf24" />
           </mesh>
           <mesh>
-            <sphereGeometry args={[0.028, 12, 12]} />
-            <meshBasicMaterial color="#fbbf24" transparent opacity={0.45} />
+            <sphereGeometry args={[0.03, 12, 12]} />
+            <meshBasicMaterial color="#fcd34d" transparent opacity={0.45} />
           </mesh>
         </group>
       ))}
@@ -87,14 +99,12 @@ export const TraderGlobe = ({ traders }: { traders: Trader[] }) => {
   return (
     <Canvas
       camera={{ position: [0, 0, 2.6], fov: 50 }}
-      style={{
-        background: "linear-gradient(180deg, #bae6fd 0%, #e0f2fe 60%, #fef3c7 100%)",
-      }}
+      style={{ background: "transparent" }}
     >
-      {/* Bright daylight: stronger ambient + warm sun */}
-      <ambientLight intensity={1.1} />
-      <directionalLight position={[5, 3, 5]} intensity={1.6} color="#fff7ed" />
-      <directionalLight position={[-5, -2, -3]} intensity={0.4} color="#bae6fd" />
+      {/* Deep-space lighting: warm sun + cool fill */}
+      <ambientLight intensity={0.35} />
+      <directionalLight position={[5, 3, 5]} intensity={2.2} color="#fff7ed" />
+      <directionalLight position={[-5, -2, -3]} intensity={0.25} color="#7dd3fc" />
       <Suspense fallback={null}>
         <Globe traders={traders} />
       </Suspense>

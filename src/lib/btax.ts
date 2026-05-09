@@ -7,19 +7,21 @@ export const DEFAULT_BTAX_TO_NAIRA = 100;
 
 let cached: number | null = null;
 
-export async function getBtaxToNairaRate(): Promise<number> {
-  if (cached != null) return cached;
-  try {
-    const { data } = await supabase
-      .from("academy_settings")
-      .select("btax_to_naira_rate")
-      .limit(1)
-      .maybeSingle();
-    cached = Number(data?.btax_to_naira_rate ?? DEFAULT_BTAX_TO_NAIRA) || DEFAULT_BTAX_TO_NAIRA;
-  } catch {
-    cached = DEFAULT_BTAX_TO_NAIRA;
-  }
-  return cached;
+export async function getBtaxToNairaRate(force = false): Promise<number> {
+  if (!force && cached != null) return cached;
+  const { data, error } = await supabase
+    .from("academy_settings")
+    .select("btax_to_naira_rate")
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  const rate = Number(data?.btax_to_naira_rate ?? DEFAULT_BTAX_TO_NAIRA) || DEFAULT_BTAX_TO_NAIRA;
+  cached = rate;
+  return rate;
+}
+
+export function clearBtaxRateCache() {
+  cached = null;
 }
 
 export function nairaToBtax(naira: number, rate: number = DEFAULT_BTAX_TO_NAIRA) {

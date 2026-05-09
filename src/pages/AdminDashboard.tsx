@@ -327,7 +327,7 @@ export default function AdminDashboard() {
             { label: "Unpaid", value: stats.unpaidUsers, icon: X, color: "text-destructive" },
             { label: "Pending Pay", value: stats.pendingPayments, icon: Activity, color: "text-yellow-500" },
             { label: "Total Payments", value: stats.totalPayments, icon: CreditCard, color: "text-primary" },
-            { label: "Revenue", value: `₦${(stats.totalRevenue * 1000).toLocaleString()}`, icon: DollarSign, color: "text-green-500", subtext: `≈ ${((stats.totalRevenue * 1000) / 100).toLocaleString()} BTAX` },
+            { label: "Revenue", value: `${((stats.totalRevenue * 1000) / 100).toLocaleString()} BTAX`, icon: DollarSign, color: "text-green-500", subtext: `from ₦${(stats.totalRevenue * 1000).toLocaleString()} activations` },
             { label: "Achievements", value: stats.totalAchievements, icon: Trophy, color: "text-yellow-500" },
             { label: "Proofs Pending", value: pendingProofs.length, icon: FileText, color: "text-orange-500" },
           ].map((stat) => (
@@ -557,8 +557,8 @@ export default function AdminDashboard() {
                           <TableCell className="text-sm">{user?.display_name || p.user_id?.slice(0, 8)}</TableCell>
                           <TableCell className="capitalize text-sm">{p.payment_method}</TableCell>
                           <TableCell>
-                            ₦{((Number(p.amount_usd) || 0) * 1000).toLocaleString()}
-                            <span className="block text-[9px] text-muted-foreground">≈ {(((Number(p.amount_usd) || 0) * 1000) / 100).toLocaleString()} BTAX</span>
+                            {(((Number(p.amount_usd) || 0) * 1000) / 100).toLocaleString()} BTAX
+                            <span className="block text-[9px] text-muted-foreground">paid ₦{((Number(p.amount_usd) || 0) * 1000).toLocaleString()}</span>
                           </TableCell>
                           <TableCell>
                             <Badge variant={p.payment_status === "completed" ? "default" : p.payment_status === "failed" ? "destructive" : "secondary"}>

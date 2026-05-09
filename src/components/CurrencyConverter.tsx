@@ -1,6 +1,6 @@
 // Naira ↔ BTAX live converter. Reads rate from academy_settings, defaults to ₦100/BTAX.
-import { useEffect, useMemo, useState } from "react";
-import { ArrowDownUp, Loader2 } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { ArrowDownUp, Loader2, RefreshCw, AlertTriangle } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import {
   DEFAULT_BTAX_TO_NAIRA,
   btaxToNaira,
+  clearBtaxRateCache,
   formatBtax,
   formatNaira,
   getBtaxToNairaRate,
@@ -29,21 +30,28 @@ export const CurrencyConverter = ({
 }: CurrencyConverterProps) => {
   const [rate, setRate] = useState<number>(DEFAULT_BTAX_TO_NAIRA);
   const [loadingRate, setLoadingRate] = useState(true);
+  const [rateError, setRateError] = useState<string | null>(null);
   const [direction, setDirection] = useState<Direction>(defaultDirection);
   const [input, setInput] = useState<string>("");
 
-  useEffect(() => {
-    let alive = true;
-    getBtaxToNairaRate().then((r) => {
-      if (alive) {
-        setRate(r);
-        setLoadingRate(false);
-      }
-    });
-    return () => {
-      alive = false;
-    };
+  const loadRate = useCallback(async (force = false) => {
+    setLoadingRate(true);
+    setRateError(null);
+    try {
+      if (force) clearBtaxRateCache();
+      const r = await getBtaxToNairaRate(force);
+      setRate(r);
+    } catch (e: any) {
+      setRateError("Couldn't load live rate. Using default ₦100/BTAX.");
+      setRate(DEFAULT_BTAX_TO_NAIRA);
+    } finally {
+      setLoadingRate(false);
+    }
   }, []);
+
+  useEffect(() => {
+    loadRate(false);
+  }, [loadRate]);
 
   const numeric = Number(input) || 0;
   const result = useMemo(() => {
@@ -64,15 +72,47 @@ export const CurrencyConverter = ({
   return (
     <Card className={`p-4 space-y-3 ${className}`}>
       {!compact && (
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2">
           <h3 className="text-sm font-semibold">Currency Converter</h3>
-          <span className="text-[10px] text-muted-foreground">
-            {loadingRate ? (
-              <Loader2 className="w-3 h-3 animate-spin" />
-            ) : (
-              <>1 BTAX = ₦{rate.toLocaleString()}</>
-            )}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] text-muted-foreground">
+              {loadingRate ? (
+                <Loader2 className="w-3 h-3 animate-spin" />
+              ) : (
+                <>1 BTAX = ₦{rate.toLocaleString()}</>
+              )}
+            </span>
+            <Button
+              type="button"
+              size="icon"
+              variant="ghost"
+              className="h-6 w-6"
+              onClick={() => loadRate(true)}
+              disabled={loadingRate}
+              aria-label="Refresh rate"
+              title="Refresh rate"
+            >
+              <RefreshCw className={`w-3 h-3 ${loadingRate ? "animate-spin" : ""}`} />
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {rateError && (
+        <div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/10 p-2 text-[10px] text-destructive">
+          <AlertTriangle className="w-3 h-3 mt-0.5 shrink-0" />
+          <div className="flex-1">
+            <p>{rateError}</p>
+          </div>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="h-6 text-[10px] px-2"
+            onClick={() => loadRate(true)}
+          >
+            Retry
+          </Button>
         </div>
       )}
 
