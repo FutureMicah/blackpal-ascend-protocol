@@ -162,6 +162,7 @@ const WorldMap = () => {
       }
     });
     setConnStatus(map);
+    setAcceptedFriendIds(accepted);
 
     if (incomingIds.length) {
       // Privacy: surface only display name + city/country, never bio/email/etc.
