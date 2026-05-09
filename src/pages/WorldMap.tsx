@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { FloatingNav } from "@/components/FloatingNav";
 import { TraderGlobe } from "@/components/TraderGlobe";
+import { RealtimeVerifier as RealtimeVerifierLazy } from "@/components/RealtimeVerifier";
 import { supabase } from "@/integrations/supabase/client";
 import { captureUserLocation } from "@/lib/location-tracker";
 import { useToast } from "@/hooks/use-toast";
