@@ -2,9 +2,6 @@
 // 3D view: photoreal earth in deep space (image 1 weather aesthetic) with glass rail overlays.
 // 2D view: Snap-Map / Apple-Maps hybrid with avatar bubble markers and floating cards (images 2 & 3).
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { MapContainer, TileLayer, Marker, Tooltip, useMap, Popup } from "react-leaflet";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -22,7 +19,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { FloatingNav } from "@/components/FloatingNav";
-import { TraderGlobe } from "@/components/TraderGlobe";
+import { AtlasGlobe, type AtlasStyleId, type AtlasProjection } from "@/components/atlas/AtlasGlobe";
 import { RealtimeVerifier as RealtimeVerifierLazy } from "@/components/RealtimeVerifier";
 import { supabase } from "@/integrations/supabase/client";
 import { captureUserLocation } from "@/lib/location-tracker";
@@ -42,77 +39,15 @@ interface Trader {
   xp?: number | null;
 }
 
-function FlyTo({ pos }: { pos: [number, number] | null }) {
-  const map = useMap();
-  const lastFlown = useRef<[number, number] | null>(null);
-  useEffect(() => {
-    if (!pos) return;
-    // Skip near-duplicate updates (< ~50m) to avoid jitter from GPS noise
-    const prev = lastFlown.current;
-    if (prev) {
-      const dLat = Math.abs(prev[0] - pos[0]);
-      const dLng = Math.abs(prev[1] - pos[1]);
-      if (dLat < 0.0005 && dLng < 0.0005) return;
-    }
-    lastFlown.current = pos;
-    map.flyTo(pos, 6, { duration: 1.5 });
-  }, [pos, map]);
-  return null;
-}
-
-function escapeHtml(str: string) {
-  return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
-
-// Only allow http(s) image URLs in marker <img src=...> to block javascript:/data: vectors.
-function safeImageUrl(url: string | null | undefined): string | null {
-  if (!url) return null;
-  try {
-    const u = new URL(url, window.location.origin);
-    if (u.protocol !== "http:" && u.protocol !== "https:") return null;
-    return encodeURI(u.toString());
-  } catch {
-    return null;
-  }
-}
-
-function avatarIcon(t: Trader) {
-  const safeName = escapeHtml(t.display_name || "?");
-  const initials = safeName.slice(0, 1).toUpperCase();
-  const ring = t.is_online ? "#22c55e" : "#a855f7";
-  const safeUrl = safeImageUrl(t.avatar_url);
-  const img = safeUrl
-    ? `<img src="${safeUrl}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:9999px;" onerror="this.style.display='none'"/>`
-    : `<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;background:linear-gradient(135deg,#7c3aed,#3b82f6);color:#fff;font-weight:700;font-size:14px;border-radius:9999px;">${initials}</div>`;
-  const shortName = escapeHtml((t.display_name || "").split(" ")[0] || "");
-  const label = shortName
-    ? `<div style="position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);background:rgba(15,15,20,0.85);color:#fff;padding:2px 8px;border-radius:9999px;font-size:9px;font-weight:600;white-space:nowrap;backdrop-filter:blur(8px);">${shortName}</div>`
-    : "";
-  return L.divIcon({
-    className: "trader-avatar-marker",
-    html: `<div style="position:relative;width:42px;height:42px;border-radius:9999px;border:3px solid ${ring};box-shadow:0 6px 16px rgba(0,0,0,0.35);overflow:visible;background:#0f0f14;"><div style="width:100%;height:100%;border-radius:9999px;overflow:hidden;">${img}</div>${label}</div>`,
-    iconSize: [42, 42],
-    iconAnchor: [21, 21],
-  });
-}
-
-function youIcon() {
-  return L.divIcon({
-    className: "you-marker",
-    html: `<div style="position:relative;"><div style="width:18px;height:18px;border-radius:9999px;background:#3b82f6;border:3px solid #fff;box-shadow:0 0 0 6px rgba(59,130,246,0.25);"></div></div>`,
-    iconSize: [18, 18],
-    iconAnchor: [9, 9],
-  });
-}
+// (Leaflet helpers removed — AtlasGlobe handles markers, fly-to, and sanitization internally.)
 
 const WorldMap = () => {
   const { toast } = useToast();
-  const [view, setView] = useState<"globe" | "map">("globe");
+  const [projection, setProjection] = useState<AtlasProjection>("globe");
+  const [atlasStyle, setAtlasStyle] = useState<AtlasStyleId>("cinematic");
+  const [showHeatmap, setShowHeatmap] = useState(false);
+  const [acceptedFriendIds, setAcceptedFriendIds] = useState<string[]>([]);
+  const [selectedTrader, setSelectedTrader] = useState<Trader | null>(null);
   const [traders, setTraders] = useState<Trader[]>([]);
   const [loading, setLoading] = useState(true);
   const [enriching, setEnriching] = useState(false);
@@ -218,14 +153,17 @@ const WorldMap = () => {
       .or(`user_id.eq.${uid},friend_id.eq.${uid}`);
     const map: Record<string, "none" | "sent" | "accepted" | "pending"> = {};
     const incomingIds: { id: string; from: string }[] = [];
+    const accepted: string[] = [];
     (conns ?? []).forEach((c: any) => {
       const other = c.user_id === uid ? c.friend_id : c.user_id;
       map[other] = c.status === "accepted" ? "accepted" : c.user_id === uid ? "sent" : "pending";
+      if (c.status === "accepted") accepted.push(other);
       if (c.status === "pending" && c.friend_id === uid) {
         incomingIds.push({ id: c.id, from: c.user_id });
       }
     });
     setConnStatus(map);
+    setAcceptedFriendIds(accepted);
 
     if (incomingIds.length) {
       // Privacy: surface only display name + city/country, never bio/email/etc.
@@ -423,6 +361,23 @@ const WorldMap = () => {
     [traders]
   );
 
+  // Connection arcs from current user to each accepted friend with known coords.
+  const connections = useMemo(() => {
+    if (!currentUserId) return [] as { from: [number, number]; to: [number, number] }[];
+    const me = traders.find((t) => t.user_id === currentUserId);
+    const origin: [number, number] | null =
+      me?.latitude != null && me?.longitude != null
+        ? [me.longitude, me.latitude]
+        : myPos
+        ? [myPos[1], myPos[0]]
+        : null;
+    if (!origin) return [];
+    const friendSet = new Set(acceptedFriendIds);
+    return traders
+      .filter((t) => friendSet.has(t.user_id) && t.latitude != null && t.longitude != null)
+      .map((t) => ({ from: origin, to: [t.longitude!, t.latitude!] as [number, number] }));
+  }, [traders, acceptedFriendIds, currentUserId, myPos]);
+
   return (
     <div className="min-h-screen bg-background">
       <FloatingNav />
@@ -438,43 +393,70 @@ const WorldMap = () => {
               Live world map of every BlackPal trader
             </p>
           </div>
-          <div
-            className="flex gap-1 bg-muted/30 p-1 rounded-full"
-            role="tablist"
-            aria-label="Trader Atlas view"
-            onKeyDown={(e) => {
-              if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
-                e.preventDefault();
-                setView((v) => (v === "globe" ? "map" : "globe"));
-              }
-            }}
-          >
-            <Button
-              size="sm"
-              variant={view === "globe" ? "default" : "ghost"}
-              className="h-7 text-[10px] px-3 rounded-full focus-visible:ring-2 focus-visible:ring-primary"
-              onClick={() => setView("globe")}
-              role="tab"
-              aria-selected={view === "globe"}
-              aria-controls="atlas-view-panel"
-              tabIndex={view === "globe" ? 0 : -1}
+          <div className="flex flex-col gap-1.5 items-end">
+            <div
+              className="flex gap-1 bg-muted/30 p-1 rounded-full"
+              role="tablist"
+              aria-label="Atlas projection"
+              onKeyDown={(e) => {
+                if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+                  e.preventDefault();
+                  setProjection((p) => (p === "globe" ? "mercator" : "globe"));
+                }
+              }}
             >
-              <Globe2 className="w-3 h-3 mr-1" aria-hidden="true" />
-              3D
-            </Button>
-            <Button
-              size="sm"
-              variant={view === "map" ? "default" : "ghost"}
-              className="h-7 text-[10px] px-3 rounded-full focus-visible:ring-2 focus-visible:ring-primary"
-              onClick={() => setView("map")}
-              role="tab"
-              aria-selected={view === "map"}
-              aria-controls="atlas-view-panel"
-              tabIndex={view === "map" ? 0 : -1}
-            >
-              <MapIcon className="w-3 h-3 mr-1" aria-hidden="true" />
-              2D
-            </Button>
+              <Button
+                size="sm"
+                variant={projection === "globe" ? "default" : "ghost"}
+                className="h-7 text-[10px] px-3 rounded-full focus-visible:ring-2 focus-visible:ring-primary"
+                onClick={() => setProjection("globe")}
+                role="tab"
+                aria-selected={projection === "globe"}
+                aria-controls="atlas-view-panel"
+                tabIndex={projection === "globe" ? 0 : -1}
+              >
+                <Globe2 className="w-3 h-3 mr-1" aria-hidden="true" />
+                Globe
+              </Button>
+              <Button
+                size="sm"
+                variant={projection === "mercator" ? "default" : "ghost"}
+                className="h-7 text-[10px] px-3 rounded-full focus-visible:ring-2 focus-visible:ring-primary"
+                onClick={() => setProjection("mercator")}
+                role="tab"
+                aria-selected={projection === "mercator"}
+                aria-controls="atlas-view-panel"
+                tabIndex={projection === "mercator" ? 0 : -1}
+              >
+                <MapIcon className="w-3 h-3 mr-1" aria-hidden="true" />
+                Flat
+              </Button>
+            </div>
+            <div className="flex gap-1 bg-muted/30 p-1 rounded-full" role="tablist" aria-label="Atlas style">
+              {(["cinematic", "satellite", "hybrid"] as AtlasStyleId[]).map((s) => (
+                <Button
+                  key={s}
+                  size="sm"
+                  variant={atlasStyle === s ? "default" : "ghost"}
+                  className="h-6 text-[9px] px-2 rounded-full capitalize focus-visible:ring-2 focus-visible:ring-primary"
+                  onClick={() => setAtlasStyle(s)}
+                  role="tab"
+                  aria-selected={atlasStyle === s}
+                >
+                  {s}
+                </Button>
+              ))}
+              <Button
+                size="sm"
+                variant={showHeatmap ? "default" : "ghost"}
+                className="h-6 text-[9px] px-2 rounded-full focus-visible:ring-2 focus-visible:ring-primary"
+                onClick={() => setShowHeatmap((v) => !v)}
+                aria-pressed={showHeatmap}
+                title="Toggle activity heatmap"
+              >
+                Heat
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -551,7 +533,12 @@ const WorldMap = () => {
         )}
 
         {/* Map area */}
-        <Card id="atlas-view-panel" role="tabpanel" aria-label={view === "globe" ? "3D globe view" : "2D map view"} className="relative overflow-hidden h-[60vh] sm:h-[68vh] mb-3 rounded-3xl border-white/10 shadow-2xl">
+        <Card
+          id="atlas-view-panel"
+          role="tabpanel"
+          aria-label={projection === "globe" ? "3D globe view" : "Flat map view"}
+          className="relative overflow-hidden h-[60vh] sm:h-[68vh] mb-3 rounded-3xl border-white/10 shadow-2xl"
+        >
           {loading ? (
             <div
               className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gradient-to-b from-[#1a1530] to-[#05060c]"
@@ -561,10 +548,7 @@ const WorldMap = () => {
               aria-label="Locating traders"
             >
               <Loader2 className="w-7 h-7 animate-spin text-primary" aria-hidden="true" />
-              <p className="text-[10px] text-white/60 uppercase tracking-widest">
-                Locating traders…
-              </p>
-              {/* Skeleton "pins" */}
+              <p className="text-[10px] text-white/60 uppercase tracking-widest">Locating traders…</p>
               <div className="flex gap-2 mt-2" aria-hidden="true">
                 {Array.from({ length: 5 }).map((_, i) => (
                   <div
@@ -575,26 +559,59 @@ const WorldMap = () => {
                 ))}
               </div>
             </div>
-          ) : view === "globe" ? (
-            <div className="relative w-full h-full" style={{ background: "radial-gradient(ellipse at center, #1a1530 0%, #05060c 70%)" }}>
-              <TraderGlobe traders={filtered} />
+          ) : (
+            <div className="relative w-full h-full bg-[#05060c]">
+              <AtlasGlobe
+                traders={filtered}
+                connections={connections}
+                myPos={myPos}
+                styleId={atlasStyle}
+                projection={projection}
+                showHeatmap={showHeatmap}
+                onMarkerClick={(t) => setSelectedTrader(t as Trader)}
+              />
 
+              {/* Floating top search bar */}
+              <div className="absolute top-3 left-3 right-3 z-[1000] flex items-center gap-2 bg-black/55 backdrop-blur-xl rounded-full shadow-lg px-3 py-1.5 border border-white/10 text-white">
+                <Search className="w-4 h-4 text-white/70 shrink-0" aria-hidden="true" />
+                <Input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search traders, cities, countries…"
+                  aria-label="Search traders"
+                  className="border-0 h-7 px-0 text-xs bg-transparent text-white placeholder:text-white/50 focus-visible:ring-0 shadow-none"
+                />
+                <button
+                  onClick={requestPreciseLocation}
+                  className="w-7 h-7 rounded-full bg-primary/20 text-primary-foreground flex items-center justify-center shrink-0 focus-visible:ring-2 focus-visible:ring-primary"
+                  aria-label="Pin me to my precise location"
+                >
+                  <Crosshair className="w-3.5 h-3.5" aria-hidden="true" />
+                </button>
+              </div>
+
+              {/* Live count chip */}
+              <div className="absolute top-14 left-3 z-[1000] rounded-2xl bg-black/45 backdrop-blur-xl border border-white/10 px-3 py-1.5 text-white">
+                <p className="text-[8px] uppercase tracking-widest text-white/60">Live</p>
+                <p className="text-xs font-semibold">{filtered.filter((t) => t.is_online).length} online</p>
+              </div>
+
+              {/* Profile enrichment status */}
               {enriching && (
                 <div
                   role="status"
                   aria-live="polite"
                   aria-busy="true"
-                  className="absolute top-3 left-1/2 -translate-x-1/2 z-[1001] flex items-center gap-2 rounded-full bg-black/60 backdrop-blur-xl border border-white/15 px-3 py-1.5 text-[10px] text-white/90"
+                  className="absolute top-14 left-1/2 -translate-x-1/2 z-[1001] flex items-center gap-2 rounded-full bg-black/65 backdrop-blur-xl border border-white/15 px-3 py-1.5 text-[10px] text-white"
                 >
                   <Loader2 className="w-3 h-3 animate-spin" aria-hidden="true" />
                   Loading trader profiles…
                 </div>
               )}
-
               {enrichError && !enriching && (
                 <div
                   role="alert"
-                  className="absolute top-3 left-1/2 -translate-x-1/2 z-[1001] flex items-center gap-2 rounded-full bg-destructive/90 text-destructive-foreground backdrop-blur-xl border border-white/15 px-3 py-1.5 text-[10px]"
+                  className="absolute top-14 left-1/2 -translate-x-1/2 z-[1001] flex items-center gap-2 rounded-full bg-destructive/95 text-destructive-foreground backdrop-blur-xl border border-white/15 px-3 py-1.5 text-[10px]"
                 >
                   <span>{enrichError}</span>
                   <button
@@ -609,143 +626,77 @@ const WorldMap = () => {
                 </div>
               )}
 
-              {/* Top-left info chip */}
-              <div className="absolute top-3 left-3 z-[1000] rounded-2xl bg-black/40 backdrop-blur-xl border border-white/10 px-3 py-2 text-white">
-                <p className="text-[9px] uppercase tracking-widest text-white/60">Live</p>
-                <p className="text-sm font-semibold">
-                  {filtered.filter((t) => t.is_online).length} online
-                </p>
-              </div>
-
-              {/* Top-right action buttons */}
-              <div className="absolute top-3 right-3 z-[1000] flex flex-col gap-2">
-                <button
-                  onClick={requestPreciseLocation}
-                  className="w-10 h-10 rounded-full bg-black/50 backdrop-blur-xl border border-white/10 flex items-center justify-center text-white hover:bg-black/70 focus-visible:ring-2 focus-visible:ring-primary"
-                  aria-label="Pin me to my precise location"
-                >
-                  <Crosshair className="w-4 h-4" aria-hidden="true" />
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="relative w-full h-full">
-              {enriching && (
+              {/* Selected trader popover */}
+              {selectedTrader && (
                 <div
-                  role="status"
-                  aria-live="polite"
-                  aria-busy="true"
-                  className="absolute top-16 left-1/2 -translate-x-1/2 z-[1001] flex items-center gap-2 rounded-full bg-white/95 backdrop-blur-xl border border-white/40 shadow px-3 py-1.5 text-[10px] text-foreground"
+                  role="dialog"
+                  aria-label={`Trader ${selectedTrader.display_name ?? "anonymous"}`}
+                  className="absolute top-14 right-3 z-[1001] w-60 rounded-2xl bg-black/70 backdrop-blur-xl border border-white/15 p-3 text-white shadow-xl"
                 >
-                  <Loader2 className="w-3 h-3 animate-spin text-primary" aria-hidden="true" />
-                  Loading trader profiles…
-                </div>
-              )}
-              {enrichError && !enriching && (
-                <div
-                  role="alert"
-                  className="absolute top-16 left-1/2 -translate-x-1/2 z-[1001] flex items-center gap-2 rounded-full bg-destructive text-destructive-foreground shadow px-3 py-1.5 text-[10px]"
-                >
-                  <span>{enrichError}</span>
-                  <button
-                    type="button"
-                    autoFocus
-                    onClick={() => enrichProfiles(traders)}
-                    className="px-2 py-0.5 rounded-full bg-white/20 hover:bg-white/30 font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-white/90"
-                    aria-label="Retry loading trader profiles"
-                  >
-                    Retry
-                  </button>
-                </div>
-              )}
-              <MapContainer
-                center={myPos ?? [20, 0]}
-                zoom={3}
-                minZoom={2}
-                maxZoom={18}
-                scrollWheelZoom
-                style={{ height: "100%", width: "100%", background: "#dbeafe" }}
-                worldCopyJump
-                zoomControl={false}
-              >
-                <TileLayer
-                  url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-                  attribution="&copy; OpenStreetMap &copy; CARTO"
-                />
-                <FlyTo pos={myPos} />
-                {filtered.map((t) => {
-                  const status = connStatus[t.user_id];
-                  const isMe = t.user_id === currentUserId;
-                  return (
-                    <Marker key={t.user_id} position={[t.latitude!, t.longitude!]} icon={avatarIcon(t)}>
-                      <Popup>
-                        <div className="text-xs space-y-1.5 min-w-[160px]">
-                          <p className="font-bold">{t.display_name ?? "Trader"}</p>
-                          <p className="text-muted-foreground">
-                            {t.city ?? "—"}, {t.country ?? "—"}
-                          </p>
-                          {t.xp != null && <p className="text-amber-600 font-mono">{t.xp} XP</p>}
-                          {!isMe && (
-                            <button
-                              type="button"
-                              disabled={!!status || connectingId === t.user_id}
-                              onClick={() => connectWith(t.user_id)}
-                              className="w-full mt-1 inline-flex items-center justify-center gap-1 h-7 rounded-md bg-primary text-primary-foreground text-[10px] font-semibold disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-primary"
-                            >
-                              {status === "accepted"
-                                ? "Connected"
-                                : status === "sent" || status === "pending"
-                                ? "Request pending"
-                                : connectingId === t.user_id
-                                ? "Sending…"
-                                : "Connect"}
-                            </button>
-                          )}
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-primary bg-muted shrink-0">
+                      {selectedTrader.avatar_url ? (
+                        <img src={selectedTrader.avatar_url} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-white text-sm font-bold">
+                          {(selectedTrader.display_name ?? "?").slice(0, 1).toUpperCase()}
                         </div>
-                      </Popup>
-                      <Tooltip direction="top" offset={[0, -22]} opacity={0.9}>
-                        {t.display_name ?? "Trader"}
-                      </Tooltip>
-                    </Marker>
-                  );
-                })}
-                {myPos && <Marker position={myPos} icon={youIcon()} />}
-              </MapContainer>
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-bold truncate">{selectedTrader.display_name ?? "Trader"}</p>
+                      <p className="text-[10px] text-white/60 truncate">
+                        {selectedTrader.city ?? "—"}{selectedTrader.country ? `, ${selectedTrader.country}` : ""}
+                      </p>
+                      {selectedTrader.xp != null && (
+                        <p className="text-[10px] text-amber-400 font-mono">{selectedTrader.xp} XP</p>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedTrader(null)}
+                      className="text-white/60 hover:text-white text-lg leading-none focus-visible:ring-2 focus-visible:ring-primary rounded"
+                      aria-label="Close"
+                    >
+                      ×
+                    </button>
+                  </div>
+                  {selectedTrader.user_id !== currentUserId && (
+                    <Button
+                      size="sm"
+                      className="w-full h-7 text-[10px] focus-visible:ring-2 focus-visible:ring-primary"
+                      disabled={
+                        !!connStatus[selectedTrader.user_id] || connectingId === selectedTrader.user_id
+                      }
+                      onClick={() => connectWith(selectedTrader.user_id)}
+                    >
+                      {connStatus[selectedTrader.user_id] === "accepted"
+                        ? "Connected"
+                        : connStatus[selectedTrader.user_id] === "sent" ||
+                          connStatus[selectedTrader.user_id] === "pending"
+                        ? "Request pending"
+                        : connectingId === selectedTrader.user_id
+                        ? "Sending…"
+                        : "Connect"}
+                    </Button>
+                  )}
+                </div>
+              )}
 
-              {/* Floating top search bar (image 3) */}
-              <div className="absolute top-3 left-3 right-3 z-[1000] flex items-center gap-2 bg-white/95 backdrop-blur-xl rounded-full shadow-lg px-3 py-2 border border-white/40">
-                <Search className="w-4 h-4 text-muted-foreground shrink-0" />
-                <Input
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search traders, cities, countries…"
-                  className="border-0 h-7 px-0 text-xs bg-transparent focus-visible:ring-0 shadow-none"
-                />
-                <button
-                  onClick={requestPreciseLocation}
-                  className="w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0"
-                  aria-label="Pin me"
-                >
-                  <Crosshair className="w-3.5 h-3.5" />
-                </button>
-              </div>
-
-              {/* Bottom sheet — Nearby Top Users (image 3) */}
-              <div className="absolute bottom-3 left-3 right-3 z-[1000] rounded-2xl bg-white/95 backdrop-blur-xl border border-white/40 shadow-xl p-3">
+              {/* Bottom sheet — Nearby Top Users */}
+              <div className="absolute bottom-3 left-3 right-3 z-[1000] rounded-2xl bg-black/55 backdrop-blur-xl border border-white/10 shadow-xl p-3 text-white">
                 <div className="flex items-center justify-between mb-2">
                   <div>
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Nearby Top Users</p>
-                    <p className="text-xs font-bold text-foreground">
+                    <p className="text-[10px] text-white/60 uppercase tracking-wider">Nearby Top Users</p>
+                    <p className="text-xs font-bold">
                       {filtered[0]?.city ?? filtered[0]?.country ?? "Worldwide"}
                     </p>
                   </div>
-                  <Badge variant="secondary" className="text-[9px]">
-                    {nearbyTop.length} live
-                  </Badge>
+                  <Badge variant="secondary" className="text-[9px]">{nearbyTop.length} live</Badge>
                 </div>
                 <div className="flex gap-2 overflow-x-auto pb-1">
                   {nearbyTop.length === 0 ? (
-                    <p className="text-[10px] text-muted-foreground py-2">No traders online right now.</p>
+                    <p className="text-[10px] text-white/60 py-2">No traders online right now.</p>
                   ) : (
                     nearbyTop.map((t) => {
                       const status = connStatus[t.user_id];
@@ -756,7 +707,12 @@ const WorldMap = () => {
                           className="shrink-0 flex flex-col items-center gap-1 w-16"
                           title={t.display_name ?? "Trader"}
                         >
-                          <div className="relative">
+                          <button
+                            type="button"
+                            onClick={() => setSelectedTrader(t)}
+                            className="relative focus-visible:ring-2 focus-visible:ring-primary rounded-full"
+                            aria-label={`View ${t.display_name ?? "trader"}`}
+                          >
                             <div className="w-11 h-11 rounded-full overflow-hidden border-2 border-primary bg-muted">
                               {t.avatar_url ? (
                                 <img src={t.avatar_url} alt="" className="w-full h-full object-cover" />
@@ -766,9 +722,9 @@ const WorldMap = () => {
                                 </div>
                               )}
                             </div>
-                            <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-green-500 border-2 border-white" />
-                          </div>
-                          <p className="text-[9px] font-semibold truncate w-full text-center text-foreground">
+                            <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-green-500 border-2 border-[#05060c]" />
+                          </button>
+                          <p className="text-[9px] font-semibold truncate w-full text-center text-white">
                             {t.display_name?.split(" ")[0] ?? "—"}
                           </p>
                           {!isMe && (
@@ -779,11 +735,7 @@ const WorldMap = () => {
                               className="text-[8px] px-1.5 py-0.5 rounded-full bg-primary text-primary-foreground disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-primary"
                               aria-label={`Connect with ${t.display_name ?? "trader"}`}
                             >
-                              {status === "accepted"
-                                ? "✓"
-                                : status === "sent" || status === "pending"
-                                ? "Sent"
-                                : "Connect"}
+                              {status === "accepted" ? "✓" : status === "sent" || status === "pending" ? "Sent" : "Connect"}
                             </button>
                           )}
                         </div>
