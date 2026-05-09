@@ -13,6 +13,9 @@ import { toast } from "sonner";
 import { Megaphone, Trash2, Plus } from "lucide-react";
 import { format } from "date-fns";
 
+type RoleKey = "student" | "sponsor" | "admin" | "moderator";
+const ROLE_OPTIONS: RoleKey[] = ["student", "sponsor", "moderator", "admin"];
+
 interface Announcement {
   id: string;
   title: string;
@@ -22,6 +25,9 @@ interface Announcement {
   link_label: string | null;
   is_active: boolean;
   created_at: string;
+  starts_at?: string;
+  ends_at?: string | null;
+  target_roles?: RoleKey[];
 }
 
 export const AdminAnnouncements = () => {
