@@ -1,0 +1,28 @@
+// Allowlist of profile columns safe to send to non-owner viewers.
+// NEVER include: phone_number, date_of_birth, email, kyc/internal flags.
+export const PUBLIC_PROFILE_FIELDS = [
+  "id",
+  "display_name",
+  "username",
+  "avatar_url",
+  "bio",
+  "country",
+  "website_url",
+  "twitter_handle",
+  "linkedin_url",
+  "github_handle",
+  "instagram_handle",
+  "citizenship_rank",
+  "rank_level",
+  "xp_points",
+  "profile_visibility",
+  "theme_background",
+  "theme_font",
+  "theme_layout",
+  "created_at",
+  "payment_tier",
+  "payment_completed",
+  "achievement_streak",
+  "best_achievement_streak",
+  "show_email",
+].join(",");
