@@ -517,22 +517,42 @@ const WorldMap = () => {
                   attribution="&copy; OpenStreetMap &copy; CARTO"
                 />
                 <FlyTo pos={myPos} />
-                {filtered.map((t) => (
-                  <Marker key={t.user_id} position={[t.latitude!, t.longitude!]} icon={avatarIcon(t)}>
-                    <Popup>
-                      <div className="text-xs">
-                        <p className="font-bold">{t.display_name ?? "Trader"}</p>
-                        <p className="text-muted-foreground">
-                          {t.city ?? "—"}, {t.country ?? "—"}
-                        </p>
-                        {t.xp != null && <p className="text-amber-600 font-mono">{t.xp} XP</p>}
-                      </div>
-                    </Popup>
-                    <Tooltip direction="top" offset={[0, -22]} opacity={0.9}>
-                      {t.display_name ?? "Trader"}
-                    </Tooltip>
-                  </Marker>
-                ))}
+                {filtered.map((t) => {
+                  const status = connStatus[t.user_id];
+                  const isMe = t.user_id === currentUserId;
+                  return (
+                    <Marker key={t.user_id} position={[t.latitude!, t.longitude!]} icon={avatarIcon(t)}>
+                      <Popup>
+                        <div className="text-xs space-y-1.5 min-w-[160px]">
+                          <p className="font-bold">{t.display_name ?? "Trader"}</p>
+                          <p className="text-muted-foreground">
+                            {t.city ?? "—"}, {t.country ?? "—"}
+                          </p>
+                          {t.xp != null && <p className="text-amber-600 font-mono">{t.xp} XP</p>}
+                          {!isMe && (
+                            <button
+                              type="button"
+                              disabled={!!status || connectingId === t.user_id}
+                              onClick={() => connectWith(t.user_id)}
+                              className="w-full mt-1 inline-flex items-center justify-center gap-1 h-7 rounded-md bg-primary text-primary-foreground text-[10px] font-semibold disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-primary"
+                            >
+                              {status === "accepted"
+                                ? "Connected"
+                                : status === "sent" || status === "pending"
+                                ? "Request pending"
+                                : connectingId === t.user_id
+                                ? "Sending…"
+                                : "Connect"}
+                            </button>
+                          )}
+                        </div>
+                      </Popup>
+                      <Tooltip direction="top" offset={[0, -22]} opacity={0.9}>
+                        {t.display_name ?? "Trader"}
+                      </Tooltip>
+                    </Marker>
+                  );
+                })}
                 {myPos && <Marker position={myPos} icon={youIcon()} />}
               </MapContainer>
 
