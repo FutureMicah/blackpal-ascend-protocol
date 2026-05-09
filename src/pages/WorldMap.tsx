@@ -180,6 +180,17 @@ const WorldMap = () => {
             : t;
         })
       );
+      if (verifyRealtime) {
+        // eslint-disable-next-line no-console
+        console.info(
+          `[BlackPal][atlas-refresh] ${new Date().toISOString()} · enriched ${profs?.length ?? 0} profile(s)`
+        );
+        window.dispatchEvent(
+          new CustomEvent("blackpal:atlas-refresh", {
+            detail: { count: profs?.length ?? 0, at: new Date() },
+          })
+        );
+      }
     } catch (e: any) {
       // Surface a precise diagnostic so we can see which step failed
       const step = e?.message?.toLowerCase().includes("avatar")
@@ -192,7 +203,51 @@ const WorldMap = () => {
     } finally {
       setEnriching(false);
     }
+  }, [verifyRealtime]);
+
+  // Load current user + connection status map
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase.auth.getUser();
+      const uid = data.user?.id ?? null;
+      setCurrentUserId(uid);
+      if (!uid) return;
+      const { data: conns } = await supabase
+        .from("friend_connections")
+        .select("user_id, friend_id, status")
+        .or(`user_id.eq.${uid},friend_id.eq.${uid}`);
+      const map: Record<string, "none" | "sent" | "accepted" | "pending"> = {};
+      (conns ?? []).forEach((c: any) => {
+        const other = c.user_id === uid ? c.friend_id : c.user_id;
+        map[other] = c.status === "accepted" ? "accepted" : c.user_id === uid ? "sent" : "pending";
+      });
+      setConnStatus(map);
+    })();
   }, []);
+
+  const connectWith = useCallback(
+    async (friendId: string) => {
+      if (!currentUserId) {
+        toast({ variant: "destructive", title: "Sign in to connect" });
+        return;
+      }
+      if (friendId === currentUserId) return;
+      setConnectingId(friendId);
+      const { error } = await supabase.from("friend_connections").insert({
+        user_id: currentUserId,
+        friend_id: friendId,
+        status: "pending",
+      });
+      setConnectingId(null);
+      if (error) {
+        toast({ variant: "destructive", title: "Couldn't send request", description: error.message });
+        return;
+      }
+      setConnStatus((m) => ({ ...m, [friendId]: "sent" }));
+      toast({ title: "Request sent", description: "They'll see your invite in Discover." });
+    },
+    [currentUserId, toast]
+  );
 
   useEffect(() => {
     const init = async () => {
