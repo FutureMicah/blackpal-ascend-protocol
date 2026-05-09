@@ -147,7 +147,7 @@ const WorldMap = () => {
       const ids = list.map((t) => t.user_id);
       const { data: profs, error } = await supabase
         .from("profiles")
-        .select("id, display_name, avatar_url, xp")
+        .select("id, display_name, avatar_url, xp_points")
         .in("id", ids);
       if (error) throw error;
       const profMap = new Map((profs ?? []).map((p: any) => [p.id, p]));
@@ -155,12 +155,19 @@ const WorldMap = () => {
         curr.map((t) => {
           const p = profMap.get(t.user_id) as any;
           return p
-            ? { ...t, display_name: p.display_name, avatar_url: p.avatar_url, xp: p.xp }
+            ? { ...t, display_name: p.display_name, avatar_url: p.avatar_url, xp: p.xp_points }
             : t;
         })
       );
     } catch (e: any) {
-      setEnrichError("Couldn't load trader profiles. Names and avatars may be missing.");
+      // Surface a precise diagnostic so we can see which step failed
+      const step = e?.message?.toLowerCase().includes("avatar")
+        ? "avatar lookup"
+        : e?.message?.toLowerCase().includes("display")
+        ? "display name lookup"
+        : "profile fetch";
+      console.error("[TraderAtlas] enrichProfiles failed during", step, e);
+      setEnrichError(`Couldn't load trader profiles (${step}). ${e?.message ?? ""}`);
     } finally {
       setEnriching(false);
     }
