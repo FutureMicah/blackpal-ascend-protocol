@@ -272,13 +272,19 @@ const WorldMap = () => {
         {/* Map area */}
         <Card className="relative overflow-hidden h-[60vh] sm:h-[68vh] mb-3 rounded-3xl border-white/10 shadow-2xl">
           {loading ? (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gradient-to-b from-[#1a1530] to-[#05060c]">
-              <Loader2 className="w-7 h-7 animate-spin text-primary" />
+            <div
+              className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gradient-to-b from-[#1a1530] to-[#05060c]"
+              role="status"
+              aria-live="polite"
+              aria-busy="true"
+              aria-label="Locating traders"
+            >
+              <Loader2 className="w-7 h-7 animate-spin text-primary" aria-hidden="true" />
               <p className="text-[10px] text-white/60 uppercase tracking-widest">
                 Locating traders…
               </p>
               {/* Skeleton "pins" */}
-              <div className="flex gap-2 mt-2">
+              <div className="flex gap-2 mt-2" aria-hidden="true">
                 {Array.from({ length: 5 }).map((_, i) => (
                   <div
                     key={i}
