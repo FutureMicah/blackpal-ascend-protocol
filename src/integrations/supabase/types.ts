@@ -4492,6 +4492,7 @@ export type Database = {
           btax_spent_total: number
           created_at: string
           id: string
+          naira_balance: number
           naira_funded_total: number
           status: string
           updated_at: string
@@ -4503,6 +4504,7 @@ export type Database = {
           btax_spent_total?: number
           created_at?: string
           id?: string
+          naira_balance?: number
           naira_funded_total?: number
           status?: string
           updated_at?: string
@@ -4514,6 +4516,7 @@ export type Database = {
           btax_spent_total?: number
           created_at?: string
           id?: string
+          naira_balance?: number
           naira_funded_total?: number
           status?: string
           updated_at?: string
