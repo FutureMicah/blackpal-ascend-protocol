@@ -28,7 +28,7 @@ export const WalletSnapshot = ({ userId }: WalletSnapshotProps) => {
     loadBalance();
   }, [userId]);
 
-  const nairaEquivalent = (balance * 100).toLocaleString();
+  
 
   return (
     <motion.div
@@ -42,7 +42,7 @@ export const WalletSnapshot = ({ userId }: WalletSnapshotProps) => {
           <Wallet className="w-3.5 h-3.5" />
           My balance
         </div>
-        <span className="text-[10px] text-white/70 font-mono">~₦{nairaEquivalent}</span>
+        <span className="text-[10px] text-white/70 font-mono">Virtual currency</span>
       </div>
 
       <div>

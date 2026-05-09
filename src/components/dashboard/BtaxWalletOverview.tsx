@@ -149,7 +149,7 @@ export const BtaxWalletOverview = ({ userId }: BtaxWalletOverviewProps) => {
           <div className="text-base font-medium text-ink-soft">BTAX</div>
         </div>
         <div className="text-[11px] text-ink-soft mt-2">
-          Funded ₦{Number(wallet.naira_funded_total).toLocaleString()} · Earned{" "}
+          Funded {Number((wallet.naira_funded_total || 0) / 100).toLocaleString()} BTAX · Earned{" "}
           {Number(wallet.btax_earned_total).toLocaleString()} · Spent{" "}
           {Number(wallet.btax_spent_total).toLocaleString()}
         </div>
