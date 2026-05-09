@@ -87,7 +87,7 @@ const WorldMap = () => {
   }, []);
   useEffect(() => {
     if (!lastGpsAt) return;
-    setGpsHz(1000 / Math.max(gpsThrottleMs, 50));
+    setGpsHz(throttleMsToHz(gpsThrottleMs));
   }, [gpsTickCount, lastGpsAt, gpsThrottleMs]);
 
   const enrichProfiles = useCallback(async (list: Trader[]) => {
