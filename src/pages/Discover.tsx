@@ -222,8 +222,20 @@ const Discover = () => {
       case 'pending':
         return (
           <div className="flex gap-2">
-            <Button size="sm" variant="outline" onClick={() => {}}>
+            <Button
+              size="sm"
+              onClick={() => user.connectionId && handleRequest(user.connectionId, true)}
+              className="bg-primary hover:bg-primary/90"
+            >
+              <Check className="w-4 h-4 mr-1" />
               Accept
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => user.connectionId && handleRequest(user.connectionId, false)}
+            >
+              <X className="w-4 h-4" />
             </Button>
           </div>
         );
