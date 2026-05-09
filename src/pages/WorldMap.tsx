@@ -377,18 +377,6 @@ const WorldMap = () => {
                 </div>
               )}
 
-              {/* Left glass icon rail (image 1 aesthetic) */}
-              <div className="absolute left-3 top-1/2 -translate-y-1/2 flex flex-col gap-2 z-[1000]">
-                {[Wind, Thermometer, Droplets, Layers].map((Icon, i) => (
-                  <button
-                    key={i}
-                    className="w-10 h-10 rounded-2xl bg-black/40 backdrop-blur-xl border border-white/10 flex items-center justify-center text-white/80 hover:bg-black/60 transition"
-                  >
-                    <Icon className="w-4 h-4" />
-                  </button>
-                ))}
-              </div>
-
               {/* Top-left info chip */}
               <div className="absolute top-3 left-3 z-[1000] rounded-2xl bg-black/40 backdrop-blur-xl border border-white/10 px-3 py-2 text-white">
                 <p className="text-[9px] uppercase tracking-widest text-white/60">Live</p>
@@ -401,30 +389,11 @@ const WorldMap = () => {
               <div className="absolute top-3 right-3 z-[1000] flex flex-col gap-2">
                 <button
                   onClick={requestPreciseLocation}
-                  className="w-10 h-10 rounded-full bg-black/50 backdrop-blur-xl border border-white/10 flex items-center justify-center text-white hover:bg-black/70"
-                  aria-label="Pin me"
+                  className="w-10 h-10 rounded-full bg-black/50 backdrop-blur-xl border border-white/10 flex items-center justify-center text-white hover:bg-black/70 focus-visible:ring-2 focus-visible:ring-primary"
+                  aria-label="Pin me to my precise location"
                 >
-                  <Crosshair className="w-4 h-4" />
+                  <Crosshair className="w-4 h-4" aria-hidden="true" />
                 </button>
-                <button className="w-10 h-10 rounded-full bg-amber-400 text-black flex items-center justify-center shadow-lg shadow-amber-400/30">
-                  <Layers className="w-4 h-4" />
-                </button>
-              </div>
-
-              {/* Bottom day-pill scroller (decorative filter) */}
-              <div className="absolute left-0 right-0 bottom-3 z-[1000] flex justify-center">
-                <div className="flex gap-1.5 px-2 py-1.5 rounded-full bg-black/45 backdrop-blur-xl border border-white/10">
-                  {["Today", "Week", "Month", "Quarter", "Year", "All"].map((d, i) => (
-                    <button
-                      key={d}
-                      className={`px-3 py-1.5 rounded-full text-[10px] font-semibold transition ${
-                        i === 0 ? "bg-white text-black" : "text-white/70 hover:text-white"
-                      }`}
-                    >
-                      {d}
-                    </button>
-                  ))}
-                </div>
               </div>
             </div>
           ) : (
