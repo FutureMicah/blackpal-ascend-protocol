@@ -21,6 +21,7 @@ interface UserProfile {
   rank_level: number | null;
   bio: string | null;
   connectionStatus?: 'none' | 'pending' | 'accepted' | 'sent';
+  connectionId?: string;
 }
 
 const Discover = () => {
@@ -66,22 +67,24 @@ const Discover = () => {
         .select("*")
         .or(`user_id.eq.${userId},friend_id.eq.${userId}`);
 
-      // Map connection status to each user
+      // Map connection status + connection id to each user
       const usersWithStatus = (profiles || []).map(profile => {
         const connection = connections?.find(
           c => (c.user_id === profile.id || c.friend_id === profile.id)
         );
-        
+
         let connectionStatus: 'none' | 'pending' | 'accepted' | 'sent' = 'none';
+        let connectionId: string | undefined;
         if (connection) {
+          connectionId = connection.id;
           if (connection.status === 'accepted') {
             connectionStatus = 'accepted';
           } else if (connection.status === 'pending') {
             connectionStatus = connection.user_id === userId ? 'sent' : 'pending';
           }
         }
-        
-        return { ...profile, connectionStatus };
+
+        return { ...profile, connectionStatus, connectionId };
       });
 
       setUsers(usersWithStatus);
@@ -219,8 +222,20 @@ const Discover = () => {
       case 'pending':
         return (
           <div className="flex gap-2">
-            <Button size="sm" variant="outline" onClick={() => {}}>
+            <Button
+              size="sm"
+              onClick={() => user.connectionId && handleRequest(user.connectionId, true)}
+              className="bg-primary hover:bg-primary/90"
+            >
+              <Check className="w-4 h-4 mr-1" />
               Accept
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => user.connectionId && handleRequest(user.connectionId, false)}
+            >
+              <X className="w-4 h-4" />
             </Button>
           </div>
         );

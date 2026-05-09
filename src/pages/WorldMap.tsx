@@ -17,10 +17,6 @@ import {
   Loader2,
   Crosshair,
   Search,
-  Layers,
-  Thermometer,
-  Droplets,
-  Wind,
   Sparkles,
 } from "lucide-react";
 import { FloatingNav } from "@/components/FloatingNav";
@@ -147,7 +143,7 @@ const WorldMap = () => {
       const ids = list.map((t) => t.user_id);
       const { data: profs, error } = await supabase
         .from("profiles")
-        .select("id, display_name, avatar_url, xp")
+        .select("id, display_name, avatar_url, xp_points")
         .in("id", ids);
       if (error) throw error;
       const profMap = new Map((profs ?? []).map((p: any) => [p.id, p]));
@@ -155,12 +151,19 @@ const WorldMap = () => {
         curr.map((t) => {
           const p = profMap.get(t.user_id) as any;
           return p
-            ? { ...t, display_name: p.display_name, avatar_url: p.avatar_url, xp: p.xp }
+            ? { ...t, display_name: p.display_name, avatar_url: p.avatar_url, xp: p.xp_points }
             : t;
         })
       );
     } catch (e: any) {
-      setEnrichError("Couldn't load trader profiles. Names and avatars may be missing.");
+      // Surface a precise diagnostic so we can see which step failed
+      const step = e?.message?.toLowerCase().includes("avatar")
+        ? "avatar lookup"
+        : e?.message?.toLowerCase().includes("display")
+        ? "display name lookup"
+        : "profile fetch";
+      console.error("[TraderAtlas] enrichProfiles failed during", step, e);
+      setEnrichError(`Couldn't load trader profiles (${step}). ${e?.message ?? ""}`);
     } finally {
       setEnriching(false);
     }
@@ -252,23 +255,41 @@ const WorldMap = () => {
               Live world map of every BlackPal trader
             </p>
           </div>
-          <div className="flex gap-1 bg-muted/30 p-1 rounded-full">
+          <div
+            className="flex gap-1 bg-muted/30 p-1 rounded-full"
+            role="tablist"
+            aria-label="Trader Atlas view"
+            onKeyDown={(e) => {
+              if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+                e.preventDefault();
+                setView((v) => (v === "globe" ? "map" : "globe"));
+              }
+            }}
+          >
             <Button
               size="sm"
               variant={view === "globe" ? "default" : "ghost"}
-              className="h-7 text-[10px] px-3 rounded-full"
+              className="h-7 text-[10px] px-3 rounded-full focus-visible:ring-2 focus-visible:ring-primary"
               onClick={() => setView("globe")}
+              role="tab"
+              aria-selected={view === "globe"}
+              aria-controls="atlas-view-panel"
+              tabIndex={view === "globe" ? 0 : -1}
             >
-              <Globe2 className="w-3 h-3 mr-1" />
+              <Globe2 className="w-3 h-3 mr-1" aria-hidden="true" />
               3D
             </Button>
             <Button
               size="sm"
               variant={view === "map" ? "default" : "ghost"}
-              className="h-7 text-[10px] px-3 rounded-full"
+              className="h-7 text-[10px] px-3 rounded-full focus-visible:ring-2 focus-visible:ring-primary"
               onClick={() => setView("map")}
+              role="tab"
+              aria-selected={view === "map"}
+              aria-controls="atlas-view-panel"
+              tabIndex={view === "map" ? 0 : -1}
             >
-              <MapIcon className="w-3 h-3 mr-1" />
+              <MapIcon className="w-3 h-3 mr-1" aria-hidden="true" />
               2D
             </Button>
           </div>
@@ -294,7 +315,7 @@ const WorldMap = () => {
         </div>
 
         {/* Map area */}
-        <Card className="relative overflow-hidden h-[60vh] sm:h-[68vh] mb-3 rounded-3xl border-white/10 shadow-2xl">
+        <Card id="atlas-view-panel" role="tabpanel" aria-label={view === "globe" ? "3D globe view" : "2D map view"} className="relative overflow-hidden h-[60vh] sm:h-[68vh] mb-3 rounded-3xl border-white/10 shadow-2xl">
           {loading ? (
             <div
               className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gradient-to-b from-[#1a1530] to-[#05060c]"
@@ -352,18 +373,6 @@ const WorldMap = () => {
                 </div>
               )}
 
-              {/* Left glass icon rail (image 1 aesthetic) */}
-              <div className="absolute left-3 top-1/2 -translate-y-1/2 flex flex-col gap-2 z-[1000]">
-                {[Wind, Thermometer, Droplets, Layers].map((Icon, i) => (
-                  <button
-                    key={i}
-                    className="w-10 h-10 rounded-2xl bg-black/40 backdrop-blur-xl border border-white/10 flex items-center justify-center text-white/80 hover:bg-black/60 transition"
-                  >
-                    <Icon className="w-4 h-4" />
-                  </button>
-                ))}
-              </div>
-
               {/* Top-left info chip */}
               <div className="absolute top-3 left-3 z-[1000] rounded-2xl bg-black/40 backdrop-blur-xl border border-white/10 px-3 py-2 text-white">
                 <p className="text-[9px] uppercase tracking-widest text-white/60">Live</p>
@@ -376,30 +385,11 @@ const WorldMap = () => {
               <div className="absolute top-3 right-3 z-[1000] flex flex-col gap-2">
                 <button
                   onClick={requestPreciseLocation}
-                  className="w-10 h-10 rounded-full bg-black/50 backdrop-blur-xl border border-white/10 flex items-center justify-center text-white hover:bg-black/70"
-                  aria-label="Pin me"
+                  className="w-10 h-10 rounded-full bg-black/50 backdrop-blur-xl border border-white/10 flex items-center justify-center text-white hover:bg-black/70 focus-visible:ring-2 focus-visible:ring-primary"
+                  aria-label="Pin me to my precise location"
                 >
-                  <Crosshair className="w-4 h-4" />
+                  <Crosshair className="w-4 h-4" aria-hidden="true" />
                 </button>
-                <button className="w-10 h-10 rounded-full bg-amber-400 text-black flex items-center justify-center shadow-lg shadow-amber-400/30">
-                  <Layers className="w-4 h-4" />
-                </button>
-              </div>
-
-              {/* Bottom day-pill scroller (decorative filter) */}
-              <div className="absolute left-0 right-0 bottom-3 z-[1000] flex justify-center">
-                <div className="flex gap-1.5 px-2 py-1.5 rounded-full bg-black/45 backdrop-blur-xl border border-white/10">
-                  {["Today", "Week", "Month", "Quarter", "Year", "All"].map((d, i) => (
-                    <button
-                      key={d}
-                      className={`px-3 py-1.5 rounded-full text-[10px] font-semibold transition ${
-                        i === 0 ? "bg-white text-black" : "text-white/70 hover:text-white"
-                      }`}
-                    >
-                      {d}
-                    </button>
-                  ))}
-                </div>
               </div>
             </div>
           ) : (

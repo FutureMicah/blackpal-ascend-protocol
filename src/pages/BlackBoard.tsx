@@ -66,7 +66,7 @@ const BlackBoard = () => {
   const completeLesson = async (courseId: string, courseXP: number) => {
     if (!userId) return;
     try {
-      const xpGain = Math.floor(courseXP / 10);
+      const xpGain = Math.max(1, Math.floor(courseXP / 50));
       const { data: profile } = await supabase.from("profiles").select("xp_points").eq("id", userId).single();
       await supabase.from("profiles").update({ xp_points: (profile?.xp_points || 0) + xpGain }).eq("id", userId);
       await supabase.from("friend_activities").insert({ user_id: userId, activity_type: "lesson_complete", activity_data: { courseId, xpGain } });

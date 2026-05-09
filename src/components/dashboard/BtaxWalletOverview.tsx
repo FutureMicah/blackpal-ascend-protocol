@@ -132,9 +132,17 @@ export const BtaxWalletOverview = ({ userId }: BtaxWalletOverviewProps) => {
         <h2 className="text-[11px] font-semibold tracking-[0.18em] uppercase text-ink-soft">
           Your Finance · BTAX
         </h2>
-        <span className="text-[10px] uppercase tracking-wider text-ink-soft">
-          {wallet.status}
-        </span>
+        <div className="flex items-center gap-2">
+          <a
+            href="/wallet/topup"
+            className="text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition focus-visible:ring-2 focus-visible:ring-primary"
+          >
+            Top up ₦
+          </a>
+          <span className="text-[10px] uppercase tracking-wider text-ink-soft">
+            {wallet.status}
+          </span>
+        </div>
       </div>
 
       {/* Hero balance — oversized, editorial */}
