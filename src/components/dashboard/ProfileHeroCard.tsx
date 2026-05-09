@@ -254,3 +254,6 @@ export const ProfileHeroCard = ({ profile, user, onProfileUpdate }: ProfileHeroC
 
       {/* Sign-out lives in the header now (top-right). Cinematic Core has been
           renamed to Contest — surfaced from the bottom tab bar with a coming-soon state. */}
+    </motion.div>
+  );
+};
