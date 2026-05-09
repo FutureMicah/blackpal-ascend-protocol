@@ -21,6 +21,7 @@ import { AdminBroadcastChannel } from "@/components/AdminBroadcastChannel";
 import { AdminPropManager } from "@/components/AdminPropManager";
 import { AdminSupportTickets } from "@/components/AdminSupportTickets";
 import { AdminTopupReview } from "@/components/admin/AdminTopupReview";
+import { AdminAnnouncements } from "@/components/admin/AdminAnnouncements";
 import { CurrencyConverter } from "@/components/CurrencyConverter";
 import logo from "@/assets/blackpal-logo.jpg";
 
@@ -370,6 +371,7 @@ export default function AdminDashboard() {
               </>
             )}
             {canManageContent && <TabsTrigger value="broadcast" className="gap-1"><Megaphone className="w-3 h-3" /> Broadcast</TabsTrigger>}
+            {canManageContent && <TabsTrigger value="announcements" className="gap-1"><Bell className="w-3 h-3" /> Pop-ups</TabsTrigger>}
             {canManageContent && <TabsTrigger value="groups" className="gap-1"><Hash className="w-3 h-3" /> Groups</TabsTrigger>}
             {canManageSupport && <TabsTrigger value="support" className="gap-1"><Headphones className="w-3 h-3" /> Support</TabsTrigger>}
             {canManageUsers && <TabsTrigger value="props" className="gap-1"><Trophy className="w-3 h-3" /> Prop Firms</TabsTrigger>}
@@ -654,6 +656,11 @@ export default function AdminDashboard() {
           {/* Broadcast Tab */}
           <TabsContent value="broadcast">
             <AdminBroadcastChannel userId={adminUserId} isAdmin={true} />
+          </TabsContent>
+
+          {/* Announcement Pop-ups */}
+          <TabsContent value="announcements">
+            <AdminAnnouncements />
           </TabsContent>
 
           {/* Groups Tab */}
