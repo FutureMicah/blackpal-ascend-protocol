@@ -53,7 +53,7 @@ const BlackForge = () => {
       setStrategies(updated);
       localStorage.setItem(`strategies_${userId}`, JSON.stringify(updated));
       const { data: profile } = await supabase.from("profiles").select("xp_points").eq("id", userId).single();
-      await supabase.from("profiles").update({ xp_points: (profile?.xp_points || 0) + 50 }).eq("id", userId);
+      await supabase.from("profiles").update({ xp_points: (profile?.xp_points || 0) + 5 }).eq("id", userId);
       toast({ title: "Strategy saved!", description: "+50 XP earned" });
       setStrategyName(""); setAssetClass(""); setTimeframe(""); setStopLoss("2"); setTakeProfit("6");
     } catch (error: any) { toast({ variant: "destructive", title: "Error", description: error.message }); } finally { setSaving(false); }
@@ -71,7 +71,7 @@ const BlackForge = () => {
     if (!userId) return;
     try {
       const { data: profile } = await supabase.from("profiles").select("xp_points").eq("id", userId).single();
-      await supabase.from("profiles").update({ xp_points: (profile?.xp_points || 0) + 100 }).eq("id", userId);
+      await supabase.from("profiles").update({ xp_points: (profile?.xp_points || 0) + 10 }).eq("id", userId);
       toast({ title: "Strategy deployed!", description: `${strategy.name} is active. +100 XP!` });
     } catch (error: any) { toast({ variant: "destructive", title: "Error", description: error.message }); }
   };

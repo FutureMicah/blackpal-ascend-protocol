@@ -79,7 +79,7 @@ const BlackCoin = () => {
     setProcessing(true);
     try {
       const { data: profile } = await supabase.from("profiles").select("virtual_currency, xp_points").eq("id", userId).single();
-      await supabase.from("profiles").update({ virtual_currency: (profile?.virtual_currency || 0) + coins, xp_points: (profile?.xp_points || 0) + Math.floor(coins / 10) }).eq("id", userId);
+      await supabase.from("profiles").update({ virtual_currency: (profile?.virtual_currency || 0) + coins, xp_points: (profile?.xp_points || 0) + Math.max(1, Math.floor(coins / 50)) }).eq("id", userId);
       setBalance(prev => prev + coins);
       toast({ title: "Claimed!", description: `+${coins} BTAX for ${name}` });
     } catch (error: any) { toast({ variant: "destructive", title: "Error", description: error.message }); } finally { setProcessing(false); }
