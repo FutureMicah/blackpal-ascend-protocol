@@ -48,7 +48,7 @@ export const BtaxWalletOverview = ({ userId }: BtaxWalletOverviewProps) => {
     const load = async () => {
       const { data: w } = await supabase
         .from("wallets")
-        .select("id, btax_balance, naira_funded_total, btax_spent_total, btax_earned_total, status")
+        .select("id, btax_balance, naira_balance, naira_funded_total, btax_spent_total, btax_earned_total, status")
         .eq("user_id", userId)
         .maybeSingle();
 
