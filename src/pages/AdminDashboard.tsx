@@ -74,8 +74,10 @@ export default function AdminDashboard() {
 
   const checkAdminAndLoad = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { navigate("/admin-login"); return; }
+      setLoading(true);
+      const { data: sessionData } = await supabase.auth.getSession();
+      const user = sessionData.session?.user;
+      if (!user) { navigate("/admin-login", { replace: true }); return; }
 
       setAdminUserId(user.id);
 
@@ -90,7 +92,7 @@ export default function AdminDashboard() {
 
       if (!adminRoles || adminRoles.length === 0) {
         toast.error("Access denied.");
-        navigate("/dashboard");
+        navigate("/dashboard", { replace: true });
         return;
       }
 
@@ -99,9 +101,13 @@ export default function AdminDashboard() {
         adminRoles[0] as AdminRole;
 
       setAdminRole(highestRole);
-      await loadAllData();
-    } catch {
-      navigate("/admin-login");
+      setLoading(false);
+      void loadAllData().catch((error: any) => {
+        toast.error(error?.message || "Some admin data failed to load.");
+      });
+    } catch (error: any) {
+      toast.error(error?.message || "Admin panel failed to load.");
+      navigate("/admin-login", { replace: true });
     } finally {
       setLoading(false);
     }
@@ -288,7 +294,25 @@ export default function AdminDashboard() {
     );
   }
 
-  if (!adminRole) return null;
+  if (!adminRole) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="max-w-md w-full border-border bg-card/90">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Shield className="w-5 h-5 text-destructive" /> Admin access not ready
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm text-muted-foreground">
+            <p>Your admin session could not be confirmed yet. Please sign in again.</p>
+            <Button onClick={() => navigate("/admin-login", { replace: true })} className="w-full">
+              Return to admin login
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
