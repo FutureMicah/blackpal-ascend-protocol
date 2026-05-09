@@ -24,6 +24,7 @@ import { RealtimeVerifier as RealtimeVerifierLazy } from "@/components/RealtimeV
 import { supabase } from "@/integrations/supabase/client";
 import { captureUserLocation } from "@/lib/location-tracker";
 import { useToast } from "@/hooks/use-toast";
+import { throttleMsToHz, shouldCoalesceGps } from "@/lib/gps-throttle";
 
 interface Trader {
   user_id: string;
