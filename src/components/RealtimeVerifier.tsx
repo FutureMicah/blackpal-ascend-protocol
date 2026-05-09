@@ -4,8 +4,9 @@
 import { useEffect, useRef, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Activity, Trash2 } from "lucide-react";
+import { Activity, Trash2, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { downloadRealtimeReport } from "@/lib/realtime-report";
 
 type Entry = { at: Date; channel: "rate" | "atlas"; summary: string };
 
