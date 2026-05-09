@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { Megaphone, Trash2, Plus } from "lucide-react";
 import { format } from "date-fns";
+import { describeAnnouncementWindow } from "@/lib/announcement-targeting";
 
 type RoleKey = "student" | "sponsor" | "admin" | "moderator";
 const ROLE_OPTIONS: RoleKey[] = ["student", "sponsor", "moderator", "admin"];
@@ -198,15 +199,7 @@ export const AdminAnnouncements = () => {
               </p>
               <p>
                 <span className="text-muted-foreground">Window:</span>{" "}
-                {(() => {
-                  const now = new Date();
-                  const s = startsAt ? new Date(startsAt) : null;
-                  const e = endsAt ? new Date(endsAt) : null;
-                  const visible = (!s || s <= now) && (!e || e > now);
-                  return `${s ? s.toLocaleString() : "now"} → ${e ? e.toLocaleString() : "indefinite"} · ${
-                    visible ? "VISIBLE NOW" : "scheduled / expired"
-                  }`;
-                })()}
+                {describeAnnouncementWindow({ starts_at: startsAt || null, ends_at: endsAt || null })}
               </p>
               <div className="rounded border border-border/60 bg-background p-2 mt-1">
                 <p className="font-bold text-xs">{title || "(title)"}</p>

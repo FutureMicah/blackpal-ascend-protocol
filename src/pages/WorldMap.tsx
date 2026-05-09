@@ -24,6 +24,7 @@ import { RealtimeVerifier as RealtimeVerifierLazy } from "@/components/RealtimeV
 import { supabase } from "@/integrations/supabase/client";
 import { captureUserLocation } from "@/lib/location-tracker";
 import { useToast } from "@/hooks/use-toast";
+import { throttleMsToHz, shouldCoalesceGps } from "@/lib/gps-throttle";
 
 interface Trader {
   user_id: string;
@@ -69,14 +70,7 @@ const WorldMap = () => {
   const setMyPosDebounced = useCallback((next: [number, number]) => {
     if (gpsTimer.current) clearTimeout(gpsTimer.current);
     gpsTimer.current = setTimeout(() => {
-      setMyPos((prev) => {
-        if (prev) {
-          const dLat = Math.abs(prev[0] - next[0]);
-          const dLng = Math.abs(prev[1] - next[1]);
-          if (dLat < 0.0005 && dLng < 0.0005) return prev;
-        }
-        return next;
-      });
+      setMyPos((prev) => (shouldCoalesceGps(prev, next) ? prev : next));
       setLastGpsAt(new Date());
       setGpsTickCount((n) => n + 1);
     }, gpsThrottleMs);
@@ -93,7 +87,7 @@ const WorldMap = () => {
   }, []);
   useEffect(() => {
     if (!lastGpsAt) return;
-    setGpsHz(1000 / Math.max(gpsThrottleMs, 50));
+    setGpsHz(throttleMsToHz(gpsThrottleMs));
   }, [gpsTickCount, lastGpsAt, gpsThrottleMs]);
 
   const enrichProfiles = useCallback(async (list: Trader[]) => {
