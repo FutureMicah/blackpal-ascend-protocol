@@ -646,6 +646,11 @@ export default function AdminDashboard() {
             </Card>
           </TabsContent>
 
+          {/* Top-up Requests Tab */}
+          <TabsContent value="topups">
+            <AdminTopupReview />
+          </TabsContent>
+
           {/* Broadcast Tab */}
           <TabsContent value="broadcast">
             <AdminBroadcastChannel userId={adminUserId} isAdmin={true} />
