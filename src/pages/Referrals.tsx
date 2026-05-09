@@ -110,7 +110,7 @@ export default function Referrals() {
           <p className="text-[10px] font-medium mb-2">Your Referral Link</p>
           <div className="flex items-center gap-2">
             <div className="flex-1 bg-muted/30 rounded-lg px-3 py-2 text-[10px] font-mono truncate border border-border/30">
-              {referralCode ? `${window.location.origin}/auth?ref=${referralCode}` : "Loading..."}
+              {shortLink || "Loading..."}
             </div>
             <Button size="sm" variant="outline" className="h-8 text-[10px] gap-1" onClick={copyCode}>
               {copied ? <CheckCircle className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}
