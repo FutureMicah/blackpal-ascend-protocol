@@ -41,6 +41,27 @@ export default function Dashboard() {
   const { checkAndAwardAchievements } = useAchievements();
   useRealtimeNotifications(user?.id ?? null);
 
+  // Verify a returning Paystack checkout (?paystack=1&reference=...)
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const ref = url.searchParams.get("reference") || url.searchParams.get("trxref");
+    if (!url.searchParams.get("paystack") || !ref) return;
+    (async () => {
+      const { data, error } = await supabase.functions.invoke("paystack-verify", {
+        body: { reference: ref },
+      });
+      if (!error && data?.verified) {
+        toast({ title: "Payment confirmed", description: "Your account is activated." });
+      } else {
+        toast({ title: "Payment not verified", description: data?.message || error?.message || "Try again", variant: "destructive" });
+      }
+      url.searchParams.delete("paystack");
+      url.searchParams.delete("reference");
+      url.searchParams.delete("trxref");
+      window.history.replaceState({}, "", url.pathname + (url.search ? `?${url.searchParams}` : ""));
+    })();
+  }, [toast]);
+
   // Load user stats for comparison
   const loadUserStats = async (userId: string) => {
     try {
