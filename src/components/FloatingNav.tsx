@@ -337,6 +337,7 @@ export const FloatingNav = () => {
             );
           })}
           <div className="w-px h-6 bg-border/60 mx-1" />
+          <Translator />
           <ThemeToggle />
           <Button
             variant="ghost"
