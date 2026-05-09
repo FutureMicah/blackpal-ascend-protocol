@@ -444,3 +444,15 @@ All colors MUST be HSL.
     }
   }
 }
+
+/* Uniform icon design — slim purple lucide icons across the app */
+.lucide {
+  color: hsl(var(--primary));
+  stroke-width: 1.5;
+}
+/* Allow opt-out via .icon-keep-color on the icon or its parent */
+.icon-keep-color .lucide,
+.lucide.icon-keep-color {
+  color: inherit;
+  stroke-width: 2;
+}
