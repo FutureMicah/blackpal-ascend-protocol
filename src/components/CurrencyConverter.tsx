@@ -72,15 +72,47 @@ export const CurrencyConverter = ({
   return (
     <Card className={`p-4 space-y-3 ${className}`}>
       {!compact && (
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2">
           <h3 className="text-sm font-semibold">Currency Converter</h3>
-          <span className="text-[10px] text-muted-foreground">
-            {loadingRate ? (
-              <Loader2 className="w-3 h-3 animate-spin" />
-            ) : (
-              <>1 BTAX = ₦{rate.toLocaleString()}</>
-            )}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] text-muted-foreground">
+              {loadingRate ? (
+                <Loader2 className="w-3 h-3 animate-spin" />
+              ) : (
+                <>1 BTAX = ₦{rate.toLocaleString()}</>
+              )}
+            </span>
+            <Button
+              type="button"
+              size="icon"
+              variant="ghost"
+              className="h-6 w-6"
+              onClick={() => loadRate(true)}
+              disabled={loadingRate}
+              aria-label="Refresh rate"
+              title="Refresh rate"
+            >
+              <RefreshCw className={`w-3 h-3 ${loadingRate ? "animate-spin" : ""}`} />
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {rateError && (
+        <div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/10 p-2 text-[10px] text-destructive">
+          <AlertTriangle className="w-3 h-3 mt-0.5 shrink-0" />
+          <div className="flex-1">
+            <p>{rateError}</p>
+          </div>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="h-6 text-[10px] px-2"
+            onClick={() => loadRate(true)}
+          >
+            Retry
+          </Button>
         </div>
       )}
 
