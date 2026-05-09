@@ -12,6 +12,7 @@ import { XPReactor } from "@/components/dashboard/XPReactor";
 import { AchievementsCarousel } from "@/components/dashboard/AchievementsCarousel";
 import { WalletSnapshot } from "@/components/dashboard/WalletSnapshot";
 import { BtaxWalletOverview } from "@/components/dashboard/BtaxWalletOverview";
+import { PaymentHistoryPanel } from "@/components/dashboard/PaymentHistoryPanel";
 import { KycStatusBanner } from "@/components/dashboard/KycStatusBanner";
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 import { AchievementNotification } from "@/components/AchievementNotification";
