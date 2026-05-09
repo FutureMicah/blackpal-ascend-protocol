@@ -55,12 +55,8 @@ export const CurrencyConverter = ({
       if (force) clearBtaxRateCache();
       const r = await getBtaxToNairaRate(force);
       const now = new Date();
-      setRate((prev) => {
-        if (prev !== r || force) {
-          setHistory((h) => [{ rate: r, at: now, source: "academy_settings" as const }, ...h].slice(0, 5));
-        }
-        return r;
-      });
+      setRate(r);
+      setHistory((h) => [{ rate: r, at: now, source: "academy_settings" as const }, ...h].slice(0, 5));
       setLastUpdated(now);
       setSource("academy_settings");
     } catch (e: any) {
