@@ -148,6 +148,44 @@ export const AdminAnnouncements = () => {
               <Input id="ann-link-label" value={linkLabel} onChange={(e) => setLinkLabel(e.target.value)} placeholder="Learn more" />
             </div>
           </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <Label htmlFor="ann-starts">Show from (optional)</Label>
+              <Input id="ann-starts" type="datetime-local" value={startsAt} onChange={(e) => setStartsAt(e.target.value)} />
+            </div>
+            <div>
+              <Label htmlFor="ann-ends">Hide after (optional)</Label>
+              <Input id="ann-ends" type="datetime-local" value={endsAt} onChange={(e) => setEndsAt(e.target.value)} />
+            </div>
+          </div>
+          <div>
+            <Label className="block mb-1.5">Target roles (leave empty for everyone)</Label>
+            <div className="flex flex-wrap gap-2">
+              {ROLE_OPTIONS.map((r) => {
+                const on = targetRoles.includes(r);
+                return (
+                  <button
+                    key={r}
+                    type="button"
+                    onClick={() => toggleRole(r)}
+                    className={`text-[10px] px-2.5 py-1 rounded-full border transition focus-visible:ring-2 focus-visible:ring-primary ${
+                      on
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-muted/30 text-muted-foreground border-border"
+                    }`}
+                    aria-pressed={on}
+                  >
+                    {r}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-[9px] text-muted-foreground mt-1">
+              {targetRoles.length === 0
+                ? "Visible to everyone signed in."
+                : `Visible only to: ${targetRoles.join(", ")}`}
+            </p>
+          </div>
           <Button onClick={create} disabled={saving} className="w-full">
             <Plus className="w-4 h-4 mr-1" /> {saving ? "Publishing…" : "Publish announcement"}
           </Button>
