@@ -361,6 +361,23 @@ const WorldMap = () => {
     [traders]
   );
 
+  // Connection arcs from current user to each accepted friend with known coords.
+  const connections = useMemo(() => {
+    if (!currentUserId) return [] as { from: [number, number]; to: [number, number] }[];
+    const me = traders.find((t) => t.user_id === currentUserId);
+    const origin: [number, number] | null =
+      me?.latitude != null && me?.longitude != null
+        ? [me.longitude, me.latitude]
+        : myPos
+        ? [myPos[1], myPos[0]]
+        : null;
+    if (!origin) return [];
+    const friendSet = new Set(acceptedFriendIds);
+    return traders
+      .filter((t) => friendSet.has(t.user_id) && t.latitude != null && t.longitude != null)
+      .map((t) => ({ from: origin, to: [t.longitude!, t.latitude!] as [number, number] }));
+  }, [traders, acceptedFriendIds, currentUserId, myPos]);
+
   return (
     <div className="min-h-screen bg-background">
       <FloatingNav />
