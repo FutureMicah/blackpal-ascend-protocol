@@ -64,18 +64,12 @@ const BlackVault = () => {
         </header>
 
         {/* Balance Cards */}
-        <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-5">
+        <div className="grid grid-cols-2 gap-2 sm:gap-4 mb-5">
           <Card className="p-3 sm:p-5">
             <DollarSign className="w-5 h-5 text-primary mb-1" />
-            <p className="text-[9px] text-muted-foreground">Balance</p>
+            <p className="text-[9px] text-muted-foreground">BTAX Balance</p>
             <h2 className="text-sm sm:text-xl font-bold font-mono">{balance.toLocaleString()}</h2>
-            <p className="text-[8px] text-muted-foreground">~${usdEquivalent}</p>
-          </Card>
-          <Card className="p-3 sm:p-5">
-            <TrendingUp className="w-5 h-5 text-green-500 mb-1" />
-            <p className="text-[9px] text-muted-foreground">This Month</p>
-            <h2 className="text-sm sm:text-xl font-bold text-green-500">+{monthlyGain.toLocaleString()}</h2>
-            <p className="text-[8px] text-muted-foreground">Rewards</p>
+            <p className="text-[8px] text-muted-foreground">Set by admin</p>
           </Card>
           <Card className="p-3 sm:p-5">
             <Vault className="w-5 h-5 text-primary mb-1" />
