@@ -9,6 +9,8 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Slider } from "@/components/ui/slider";
+import { Label } from "@/components/ui/label";
 import {
   Globe2,
   Map as MapIcon,
@@ -119,7 +121,10 @@ const WorldMap = () => {
   const [search, setSearch] = useState("");
 
   // Debounced GPS setter — coalesces rapid location updates so the globe/map
-  // doesn't re-render on every GPS sample.
+  // doesn't re-render on every GPS sample. Throttle ms is user-tunable.
+  const [gpsThrottleMs, setGpsThrottleMs] = useState(350);
+  const [lastGpsAt, setLastGpsAt] = useState<Date | null>(null);
+  const [gpsTickCount, setGpsTickCount] = useState(0);
   const gpsTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const setMyPosDebounced = useCallback((next: [number, number]) => {
     if (gpsTimer.current) clearTimeout(gpsTimer.current);
@@ -132,8 +137,24 @@ const WorldMap = () => {
         }
         return next;
       });
-    }, 350);
+      setLastGpsAt(new Date());
+      setGpsTickCount((n) => n + 1);
+    }, gpsThrottleMs);
+  }, [gpsThrottleMs]);
+
+  // Live GPS update frequency (Hz, averaged over last 10s of ticks)
+  const [gpsHz, setGpsHz] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => {
+      // Decay frequency display each second when no new ticks
+      setGpsHz((prev) => Math.max(0, prev * 0.7));
+    }, 1000);
+    return () => clearInterval(id);
   }, []);
+  useEffect(() => {
+    if (!lastGpsAt) return;
+    setGpsHz(1000 / Math.max(gpsThrottleMs, 50));
+  }, [gpsTickCount, lastGpsAt, gpsThrottleMs]);
 
   const enrichProfiles = useCallback(async (list: Trader[]) => {
     if (!list.length) return;
