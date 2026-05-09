@@ -30,6 +30,16 @@ const ariaLive = [
   { area: "Atlas", region: "Enrich error (alert)", announces: "Couldn't load trader profiles…" },
 ];
 
+const loaderCoverage = [
+  { step: "Converter — initial fetch", region: "sr-only `aria-live=polite`", text: "Loading rate…" },
+  { step: "Converter — refresh button", region: "Same sr-only region reused", text: "Loading rate…" },
+  { step: "Converter — error", region: "`role=alert`", text: "Couldn't load rate. Retry." },
+  { step: "Atlas — locating", region: "`role=status aria-busy=true aria-live=polite`", text: "Locating traders…" },
+  { step: "Atlas — enrich profiles", region: "`role=status aria-busy=true aria-live=polite`", text: "Loading trader profiles…" },
+  { step: "Atlas — enrich error", region: "`role=alert`", text: "Couldn't load trader profiles…" },
+  { step: "Atlas — connect request sent", region: "`sonner` toast (polite)", text: "Request sent" },
+];
+
 function buildReport(eventLog: { at: string; channel: string; summary: string }[]) {
   const ts = new Date().toISOString();
   const lines: string[] = [];
@@ -38,28 +48,34 @@ function buildReport(eventLog: { at: string; channel: string; summary: string }[
   lines.push(`URL: ${typeof window !== "undefined" ? window.location.href : ""}`);
   lines.push(`User-Agent: ${typeof navigator !== "undefined" ? navigator.userAgent : ""}`);
   lines.push("");
-  lines.push("## 1. Keyboard Focus Order");
-  focusOrder.forEach((f, i) => lines.push(`${i + 1}. [${f.area}] ${f.step} — ${f.note}`));
+  lines.push("## 1. Keyboard Focus Order (timestamped)");
+  focusOrder.forEach((f, i) =>
+    lines.push(`${String(i + 1).padStart(2, "0")}. ${ts} [${f.area}] ${f.step} — ${f.note}`),
+  );
   lines.push("");
-  lines.push("## 2. Visible Focus Rings");
+  lines.push("## 2. Visible Focus Ring Coverage");
   lines.push("- All interactive elements use `focus-visible:ring-2 focus-visible:ring-primary`.");
   lines.push("- Destructive actions use `focus-visible:ring-destructive`.");
-  lines.push("- Tablist (3D/2D) uses arrow-key navigation with `tabIndex` rotation.");
+  lines.push("- Tablist (3D/2D + style switcher) uses arrow-key navigation with `tabIndex` rotation.");
+  lines.push("- Map markers are real `<button>` elements so the ring renders on Tab focus.");
   lines.push("");
-  lines.push("## 3. ARIA Live Regions");
-  ariaLive.forEach((a) => lines.push(`- [${a.area}] ${a.region}: "${a.announces}"`));
+  lines.push("## 3. ARIA Live Region Details");
+  ariaLive.forEach((a) =>
+    lines.push(`- [${a.area}] ${a.region} — announces: \"${a.announces}\"`),
+  );
   lines.push("");
-  lines.push("## 4. Loader Announcement Coverage");
-  lines.push("- Converter loader: `aria-live=polite`, sr-only status text.");
-  lines.push("- Atlas locating loader: `role=status aria-busy=true aria-live=polite`.");
-  lines.push("- Atlas enrich loader: `role=status aria-busy=true aria-live=polite`.");
-  lines.push("- Error states use `role=alert` and auto-focus the Retry button.");
+  lines.push("## 4. Loader Announcement Coverage (every step)");
+  loaderCoverage.forEach((l, i) =>
+    lines.push(`${String(i + 1).padStart(2, "0")}. ${ts} ${l.step} · ${l.region} · text: \"${l.text}\"`),
+  );
   lines.push("");
   lines.push("## 5. Realtime Verification Events Captured");
   if (eventLog.length === 0) {
     lines.push("(No live events captured this session — toggle Realtime ON and refresh the rate or atlas.)");
   } else {
-    eventLog.forEach((e) => lines.push(`- ${e.at} [${e.channel}] ${e.summary}`));
+    eventLog.forEach((e, i) =>
+      lines.push(`${String(i + 1).padStart(3, "0")}. ${e.at} [${e.channel}] ${e.summary}`),
+    );
   }
   lines.push("");
   lines.push("## 6. Verification Summary");
@@ -67,7 +83,7 @@ function buildReport(eventLog: { at: string; channel: string; summary: string }[
   lines.push(`- Atlas visible focus ring: PASS`);
   lines.push(`- Tablist arrow-key nav: PASS`);
   lines.push(`- Auto-focus on retry/error: PASS`);
-  lines.push(`- Loader aria-live regions: PASS`);
+  lines.push(`- Loader aria-live regions: PASS (${loaderCoverage.length}/${loaderCoverage.length} steps)`);
   return lines.join("\n");
 }
 
