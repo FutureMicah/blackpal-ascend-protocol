@@ -40,6 +40,9 @@ import TradeAnalytics from "./pages/TradeAnalytics";
 import WorldMap from "./pages/WorldMap";
 import ForexTools from "./pages/ForexTools";
 import VerifyIdentity from "./pages/VerifyIdentity";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
+import NairaTopUp from "./pages/NairaTopUp";
 
 const queryClient = new QueryClient();
 
