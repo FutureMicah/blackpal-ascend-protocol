@@ -375,43 +375,70 @@ const WorldMap = () => {
               Live world map of every BlackPal trader
             </p>
           </div>
-          <div
-            className="flex gap-1 bg-muted/30 p-1 rounded-full"
-            role="tablist"
-            aria-label="Trader Atlas view"
-            onKeyDown={(e) => {
-              if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
-                e.preventDefault();
-                setView((v) => (v === "globe" ? "map" : "globe"));
-              }
-            }}
-          >
-            <Button
-              size="sm"
-              variant={view === "globe" ? "default" : "ghost"}
-              className="h-7 text-[10px] px-3 rounded-full focus-visible:ring-2 focus-visible:ring-primary"
-              onClick={() => setView("globe")}
-              role="tab"
-              aria-selected={view === "globe"}
-              aria-controls="atlas-view-panel"
-              tabIndex={view === "globe" ? 0 : -1}
+          <div className="flex flex-col gap-1.5 items-end">
+            <div
+              className="flex gap-1 bg-muted/30 p-1 rounded-full"
+              role="tablist"
+              aria-label="Atlas projection"
+              onKeyDown={(e) => {
+                if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+                  e.preventDefault();
+                  setProjection((p) => (p === "globe" ? "mercator" : "globe"));
+                }
+              }}
             >
-              <Globe2 className="w-3 h-3 mr-1" aria-hidden="true" />
-              3D
-            </Button>
-            <Button
-              size="sm"
-              variant={view === "map" ? "default" : "ghost"}
-              className="h-7 text-[10px] px-3 rounded-full focus-visible:ring-2 focus-visible:ring-primary"
-              onClick={() => setView("map")}
-              role="tab"
-              aria-selected={view === "map"}
-              aria-controls="atlas-view-panel"
-              tabIndex={view === "map" ? 0 : -1}
-            >
-              <MapIcon className="w-3 h-3 mr-1" aria-hidden="true" />
-              2D
-            </Button>
+              <Button
+                size="sm"
+                variant={projection === "globe" ? "default" : "ghost"}
+                className="h-7 text-[10px] px-3 rounded-full focus-visible:ring-2 focus-visible:ring-primary"
+                onClick={() => setProjection("globe")}
+                role="tab"
+                aria-selected={projection === "globe"}
+                aria-controls="atlas-view-panel"
+                tabIndex={projection === "globe" ? 0 : -1}
+              >
+                <Globe2 className="w-3 h-3 mr-1" aria-hidden="true" />
+                Globe
+              </Button>
+              <Button
+                size="sm"
+                variant={projection === "mercator" ? "default" : "ghost"}
+                className="h-7 text-[10px] px-3 rounded-full focus-visible:ring-2 focus-visible:ring-primary"
+                onClick={() => setProjection("mercator")}
+                role="tab"
+                aria-selected={projection === "mercator"}
+                aria-controls="atlas-view-panel"
+                tabIndex={projection === "mercator" ? 0 : -1}
+              >
+                <MapIcon className="w-3 h-3 mr-1" aria-hidden="true" />
+                Flat
+              </Button>
+            </div>
+            <div className="flex gap-1 bg-muted/30 p-1 rounded-full" role="tablist" aria-label="Atlas style">
+              {(["cinematic", "satellite", "hybrid"] as AtlasStyleId[]).map((s) => (
+                <Button
+                  key={s}
+                  size="sm"
+                  variant={atlasStyle === s ? "default" : "ghost"}
+                  className="h-6 text-[9px] px-2 rounded-full capitalize focus-visible:ring-2 focus-visible:ring-primary"
+                  onClick={() => setAtlasStyle(s)}
+                  role="tab"
+                  aria-selected={atlasStyle === s}
+                >
+                  {s}
+                </Button>
+              ))}
+              <Button
+                size="sm"
+                variant={showHeatmap ? "default" : "ghost"}
+                className="h-6 text-[9px] px-2 rounded-full focus-visible:ring-2 focus-visible:ring-primary"
+                onClick={() => setShowHeatmap((v) => !v)}
+                aria-pressed={showHeatmap}
+                title="Toggle activity heatmap"
+              >
+                Heat
+              </Button>
+            </div>
           </div>
         </div>
 
