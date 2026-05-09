@@ -2535,6 +2535,7 @@ export type Database = {
           payment_method: Database["public"]["Enums"]["payment_method"]
           payment_status: Database["public"]["Enums"]["payment_status"] | null
           payment_tier: Database["public"]["Enums"]["payment_tier"]
+          transaction_id: string | null
           updated_at: string | null
           user_id: string
         }
@@ -2552,6 +2553,7 @@ export type Database = {
           payment_method: Database["public"]["Enums"]["payment_method"]
           payment_status?: Database["public"]["Enums"]["payment_status"] | null
           payment_tier: Database["public"]["Enums"]["payment_tier"]
+          transaction_id?: string | null
           updated_at?: string | null
           user_id: string
         }
@@ -2569,6 +2571,7 @@ export type Database = {
           payment_method?: Database["public"]["Enums"]["payment_method"]
           payment_status?: Database["public"]["Enums"]["payment_status"] | null
           payment_tier?: Database["public"]["Enums"]["payment_tier"]
+          transaction_id?: string | null
           updated_at?: string | null
           user_id?: string
         }
