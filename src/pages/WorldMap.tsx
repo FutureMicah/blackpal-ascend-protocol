@@ -542,6 +542,35 @@ const WorldMap = () => {
           )}
         </Card>
 
+        {/* GPS throttle controls */}
+        <Card className="p-3 mb-3" aria-label="GPS update controls">
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-xs font-bold flex items-center gap-1.5">
+              <Crosshair className="w-3 h-3 text-primary" />
+              GPS Throttle
+            </h2>
+            <Badge variant="outline" className="text-[9px] font-mono" aria-live="polite">
+              ~{gpsHz.toFixed(2)} Hz · {gpsThrottleMs}ms
+            </Badge>
+          </div>
+          <Label htmlFor="gps-throttle" className="text-[10px] text-muted-foreground">
+            Higher throttle = smoother map, fewer re-renders
+          </Label>
+          <Slider
+            id="gps-throttle"
+            min={100}
+            max={3000}
+            step={50}
+            value={[gpsThrottleMs]}
+            onValueChange={(v) => setGpsThrottleMs(v[0])}
+            className="mt-2 focus-visible:ring-2 focus-visible:ring-primary"
+            aria-label="GPS update throttle in milliseconds"
+          />
+          <p className="text-[9px] text-muted-foreground mt-1">
+            Last GPS tick: {lastGpsAt ? lastGpsAt.toLocaleTimeString() : "—"} · ticks: {gpsTickCount}
+          </p>
+        </Card>
+
         {/* Top countries */}
         <Card className="p-3">
           <h2 className="text-xs font-bold mb-2">Top Countries</h2>

@@ -43,6 +43,8 @@ import VerifyIdentity from "./pages/VerifyIdentity";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import NairaTopUp from "./pages/NairaTopUp";
+import A11yChecklist from "./pages/A11yChecklist";
+import { AnnouncementPopup } from "./components/AnnouncementPopup";
 
 const queryClient = new QueryClient();
 
@@ -52,6 +54,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <AnnouncementPopup />
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
@@ -92,6 +95,7 @@ const App = () => (
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/wallet/topup" element={<NairaTopUp />} />
+          <Route path="/a11y-checklist" element={<A11yChecklist />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
