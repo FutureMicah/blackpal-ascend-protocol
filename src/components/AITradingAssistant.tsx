@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Bot, Send, X, Sparkles, Loader2, MessageSquare, Trash2 } from "lucide-react";
+import DOMPurify from "dompurify";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { ScrollArea } from "./ui/scroll-area";
@@ -126,9 +127,20 @@ export const AITradingAssistant = ({ isOpen, onClose }: AITradingAssistantProps)
   };
 
   const formatMessage = (content: string) => {
-    return content
+    // Sanitize: escape first, then re-apply only the allowlisted formatting.
+    const escaped = content
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+    const formatted = escaped
       .replace(/\*\*(.*?)\*\*/g, '<strong class="text-primary">$1</strong>')
-      .replace(/\n/g, '<br />');
+      .replace(/\n/g, "<br />");
+    return DOMPurify.sanitize(formatted, {
+      ALLOWED_TAGS: ["strong", "br"],
+      ALLOWED_ATTR: ["class"],
+    });
   };
 
   return (

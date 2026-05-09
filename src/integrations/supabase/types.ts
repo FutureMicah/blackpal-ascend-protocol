@@ -4521,6 +4521,14 @@ export type Database = {
           },
         ]
       }
+      world_map_country_counts: {
+        Row: {
+          country: string | null
+          country_code: string | null
+          trader_count: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       allocate_sponsor_btax: {
@@ -4567,6 +4575,13 @@ export type Database = {
       update_achievement_streak: {
         Args: { user_id_param: string }
         Returns: number
+      }
+      validate_referral_code: {
+        Args: { p_code: string }
+        Returns: {
+          code: string
+          user_id: string
+        }[]
       }
     }
     Enums: {

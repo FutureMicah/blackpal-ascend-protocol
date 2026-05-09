@@ -56,9 +56,11 @@ export const PaymentProofUpload = ({ userId, paymentId, onUploaded }: PaymentPro
 
       if (uploadError) throw uploadError;
 
-      const { data: urlData } = supabase.storage
+      // payment-proofs is a PRIVATE bucket — generate a short-lived signed URL
+      // for the preview. The DB stores only the file path.
+      const { data: urlData } = await supabase.storage
         .from('payment-proofs')
-        .getPublicUrl(fileName);
+        .createSignedUrl(fileName, 3600);
 
       const { error: dbError } = await supabase
         .from('payment_proofs')
