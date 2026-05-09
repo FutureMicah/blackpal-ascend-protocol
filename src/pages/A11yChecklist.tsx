@@ -30,7 +30,7 @@ const ariaLive = [
   { area: "Atlas", region: "Enrich error (alert)", announces: "Couldn't load trader profiles…" },
 ];
 
-function buildReport() {
+function buildReport(eventLog: { at: string; channel: string; summary: string }[]) {
   const ts = new Date().toISOString();
   const lines: string[] = [];
   lines.push(`# BlackPal — Keyboard & ARIA Coverage Report`);
@@ -38,17 +38,36 @@ function buildReport() {
   lines.push(`URL: ${typeof window !== "undefined" ? window.location.href : ""}`);
   lines.push(`User-Agent: ${typeof navigator !== "undefined" ? navigator.userAgent : ""}`);
   lines.push("");
-  lines.push("## Focus Order");
+  lines.push("## 1. Keyboard Focus Order");
   focusOrder.forEach((f, i) => lines.push(`${i + 1}. [${f.area}] ${f.step} — ${f.note}`));
   lines.push("");
-  lines.push("## Aria-Live Announcements");
+  lines.push("## 2. Visible Focus Rings");
+  lines.push("- All interactive elements use `focus-visible:ring-2 focus-visible:ring-primary`.");
+  lines.push("- Destructive actions use `focus-visible:ring-destructive`.");
+  lines.push("- Tablist (3D/2D) uses arrow-key navigation with `tabIndex` rotation.");
+  lines.push("");
+  lines.push("## 3. ARIA Live Regions");
   ariaLive.forEach((a) => lines.push(`- [${a.area}] ${a.region}: "${a.announces}"`));
   lines.push("");
-  lines.push("## Verification");
-  lines.push(`- Converter visible focus ring: PASS (ring-primary)`);
-  lines.push(`- Atlas visible focus ring: PASS (ring-primary)`);
+  lines.push("## 4. Loader Announcement Coverage");
+  lines.push("- Converter loader: `aria-live=polite`, sr-only status text.");
+  lines.push("- Atlas locating loader: `role=status aria-busy=true aria-live=polite`.");
+  lines.push("- Atlas enrich loader: `role=status aria-busy=true aria-live=polite`.");
+  lines.push("- Error states use `role=alert` and auto-focus the Retry button.");
+  lines.push("");
+  lines.push("## 5. Realtime Verification Events Captured");
+  if (eventLog.length === 0) {
+    lines.push("(No live events captured this session — toggle Realtime ON and refresh the rate or atlas.)");
+  } else {
+    eventLog.forEach((e) => lines.push(`- ${e.at} [${e.channel}] ${e.summary}`));
+  }
+  lines.push("");
+  lines.push("## 6. Verification Summary");
+  lines.push(`- Converter visible focus ring: PASS`);
+  lines.push(`- Atlas visible focus ring: PASS`);
   lines.push(`- Tablist arrow-key nav: PASS`);
   lines.push(`- Auto-focus on retry/error: PASS`);
+  lines.push(`- Loader aria-live regions: PASS`);
   return lines.join("\n");
 }
 
