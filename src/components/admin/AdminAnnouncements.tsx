@@ -38,6 +38,9 @@ export const AdminAnnouncements = () => {
   const [level, setLevel] = useState("info");
   const [linkUrl, setLinkUrl] = useState("");
   const [linkLabel, setLinkLabel] = useState("");
+  const [startsAt, setStartsAt] = useState("");
+  const [endsAt, setEndsAt] = useState("");
+  const [targetRoles, setTargetRoles] = useState<RoleKey[]>([]);
   const [saving, setSaving] = useState(false);
 
   const load = async () => {
@@ -54,6 +57,9 @@ export const AdminAnnouncements = () => {
     load();
   }, []);
 
+  const toggleRole = (r: RoleKey) =>
+    setTargetRoles((prev) => (prev.includes(r) ? prev.filter((x) => x !== r) : [...prev, r]));
+
   const create = async () => {
     if (!title.trim() || !body.trim()) {
       toast.error("Title and body are required");
@@ -61,7 +67,7 @@ export const AdminAnnouncements = () => {
     }
     setSaving(true);
     const { data: auth } = await supabase.auth.getUser();
-    const { error } = await supabase.from("app_announcements").insert({
+    const payload: any = {
       title: title.trim(),
       body: body.trim(),
       level,
@@ -69,7 +75,12 @@ export const AdminAnnouncements = () => {
       link_label: linkLabel.trim() || null,
       is_active: true,
       created_by: auth.user?.id,
-    });
+      target_roles: targetRoles,
+    };
+    if (startsAt) payload.starts_at = new Date(startsAt).toISOString();
+    if (endsAt) payload.ends_at = new Date(endsAt).toISOString();
+
+    const { error } = await supabase.from("app_announcements").insert(payload);
     setSaving(false);
     if (error) {
       toast.error("Failed to create announcement: " + error.message);
@@ -81,6 +92,9 @@ export const AdminAnnouncements = () => {
     setLinkUrl("");
     setLinkLabel("");
     setLevel("info");
+    setStartsAt("");
+    setEndsAt("");
+    setTargetRoles([]);
     load();
   };
 
