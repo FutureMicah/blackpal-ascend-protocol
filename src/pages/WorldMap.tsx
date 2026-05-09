@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { FloatingNav } from "@/components/FloatingNav";
 import { TraderGlobe } from "@/components/TraderGlobe";
+import { RealtimeVerifier as RealtimeVerifierLazy } from "@/components/RealtimeVerifier";
 import { supabase } from "@/integrations/supabase/client";
 import { captureUserLocation } from "@/lib/location-tracker";
 import { useToast } from "@/hooks/use-toast";
@@ -119,6 +120,10 @@ const WorldMap = () => {
   const [myPos, setMyPos] = useState<[number, number] | null>(null);
   const [topCountries, setTopCountries] = useState<{ country: string; count: number }[]>([]);
   const [search, setSearch] = useState("");
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [connStatus, setConnStatus] = useState<Record<string, "none" | "sent" | "accepted" | "pending">>({});
+  const [connectingId, setConnectingId] = useState<string | null>(null);
+  const [verifyRealtime, setVerifyRealtime] = useState(false);
 
   // Debounced GPS setter — coalesces rapid location updates so the globe/map
   // doesn't re-render on every GPS sample. Throttle ms is user-tunable.
@@ -176,6 +181,17 @@ const WorldMap = () => {
             : t;
         })
       );
+      if (verifyRealtime) {
+        // eslint-disable-next-line no-console
+        console.info(
+          `[BlackPal][atlas-refresh] ${new Date().toISOString()} · enriched ${profs?.length ?? 0} profile(s)`
+        );
+        window.dispatchEvent(
+          new CustomEvent("blackpal:atlas-refresh", {
+            detail: { count: profs?.length ?? 0, at: new Date() },
+          })
+        );
+      }
     } catch (e: any) {
       // Surface a precise diagnostic so we can see which step failed
       const step = e?.message?.toLowerCase().includes("avatar")
@@ -188,7 +204,51 @@ const WorldMap = () => {
     } finally {
       setEnriching(false);
     }
+  }, [verifyRealtime]);
+
+  // Load current user + connection status map
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase.auth.getUser();
+      const uid = data.user?.id ?? null;
+      setCurrentUserId(uid);
+      if (!uid) return;
+      const { data: conns } = await supabase
+        .from("friend_connections")
+        .select("user_id, friend_id, status")
+        .or(`user_id.eq.${uid},friend_id.eq.${uid}`);
+      const map: Record<string, "none" | "sent" | "accepted" | "pending"> = {};
+      (conns ?? []).forEach((c: any) => {
+        const other = c.user_id === uid ? c.friend_id : c.user_id;
+        map[other] = c.status === "accepted" ? "accepted" : c.user_id === uid ? "sent" : "pending";
+      });
+      setConnStatus(map);
+    })();
   }, []);
+
+  const connectWith = useCallback(
+    async (friendId: string) => {
+      if (!currentUserId) {
+        toast({ variant: "destructive", title: "Sign in to connect" });
+        return;
+      }
+      if (friendId === currentUserId) return;
+      setConnectingId(friendId);
+      const { error } = await supabase.from("friend_connections").insert({
+        user_id: currentUserId,
+        friend_id: friendId,
+        status: "pending",
+      });
+      setConnectingId(null);
+      if (error) {
+        toast({ variant: "destructive", title: "Couldn't send request", description: error.message });
+        return;
+      }
+      setConnStatus((m) => ({ ...m, [friendId]: "sent" }));
+      toast({ title: "Request sent", description: "They'll see your invite in Discover." });
+    },
+    [currentUserId, toast]
+  );
 
   useEffect(() => {
     const init = async () => {
@@ -458,22 +518,42 @@ const WorldMap = () => {
                   attribution="&copy; OpenStreetMap &copy; CARTO"
                 />
                 <FlyTo pos={myPos} />
-                {filtered.map((t) => (
-                  <Marker key={t.user_id} position={[t.latitude!, t.longitude!]} icon={avatarIcon(t)}>
-                    <Popup>
-                      <div className="text-xs">
-                        <p className="font-bold">{t.display_name ?? "Trader"}</p>
-                        <p className="text-muted-foreground">
-                          {t.city ?? "—"}, {t.country ?? "—"}
-                        </p>
-                        {t.xp != null && <p className="text-amber-600 font-mono">{t.xp} XP</p>}
-                      </div>
-                    </Popup>
-                    <Tooltip direction="top" offset={[0, -22]} opacity={0.9}>
-                      {t.display_name ?? "Trader"}
-                    </Tooltip>
-                  </Marker>
-                ))}
+                {filtered.map((t) => {
+                  const status = connStatus[t.user_id];
+                  const isMe = t.user_id === currentUserId;
+                  return (
+                    <Marker key={t.user_id} position={[t.latitude!, t.longitude!]} icon={avatarIcon(t)}>
+                      <Popup>
+                        <div className="text-xs space-y-1.5 min-w-[160px]">
+                          <p className="font-bold">{t.display_name ?? "Trader"}</p>
+                          <p className="text-muted-foreground">
+                            {t.city ?? "—"}, {t.country ?? "—"}
+                          </p>
+                          {t.xp != null && <p className="text-amber-600 font-mono">{t.xp} XP</p>}
+                          {!isMe && (
+                            <button
+                              type="button"
+                              disabled={!!status || connectingId === t.user_id}
+                              onClick={() => connectWith(t.user_id)}
+                              className="w-full mt-1 inline-flex items-center justify-center gap-1 h-7 rounded-md bg-primary text-primary-foreground text-[10px] font-semibold disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-primary"
+                            >
+                              {status === "accepted"
+                                ? "Connected"
+                                : status === "sent" || status === "pending"
+                                ? "Request pending"
+                                : connectingId === t.user_id
+                                ? "Sending…"
+                                : "Connect"}
+                            </button>
+                          )}
+                        </div>
+                      </Popup>
+                      <Tooltip direction="top" offset={[0, -22]} opacity={0.9}>
+                        {t.display_name ?? "Trader"}
+                      </Tooltip>
+                    </Marker>
+                  );
+                })}
                 {myPos && <Marker position={myPos} icon={youIcon()} />}
               </MapContainer>
 
@@ -512,29 +592,48 @@ const WorldMap = () => {
                   {nearbyTop.length === 0 ? (
                     <p className="text-[10px] text-muted-foreground py-2">No traders online right now.</p>
                   ) : (
-                    nearbyTop.map((t) => (
-                      <div
-                        key={t.user_id}
-                        className="shrink-0 flex flex-col items-center gap-1 w-14"
-                        title={t.display_name ?? "Trader"}
-                      >
-                        <div className="relative">
-                          <div className="w-11 h-11 rounded-full overflow-hidden border-2 border-primary bg-muted">
-                            {t.avatar_url ? (
-                              <img src={t.avatar_url} alt="" className="w-full h-full object-cover" />
-                            ) : (
-                              <div className="w-full h-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-white text-sm font-bold">
-                                {(t.display_name ?? "?").slice(0, 1).toUpperCase()}
-                              </div>
-                            )}
+                    nearbyTop.map((t) => {
+                      const status = connStatus[t.user_id];
+                      const isMe = t.user_id === currentUserId;
+                      return (
+                        <div
+                          key={t.user_id}
+                          className="shrink-0 flex flex-col items-center gap-1 w-16"
+                          title={t.display_name ?? "Trader"}
+                        >
+                          <div className="relative">
+                            <div className="w-11 h-11 rounded-full overflow-hidden border-2 border-primary bg-muted">
+                              {t.avatar_url ? (
+                                <img src={t.avatar_url} alt="" className="w-full h-full object-cover" />
+                              ) : (
+                                <div className="w-full h-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-white text-sm font-bold">
+                                  {(t.display_name ?? "?").slice(0, 1).toUpperCase()}
+                                </div>
+                              )}
+                            </div>
+                            <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-green-500 border-2 border-white" />
                           </div>
-                          <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-green-500 border-2 border-white" />
+                          <p className="text-[9px] font-semibold truncate w-full text-center text-foreground">
+                            {t.display_name?.split(" ")[0] ?? "—"}
+                          </p>
+                          {!isMe && (
+                            <button
+                              type="button"
+                              disabled={!!status || connectingId === t.user_id}
+                              onClick={() => connectWith(t.user_id)}
+                              className="text-[8px] px-1.5 py-0.5 rounded-full bg-primary text-primary-foreground disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-primary"
+                              aria-label={`Connect with ${t.display_name ?? "trader"}`}
+                            >
+                              {status === "accepted"
+                                ? "✓"
+                                : status === "sent" || status === "pending"
+                                ? "Sent"
+                                : "Connect"}
+                            </button>
+                          )}
                         </div>
-                        <p className="text-[9px] font-semibold truncate w-full text-center text-foreground">
-                          {t.display_name?.split(" ")[0] ?? "—"}
-                        </p>
-                      </div>
-                    ))
+                      );
+                    })
                   )}
                 </div>
               </div>
@@ -542,7 +641,25 @@ const WorldMap = () => {
           )}
         </Card>
 
-        {/* GPS throttle controls */}
+        {/* Realtime verification toggle + log */}
+        <Card className="p-3 mb-3 flex items-center justify-between gap-3">
+          <div>
+            <p className="text-xs font-bold">Realtime verification mode</p>
+            <p className="text-[10px] text-muted-foreground">
+              Logs every Atlas profile refresh + dispatches a window event so you can confirm live updates without reloads.
+            </p>
+          </div>
+          <Button
+            size="sm"
+            variant={verifyRealtime ? "default" : "outline"}
+            className="text-[10px] focus-visible:ring-2 focus-visible:ring-primary"
+            onClick={() => setVerifyRealtime((v) => !v)}
+            aria-pressed={verifyRealtime}
+          >
+            {verifyRealtime ? "ON" : "OFF"}
+          </Button>
+        </Card>
+        {verifyRealtime && <RealtimeVerifierLazy />}
         <Card className="p-3 mb-3" aria-label="GPS update controls">
           <div className="flex items-center justify-between mb-2">
             <h2 className="text-xs font-bold flex items-center gap-1.5">

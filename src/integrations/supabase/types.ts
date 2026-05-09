@@ -839,6 +839,7 @@ export type Database = {
           link_label: string | null
           link_url: string | null
           starts_at: string
+          target_roles: Database["public"]["Enums"]["app_role"][]
           title: string
           updated_at: string
         }
@@ -853,6 +854,7 @@ export type Database = {
           link_label?: string | null
           link_url?: string | null
           starts_at?: string
+          target_roles?: Database["public"]["Enums"]["app_role"][]
           title: string
           updated_at?: string
         }
@@ -867,6 +869,7 @@ export type Database = {
           link_label?: string | null
           link_url?: string | null
           starts_at?: string
+          target_roles?: Database["public"]["Enums"]["app_role"][]
           title?: string
           updated_at?: string
         }

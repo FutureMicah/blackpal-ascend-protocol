@@ -13,6 +13,9 @@ import { toast } from "sonner";
 import { Megaphone, Trash2, Plus } from "lucide-react";
 import { format } from "date-fns";
 
+type RoleKey = "student" | "sponsor" | "admin" | "moderator";
+const ROLE_OPTIONS: RoleKey[] = ["student", "sponsor", "moderator", "admin"];
+
 interface Announcement {
   id: string;
   title: string;
@@ -22,6 +25,9 @@ interface Announcement {
   link_label: string | null;
   is_active: boolean;
   created_at: string;
+  starts_at?: string;
+  ends_at?: string | null;
+  target_roles?: RoleKey[];
 }
 
 export const AdminAnnouncements = () => {
@@ -32,6 +38,9 @@ export const AdminAnnouncements = () => {
   const [level, setLevel] = useState("info");
   const [linkUrl, setLinkUrl] = useState("");
   const [linkLabel, setLinkLabel] = useState("");
+  const [startsAt, setStartsAt] = useState("");
+  const [endsAt, setEndsAt] = useState("");
+  const [targetRoles, setTargetRoles] = useState<RoleKey[]>([]);
   const [saving, setSaving] = useState(false);
 
   const load = async () => {
@@ -48,6 +57,9 @@ export const AdminAnnouncements = () => {
     load();
   }, []);
 
+  const toggleRole = (r: RoleKey) =>
+    setTargetRoles((prev) => (prev.includes(r) ? prev.filter((x) => x !== r) : [...prev, r]));
+
   const create = async () => {
     if (!title.trim() || !body.trim()) {
       toast.error("Title and body are required");
@@ -55,7 +67,7 @@ export const AdminAnnouncements = () => {
     }
     setSaving(true);
     const { data: auth } = await supabase.auth.getUser();
-    const { error } = await supabase.from("app_announcements").insert({
+    const payload: any = {
       title: title.trim(),
       body: body.trim(),
       level,
@@ -63,7 +75,12 @@ export const AdminAnnouncements = () => {
       link_label: linkLabel.trim() || null,
       is_active: true,
       created_by: auth.user?.id,
-    });
+      target_roles: targetRoles,
+    };
+    if (startsAt) payload.starts_at = new Date(startsAt).toISOString();
+    if (endsAt) payload.ends_at = new Date(endsAt).toISOString();
+
+    const { error } = await supabase.from("app_announcements").insert(payload);
     setSaving(false);
     if (error) {
       toast.error("Failed to create announcement: " + error.message);
@@ -75,6 +92,9 @@ export const AdminAnnouncements = () => {
     setLinkUrl("");
     setLinkLabel("");
     setLevel("info");
+    setStartsAt("");
+    setEndsAt("");
+    setTargetRoles([]);
     load();
   };
 
@@ -128,6 +148,44 @@ export const AdminAnnouncements = () => {
               <Input id="ann-link-label" value={linkLabel} onChange={(e) => setLinkLabel(e.target.value)} placeholder="Learn more" />
             </div>
           </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <Label htmlFor="ann-starts">Show from (optional)</Label>
+              <Input id="ann-starts" type="datetime-local" value={startsAt} onChange={(e) => setStartsAt(e.target.value)} />
+            </div>
+            <div>
+              <Label htmlFor="ann-ends">Hide after (optional)</Label>
+              <Input id="ann-ends" type="datetime-local" value={endsAt} onChange={(e) => setEndsAt(e.target.value)} />
+            </div>
+          </div>
+          <div>
+            <Label className="block mb-1.5">Target roles (leave empty for everyone)</Label>
+            <div className="flex flex-wrap gap-2">
+              {ROLE_OPTIONS.map((r) => {
+                const on = targetRoles.includes(r);
+                return (
+                  <button
+                    key={r}
+                    type="button"
+                    onClick={() => toggleRole(r)}
+                    className={`text-[10px] px-2.5 py-1 rounded-full border transition focus-visible:ring-2 focus-visible:ring-primary ${
+                      on
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-muted/30 text-muted-foreground border-border"
+                    }`}
+                    aria-pressed={on}
+                  >
+                    {r}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-[9px] text-muted-foreground mt-1">
+              {targetRoles.length === 0
+                ? "Visible to everyone signed in."
+                : `Visible only to: ${targetRoles.join(", ")}`}
+            </p>
+          </div>
           <Button onClick={create} disabled={saving} className="w-full">
             <Plus className="w-4 h-4 mr-1" /> {saving ? "Publishing…" : "Publish announcement"}
           </Button>
@@ -160,6 +218,25 @@ export const AdminAnnouncements = () => {
                   </div>
                   <p className="text-sm font-semibold truncate">{a.title}</p>
                   <p className="text-xs text-muted-foreground line-clamp-2">{a.body}</p>
+                  <div className="flex flex-wrap gap-1 mt-1.5">
+                    {(a.target_roles ?? []).length === 0 ? (
+                      <Badge variant="outline" className="text-[8px]">everyone</Badge>
+                    ) : (
+                      a.target_roles!.map((r) => (
+                        <Badge key={r} variant="outline" className="text-[8px]">{r}</Badge>
+                      ))
+                    )}
+                    {a.starts_at && (
+                      <span className="text-[9px] text-muted-foreground">
+                        from {format(new Date(a.starts_at), "MMM d HH:mm")}
+                      </span>
+                    )}
+                    {a.ends_at && (
+                      <span className="text-[9px] text-muted-foreground">
+                        → {format(new Date(a.ends_at), "MMM d HH:mm")}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <div className="flex flex-col items-end gap-2">
                   <Switch checked={a.is_active} onCheckedChange={() => toggle(a)} aria-label="Toggle active" />
