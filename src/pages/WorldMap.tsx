@@ -317,8 +317,10 @@ const WorldMap = () => {
                 >
                   <span>{enrichError}</span>
                   <button
+                    type="button"
+                    autoFocus
                     onClick={() => enrichProfiles(traders)}
-                    className="px-2 py-0.5 rounded-full bg-white/20 hover:bg-white/30 font-semibold"
+                    className="px-2 py-0.5 rounded-full bg-white/20 hover:bg-white/30 font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-white/90"
                     aria-label="Retry loading trader profiles"
                   >
                     Retry
