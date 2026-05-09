@@ -301,6 +301,40 @@ const WorldMap = () => {
     }
   };
 
+  // Continuous live GPS — uses watchPosition and routes every reading through
+  // setMyPosDebounced, so the throttle slider directly controls how often the
+  // map actually re-renders / re-centres.
+  const [liveGps, setLiveGps] = useState(false);
+  const watchIdRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (!liveGps) {
+      if (watchIdRef.current != null && navigator.geolocation) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+        watchIdRef.current = null;
+      }
+      return;
+    }
+    if (!navigator.geolocation) {
+      toast({ variant: "destructive", title: "Geolocation unavailable" });
+      setLiveGps(false);
+      return;
+    }
+    watchIdRef.current = navigator.geolocation.watchPosition(
+      (pos) => setMyPosDebounced([pos.coords.latitude, pos.coords.longitude]),
+      (err) => {
+        toast({ variant: "destructive", title: "Live GPS error", description: err.message });
+        setLiveGps(false);
+      },
+      { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
+    );
+    return () => {
+      if (watchIdRef.current != null) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+        watchIdRef.current = null;
+      }
+    };
+  }, [liveGps, setMyPosDebounced, toast]);
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return traders;
