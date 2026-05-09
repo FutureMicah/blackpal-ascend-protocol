@@ -182,7 +182,11 @@ export const CurrencyConverter = ({
         <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">
           {outLabel}
         </Label>
-        <div className="h-10 px-3 rounded-md bg-muted/40 border border-border flex items-center font-mono text-base font-semibold">
+        <div
+          className="h-10 px-3 rounded-md bg-muted/40 border border-border flex items-center font-mono text-base font-semibold"
+          aria-live="polite"
+          aria-atomic="true"
+        >
           {outDisplay}
         </div>
       </div>
@@ -191,6 +195,14 @@ export const CurrencyConverter = ({
         <div className="space-y-1 pt-1">
           <p className="text-[10px] text-muted-foreground text-center">
             Live rate from academy settings · 1 BTAX = ₦{rate.toLocaleString()}
+            {lastUpdated && (
+              <span
+                className="ml-1 text-muted-foreground/70"
+                title={lastUpdated.toLocaleString()}
+              >
+                · updated {lastUpdatedLabel}
+              </span>
+            )}
           </p>
           <p
             data-testid="naira-context-note"
