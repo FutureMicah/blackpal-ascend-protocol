@@ -127,40 +127,17 @@ export const PaymentGateway = ({ geoData, userId, onMethodSelect, onBack }: Paym
   };
 
   const initPaystack = async () => {
-    // Use Paystack inline popup
-    // For production, generate reference from edge function
-    const reference = `BTA-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    
-    const { data: sessionData } = await supabase.auth.getSession();
-    const email = sessionData?.session?.user?.email || '';
-
-    // Load Paystack inline script
-    const script = document.createElement('script');
-    script.src = 'https://js.paystack.co/v1/inline.js';
-    script.onload = () => {
-      const handler = (window as any).PaystackPop.setup({
-        key: 'pk_test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx', // Replace with your Paystack public key
-        email: email,
-        amount: 100000, // ₦1,000 in kobo
-        currency: 'NGN',
-        ref: reference,
-        metadata: {
-          user_id: userId,
-          payment_tier: geoData.paymentTier,
-        },
-        callback: async (response: any) => {
-          console.log('Paystack success:', response);
-          toast({ title: "Payment Successful!", description: "Your account is now activated." });
-          await markPaymentComplete();
-        },
-        onClose: () => {
-          toast({ title: "Payment Cancelled", description: "You can try again anytime.", variant: "destructive" });
-          setProcessing(false);
-        },
-      });
-      handler.openIframe();
-    };
-    document.body.appendChild(script);
+    const callback_url = `${window.location.origin}/dashboard?paystack=1`;
+    const { data, error } = await supabase.functions.invoke('paystack-init', {
+      body: { callback_url },
+    });
+    if (error || !data?.authorization_url) {
+      toast({ title: 'Payment Error', description: error?.message || 'Could not start Paystack', variant: 'destructive' });
+      setProcessing(false);
+      return;
+    }
+    // Redirect to Paystack hosted checkout
+    window.location.href = data.authorization_url;
   };
 
   const markPaymentComplete = async () => {
