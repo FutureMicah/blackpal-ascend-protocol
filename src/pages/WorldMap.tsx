@@ -70,14 +70,7 @@ const WorldMap = () => {
   const setMyPosDebounced = useCallback((next: [number, number]) => {
     if (gpsTimer.current) clearTimeout(gpsTimer.current);
     gpsTimer.current = setTimeout(() => {
-      setMyPos((prev) => {
-        if (prev) {
-          const dLat = Math.abs(prev[0] - next[0]);
-          const dLng = Math.abs(prev[1] - next[1]);
-          if (dLat < 0.0005 && dLng < 0.0005) return prev;
-        }
-        return next;
-      });
+      setMyPos((prev) => (shouldCoalesceGps(prev, next) ? prev : next));
       setLastGpsAt(new Date());
       setGpsTickCount((n) => n + 1);
     }, gpsThrottleMs);
