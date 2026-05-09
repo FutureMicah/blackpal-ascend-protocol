@@ -25,21 +25,36 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // --- AuthN: validate the caller's JWT ---
+    const authHeader = req.headers.get("Authorization") ?? "";
+    const userClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+      { global: { headers: { Authorization: authHeader } } }
+    );
+    const { data: authData, error: authError } = await userClient.auth.getUser();
+    if (authError || !authData?.user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const callerId = authData.user.id;
+
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-      {
-        auth: {
-          persistSession: false,
-        },
-      }
+      { auth: { persistSession: false } }
     );
 
-    const { user_id, event_type, event_data }: AwardRequest = await req.json();
+    const body: AwardRequest = await req.json();
+    const { event_type, event_data } = body;
+    // SECURITY: derive user_id from the verified JWT, never trust the body.
+    const user_id = callerId;
 
-    if (!user_id || !event_type) {
+    if (!event_type) {
       return new Response(
-        JSON.stringify({ error: 'Missing user_id or event_type' }),
+        JSON.stringify({ error: 'Missing event_type' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
