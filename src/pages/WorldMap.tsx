@@ -640,7 +640,25 @@ const WorldMap = () => {
           )}
         </Card>
 
-        {/* GPS throttle controls */}
+        {/* Realtime verification toggle + log */}
+        <Card className="p-3 mb-3 flex items-center justify-between gap-3">
+          <div>
+            <p className="text-xs font-bold">Realtime verification mode</p>
+            <p className="text-[10px] text-muted-foreground">
+              Logs every Atlas profile refresh + dispatches a window event so you can confirm live updates without reloads.
+            </p>
+          </div>
+          <Button
+            size="sm"
+            variant={verifyRealtime ? "default" : "outline"}
+            className="text-[10px] focus-visible:ring-2 focus-visible:ring-primary"
+            onClick={() => setVerifyRealtime((v) => !v)}
+            aria-pressed={verifyRealtime}
+          >
+            {verifyRealtime ? "ON" : "OFF"}
+          </Button>
+        </Card>
+        {verifyRealtime && <RealtimeVerifierLazy />}
         <Card className="p-3 mb-3" aria-label="GPS update controls">
           <div className="flex items-center justify-between mb-2">
             <h2 className="text-xs font-bold flex items-center gap-1.5">
