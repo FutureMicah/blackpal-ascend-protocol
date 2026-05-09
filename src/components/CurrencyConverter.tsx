@@ -30,21 +30,28 @@ export const CurrencyConverter = ({
 }: CurrencyConverterProps) => {
   const [rate, setRate] = useState<number>(DEFAULT_BTAX_TO_NAIRA);
   const [loadingRate, setLoadingRate] = useState(true);
+  const [rateError, setRateError] = useState<string | null>(null);
   const [direction, setDirection] = useState<Direction>(defaultDirection);
   const [input, setInput] = useState<string>("");
 
-  useEffect(() => {
-    let alive = true;
-    getBtaxToNairaRate().then((r) => {
-      if (alive) {
-        setRate(r);
-        setLoadingRate(false);
-      }
-    });
-    return () => {
-      alive = false;
-    };
+  const loadRate = useCallback(async (force = false) => {
+    setLoadingRate(true);
+    setRateError(null);
+    try {
+      if (force) clearBtaxRateCache();
+      const r = await getBtaxToNairaRate(force);
+      setRate(r);
+    } catch (e: any) {
+      setRateError("Couldn't load live rate. Using default ₦100/BTAX.");
+      setRate(DEFAULT_BTAX_TO_NAIRA);
+    } finally {
+      setLoadingRate(false);
+    }
   }, []);
+
+  useEffect(() => {
+    loadRate(false);
+  }, [loadRate]);
 
   const numeric = Number(input) || 0;
   const result = useMemo(() => {
