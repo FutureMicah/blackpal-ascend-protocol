@@ -66,22 +66,24 @@ const Discover = () => {
         .select("*")
         .or(`user_id.eq.${userId},friend_id.eq.${userId}`);
 
-      // Map connection status to each user
+      // Map connection status + connection id to each user
       const usersWithStatus = (profiles || []).map(profile => {
         const connection = connections?.find(
           c => (c.user_id === profile.id || c.friend_id === profile.id)
         );
-        
+
         let connectionStatus: 'none' | 'pending' | 'accepted' | 'sent' = 'none';
+        let connectionId: string | undefined;
         if (connection) {
+          connectionId = connection.id;
           if (connection.status === 'accepted') {
             connectionStatus = 'accepted';
           } else if (connection.status === 'pending') {
             connectionStatus = connection.user_id === userId ? 'sent' : 'pending';
           }
         }
-        
-        return { ...profile, connectionStatus };
+
+        return { ...profile, connectionStatus, connectionId };
       });
 
       setUsers(usersWithStatus);
