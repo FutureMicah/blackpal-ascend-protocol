@@ -209,25 +209,20 @@ export const FloatingNav = () => {
           {priorityItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
-            const sizeCls = item.comingSoon ? "w-7 h-7" : "w-9 h-9";
-            const iconCls = item.comingSoon ? "w-3 h-3" : "w-4 h-4";
             return (
               <Link
                 key={item.path}
                 to={item.path}
-                aria-label={item.name + (item.comingSoon ? " (coming soon)" : "")}
-                title={item.comingSoon ? `${item.name} — coming soon` : item.name}
-                onClick={item.comingSoon ? handleContest : undefined}
+                aria-label={item.name}
+                title={item.name}
                 className={cn(
-                  "rounded-full flex items-center justify-center transition-colors relative",
-                  sizeCls,
+                  "rounded-full flex items-center justify-center transition-colors relative w-9 h-9",
                   isActive
                     ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:text-foreground hover:bg-primary/10",
-                  item.comingSoon && "opacity-70"
+                    : "text-muted-foreground hover:text-foreground hover:bg-primary/10"
                 )}
               >
-                <Icon className={iconCls} />
+                <Icon className="w-4 h-4" />
               </Link>
             );
           })}
@@ -272,20 +267,13 @@ export const FloatingNav = () => {
                 <Link
                   key={item.path}
                   to={item.path}
-                  onClick={item.comingSoon ? handleContest : undefined}
                   className={cn(
                     "relative flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg transition-colors min-w-[56px]",
-                    isActive ? "text-primary" : "text-muted-foreground",
-                    item.comingSoon && "opacity-80"
+                    isActive ? "text-primary" : "text-muted-foreground"
                   )}
                 >
-                  <Icon className={item.comingSoon ? "w-4 h-4" : "w-5 h-5"} />
+                  <Icon className="w-5 h-5" />
                   <span className="text-[10px] font-medium">{item.name}</span>
-                  {item.comingSoon && (
-                    <span className="absolute -top-0.5 right-1 text-[7px] uppercase tracking-wider bg-amber-500/20 text-amber-600 dark:text-amber-400 px-1 rounded-full">
-                      soon
-                    </span>
-                  )}
                 </Link>
               );
             })}
