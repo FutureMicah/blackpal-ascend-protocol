@@ -11,6 +11,7 @@ interface BtaxWalletOverviewProps {
 interface WalletRow {
   id: string;
   btax_balance: number;
+  naira_balance: number;
   naira_funded_total: number;
   btax_spent_total: number;
   btax_earned_total: number;
