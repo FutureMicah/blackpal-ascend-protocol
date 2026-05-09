@@ -152,9 +152,25 @@ const DrawerContents = ({
 
 export const FloatingNav = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
   const [pendingRequests, setPendingRequests] = useState(0);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    toast({ title: "Signed out", description: "See you soon." });
+    navigate("/");
+  };
+
+  const handleContest = (e: React.MouseEvent) => {
+    e.preventDefault();
+    toast({
+      title: "Contest — coming soon",
+      description: "We're polishing the leaderboard arena. Stay tuned.",
+    });
+  };
 
   useEffect(() => {
     const loadPendingRequests = async () => {
