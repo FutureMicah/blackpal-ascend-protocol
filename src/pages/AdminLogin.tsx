@@ -13,9 +13,7 @@ export default function AdminLogin() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [pin, setPin] = useState("");
   const [loading, setLoading] = useState(false);
-  const [step, setStep] = useState<"credentials" | "pin">("credentials");
   const [attempts, setAttempts] = useState(0);
 
   const handleCredentialLogin = async (e: React.FormEvent) => {
@@ -30,7 +28,9 @@ export default function AdminLogin() {
       if (error) throw error;
       if (!data.user) throw new Error("Login failed");
 
-      // Check if user has admin/super_admin role
+      // Server-side authorization: role must exist in user_roles.
+      // No client-side PIN — the previous PIN value lived in the JS bundle and
+      // could be read by anyone, so it is removed entirely.
       const { data: roles } = await supabase
         .from("user_roles")
         .select("role")
@@ -39,39 +39,19 @@ export default function AdminLogin() {
 
       if (!roles || roles.length === 0) {
         await supabase.auth.signOut();
-        setAttempts(prev => prev + 1);
+        setAttempts((prev) => prev + 1);
         toast.error("Access denied. No admin privileges.");
         return;
       }
 
-      setStep("pin");
-      toast.success("Credentials verified. Enter your PIN.");
+      toast.success("Admin access granted!");
+      navigate("/admin");
     } catch (error: any) {
-      setAttempts(prev => prev + 1);
+      setAttempts((prev) => prev + 1);
       toast.error(error.message || "Authentication failed");
     } finally {
       setLoading(false);
     }
-  };
-
-  const handlePinVerify = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    
-    // Verify PIN - for super admin it's 4303
-    if (pin === "4303") {
-      toast.success("Admin access granted!");
-      navigate("/admin");
-    } else {
-      setAttempts(prev => prev + 1);
-      toast.error("Invalid PIN. Access denied.");
-      if (attempts >= 4) {
-        await supabase.auth.signOut();
-        setStep("credentials");
-        setPin("");
-      }
-    }
-    setLoading(false);
   };
 
   return (
