@@ -59,7 +59,33 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
-    // Bind reference to this user (defense against replay)
+    // Idempotency guard: if this reference is already completed for this user, return success.
+    const { data: existing } = await service
+      .from("payments")
+      .select("id, user_id, payment_status")
+      .eq("transaction_id", reference)
+      .maybeSingle();
+
+    if (existing && existing.user_id !== user.id) {
+      return new Response(JSON.stringify({ error: "Reference does not belong to user" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (existing?.payment_status === "completed") {
+      return new Response(JSON.stringify({ verified: true, idempotent: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const verifyRes = await fetch(
+      `https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`,
+      { headers: { Authorization: `Bearer ${PAYSTACK_SECRET_KEY}` } },
+    );
+    const verifyJson = await verifyRes.json();
+    const ok = verifyRes.ok && verifyJson?.data?.status === "success";
+
+    // Bind reference to this user (defense against replay across accounts)
     if (verifyJson?.data?.metadata?.user_id && verifyJson.data.metadata.user_id !== user.id) {
       return new Response(JSON.stringify({ error: "Reference does not belong to user" }), {
         status: 403,
@@ -72,28 +98,34 @@ Deno.serve(async (req) => {
         .from("payments")
         .update({ payment_status: "failed" })
         .eq("transaction_id", reference)
-        .eq("user_id", user.id);
+        .eq("user_id", user.id)
+        .eq("payment_status", "pending");
       return new Response(
         JSON.stringify({ verified: false, message: verifyJson?.data?.gateway_response || "Not successful" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
-    await service
+    // Idempotent completion: only flip rows still pending. Race-safe with webhook.
+    const { data: updated } = await service
       .from("payments")
       .update({
         payment_status: "completed",
         completed_at: new Date().toISOString(),
       })
       .eq("transaction_id", reference)
-      .eq("user_id", user.id);
+      .eq("user_id", user.id)
+      .eq("payment_status", "pending")
+      .select("id");
 
-    await service
-      .from("profiles")
-      .update({ payment_completed: true })
-      .eq("id", user.id);
+    if (updated && updated.length > 0) {
+      await service
+        .from("profiles")
+        .update({ payment_completed: true })
+        .eq("id", user.id);
+    }
 
-    return new Response(JSON.stringify({ verified: true }), {
+    return new Response(JSON.stringify({ verified: true, idempotent: !updated || updated.length === 0 }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e: any) {

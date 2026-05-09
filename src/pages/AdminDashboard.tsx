@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { AdminBroadcastChannel } from "@/components/AdminBroadcastChannel";
 import { AdminPropManager } from "@/components/AdminPropManager";
+import { GatePassSettings } from "@/components/admin/GatePassSettings";
 import { AdminSupportTickets } from "@/components/AdminSupportTickets";
 import { AdminTopupReview } from "@/components/admin/AdminTopupReview";
 import { AdminAnnouncements } from "@/components/admin/AdminAnnouncements";
@@ -755,6 +756,7 @@ export default function AdminDashboard() {
           {isSuperAdmin && (
             <TabsContent value="settings">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <GatePassSettings />
                 <Card className="border-border bg-card/80">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-sm"><Settings className="w-4 h-4" /> App Configuration</CardTitle>
