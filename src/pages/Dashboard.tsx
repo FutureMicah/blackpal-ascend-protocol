@@ -315,6 +315,7 @@ export default function Dashboard() {
             <FriendActivityFeed userId={profile.id} maxItems={10} />
             <WalletSnapshot userId={profile.id} />
             <BtaxWalletOverview userId={profile.id} />
+            <PaymentHistoryPanel userId={profile.id} />
             <PropAccountLadder userId={profile.id} />
             <CurrencyConverter compact />
             
