@@ -316,20 +316,38 @@ export const FloatingNav = () => {
               <Link
                 key={item.path}
                 to={item.path}
+                onClick={item.comingSoon ? handleContest : undefined}
+                title={item.comingSoon ? `${item.name} — coming soon` : item.name}
                 className={cn(
-                  "group px-3.5 py-2 rounded-full transition-all duration-300 flex items-center gap-2",
+                  "group px-3.5 py-2 rounded-full transition-all duration-300 flex items-center gap-2 relative",
                   isActive
                     ? "bg-primary text-primary-foreground shadow-lg"
-                    : "hover:bg-primary/10 text-muted-foreground hover:text-foreground"
+                    : "hover:bg-primary/10 text-muted-foreground hover:text-foreground",
+                  item.comingSoon && "opacity-80"
                 )}
               >
                 <Icon className="w-4 h-4" />
                 <span className="text-sm font-medium">{item.name}</span>
+                {item.comingSoon && (
+                  <span className="text-[8px] uppercase tracking-wider bg-amber-500/20 text-amber-600 dark:text-amber-400 px-1.5 py-0.5 rounded-full">
+                    soon
+                  </span>
+                )}
               </Link>
             );
           })}
           <div className="w-px h-6 bg-border/60 mx-1" />
           <ThemeToggle />
+          <Button
+            variant="ghost"
+            size="sm"
+            className="rounded-full h-9 px-3 gap-2 hover:bg-destructive/10 hover:text-destructive"
+            onClick={handleSignOut}
+            aria-label="Sign out"
+          >
+            <LogOut className="w-4 h-4" />
+            <span className="text-sm font-medium hidden lg:inline">Sign out</span>
+          </Button>
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
               <Button
