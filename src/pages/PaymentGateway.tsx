@@ -249,6 +249,11 @@ export const PaymentGateway = ({ geoData, userId, onMethodSelect, onBack }: Paym
           {geoData.paymentTier === 'NIGERIA' && (
             <p className="text-sm text-muted-foreground mt-1">Nigerian Naira</p>
           )}
+          <p className="text-[10px] text-muted-foreground/80 mt-3 max-w-md mx-auto leading-snug">
+            ₦ is used here as the one-time activation fee and your payment receipt currency.
+            Once activated, every wallet balance, reward, and admin metric is shown in BTAX —
+            our platform-wide virtual currency.
+          </p>
         </motion.div>
 
         {/* Payment Methods by Category */}
