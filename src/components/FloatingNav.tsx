@@ -148,6 +148,10 @@ const DrawerContents = ({
       <ThemeToggle />
       <span className="text-xs text-muted-foreground">Theme</span>
     </div>
+    <div className="px-3 py-2 border-t border-border">
+      <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">Language</p>
+      <Translator variant="inline" />
+    </div>
   </div>
 );
 

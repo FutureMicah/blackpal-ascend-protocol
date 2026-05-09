@@ -44,6 +44,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import NairaTopUp from "./pages/NairaTopUp";
 import A11yChecklist from "./pages/A11yChecklist";
+import Terms from "./pages/Terms";
 import { AnnouncementPopup } from "./components/AnnouncementPopup";
 
 const queryClient = new QueryClient();
@@ -85,6 +86,7 @@ const App = () => (
           <Route path="/cinematic-access" element={<CinematicAccess />} />
           <Route path="/prop-dashboard" element={<PropDashboard />} />
           <Route path="/my-accounts" element={<MyAccounts />} />
+          <Route path="/terms" element={<Terms />} />
           <Route path="/market-hub" element={<MarketHub />} />
           <Route path="/referrals" element={<Referrals />} />
           <Route path="/copy-trading" element={<CopyTrading />} />

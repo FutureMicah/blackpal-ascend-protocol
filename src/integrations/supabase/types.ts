@@ -2890,60 +2890,142 @@ export type Database = {
           },
         ]
       }
+      prop_payout_requests: {
+        Row: {
+          admin_note: string | null
+          company_share: number
+          created_at: string
+          id: string
+          prop_account_id: string
+          requested_balance: number
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          student_payout: number
+          tier_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_note?: string | null
+          company_share: number
+          created_at?: string
+          id?: string
+          prop_account_id: string
+          requested_balance: number
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          student_payout: number
+          tier_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_note?: string | null
+          company_share?: number
+          created_at?: string
+          id?: string
+          prop_account_id?: string
+          requested_balance?: number
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          student_payout?: number
+          tier_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prop_payout_requests_prop_account_id_fkey"
+            columns: ["prop_account_id"]
+            isOneToOne: false
+            referencedRelation: "user_prop_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prop_payout_requests_tier_id_fkey"
+            columns: ["tier_id"]
+            isOneToOne: false
+            referencedRelation: "prop_tiers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prop_payout_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       prop_tiers: {
         Row: {
           account_size: number
+          activation_naira: number
           badge_icon: string | null
           challenge_fee: number
           created_at: string
           description: string | null
           id: string
           is_active: boolean | null
+          ladder_order: number | null
           max_daily_loss_percent: number
           max_total_drawdown_percent: number
           max_trading_days: number
           min_trading_days: number
+          payout_target_balance: number
           profit_split_percent: number
           profit_target_percent: number
           required_passes: number
+          student_payout: number
           tier_level: number
           tier_name: string
           updated_at: string
         }
         Insert: {
           account_size?: number
+          activation_naira?: number
           badge_icon?: string | null
           challenge_fee?: number
           created_at?: string
           description?: string | null
           id?: string
           is_active?: boolean | null
+          ladder_order?: number | null
           max_daily_loss_percent?: number
           max_total_drawdown_percent?: number
           max_trading_days?: number
           min_trading_days?: number
+          payout_target_balance?: number
           profit_split_percent?: number
           profit_target_percent?: number
           required_passes?: number
+          student_payout?: number
           tier_level?: number
           tier_name: string
           updated_at?: string
         }
         Update: {
           account_size?: number
+          activation_naira?: number
           badge_icon?: string | null
           challenge_fee?: number
           created_at?: string
           description?: string | null
           id?: string
           is_active?: boolean | null
+          ladder_order?: number | null
           max_daily_loss_percent?: number
           max_total_drawdown_percent?: number
           max_trading_days?: number
           min_trading_days?: number
+          payout_target_balance?: number
           profit_split_percent?: number
           profit_target_percent?: number
           required_passes?: number
+          student_payout?: number
           tier_level?: number
           tier_name?: string
           updated_at?: string
@@ -4664,6 +4746,10 @@ export type Database = {
         }
         Returns: string
       }
+      approve_prop_payout: {
+        Args: { p_note?: string; p_request_id: string }
+        Returns: undefined
+      }
       approve_wallet_topup: {
         Args: { p_note?: string; p_request_id: string }
         Returns: string
@@ -4684,10 +4770,15 @@ export type Database = {
         }
         Returns: boolean
       }
+      reject_prop_payout: {
+        Args: { p_note?: string; p_request_id: string }
+        Returns: undefined
+      }
       reject_wallet_topup: {
         Args: { p_note?: string; p_request_id: string }
         Returns: undefined
       }
+      request_prop_payout: { Args: { p_account_id: string }; Returns: string }
       reward_user: {
         Args: {
           p_btax_amount: number
