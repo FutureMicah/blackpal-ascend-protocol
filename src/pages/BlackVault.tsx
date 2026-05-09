@@ -33,13 +33,11 @@ const BlackVault = () => {
       const { data: profile } = await supabase.from("profiles").select("virtual_currency, xp_points").eq("id", userId).single();
       if (profile) { setBalance(profile.virtual_currency || 0); setXpPoints(profile.xp_points || 0); }
 
-      const { data: paymentData } = await supabase.from("payments").select("*").eq("user_id", userId).order("created_at", { ascending: false }).limit(10);
-      const { data: achievements } = await supabase.from("user_achievements").select("*, achievements(name, xp_reward)").eq("user_id", userId).order("awarded_at", { ascending: false }).limit(5);
+      const { data: paymentData } = await supabase.from("payments").select("*").eq("user_id", userId).order("created_at", { ascending: false }).limit(20);
 
       const txns: Transaction[] = [];
-      achievements?.forEach(a => txns.push({ id: a.id, type: "Achievement Reward", amount: a.achievements?.xp_reward || 0, date: a.awarded_at || new Date().toISOString(), status: "completed" }));
       paymentData?.forEach(p => txns.push({ id: p.id, type: `${p.payment_tier} Payment`, amount: -p.amount_usd, date: p.created_at, status: p.payment_status || "pending" }));
-      setTransactions(txns.slice(0, 10));
+      setTransactions(txns);
     } catch (error) {
       console.error("Error loading vault data:", error);
     } finally {
@@ -47,8 +45,7 @@ const BlackVault = () => {
     }
   };
 
-  const usdEquivalent = (balance * 0.001).toFixed(2);
-  const monthlyGain = Math.floor(balance * 0.15);
+  // No fake derived numbers — only what's actually stored.
 
   if (loading) {
     return <div className="min-h-screen bg-background flex items-center justify-center"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>;
