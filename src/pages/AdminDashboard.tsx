@@ -344,6 +344,11 @@ export default function AdminDashboard() {
           ))}
         </div>
 
+        <p className="text-[10px] text-muted-foreground/80 mb-4 px-1">
+          Stats and payment rows lead with <span className="font-semibold text-foreground">BTAX</span> — the platform virtual currency.
+          The ₦ amount on each row is the source receipt for the ₦1,000 activation fee paid by the user.
+        </p>
+
         {/* Main Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="flex-wrap mb-4 h-auto gap-1">
