@@ -1,7 +1,7 @@
 // 3D globe view of trader locations using Three.js. Pins glow per active trader.
 import { useRef, useMemo, Suspense } from "react";
 import { Canvas, useFrame, useLoader } from "@react-three/fiber";
-import { OrbitControls } from "@react-three/drei";
+import { OrbitControls, Html } from "@react-three/drei";
 import * as THREE from "three";
 
 interface Trader {
