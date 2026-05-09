@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { AdminBroadcastChannel } from "@/components/AdminBroadcastChannel";
 import { AdminPropManager } from "@/components/AdminPropManager";
+import { GatePassSettings } from "@/components/admin/GatePassSettings";
 import { AdminSupportTickets } from "@/components/AdminSupportTickets";
 import { AdminTopupReview } from "@/components/admin/AdminTopupReview";
 import { AdminAnnouncements } from "@/components/admin/AdminAnnouncements";
