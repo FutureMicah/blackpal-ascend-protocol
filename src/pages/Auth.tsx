@@ -284,6 +284,14 @@ const Auth = () => {
               )}
             </Button>
 
+            {!isSignUp && (
+              <div className="text-center -mt-2">
+                <a href="/forgot-password" className="text-xs text-muted-foreground hover:text-primary transition-colors focus-visible:ring-2 focus-visible:ring-primary rounded">
+                  Forgot your access code?
+                </a>
+              </div>
+            )}
+
             {/* Biometric Login */}
             {!isSignUp && (
               <div className="mt-4 animate-slide-up" style={{ animationDelay: '0.45s' }}>
