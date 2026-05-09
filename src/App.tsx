@@ -89,6 +89,9 @@ const App = () => (
           <Route path="/world-map" element={<WorldMap />} />
           <Route path="/forex-tools" element={<ForexTools />} />
           <Route path="/verify-identity" element={<VerifyIdentity />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/wallet/topup" element={<NairaTopUp />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
