@@ -73,9 +73,35 @@ function buildReport(eventLog: { at: string; channel: string; summary: string }[
 
 export default function A11yChecklist() {
   const [verify, setVerify] = useState(false);
+  const eventLogRef = useRef<{ at: string; channel: string; summary: string }[]>([]);
+
+  useEffect(() => {
+    const onRate = (e: Event) => {
+      const d = (e as CustomEvent).detail;
+      eventLogRef.current.push({
+        at: new Date().toISOString(),
+        channel: "rate",
+        summary: `1 BTAX = ₦${d?.rate} · ${d?.source}`,
+      });
+    };
+    const onAtlas = (e: Event) => {
+      const d = (e as CustomEvent).detail;
+      eventLogRef.current.push({
+        at: new Date().toISOString(),
+        channel: "atlas",
+        summary: `enriched ${d?.count ?? 0} profile(s)`,
+      });
+    };
+    window.addEventListener("blackpal:rate-refresh", onRate);
+    window.addEventListener("blackpal:atlas-refresh", onAtlas);
+    return () => {
+      window.removeEventListener("blackpal:rate-refresh", onRate);
+      window.removeEventListener("blackpal:atlas-refresh", onAtlas);
+    };
+  }, []);
 
   const download = () => {
-    const blob = new Blob([buildReport()], { type: "text/markdown;charset=utf-8" });
+    const blob = new Blob([buildReport(eventLogRef.current)], { type: "text/markdown;charset=utf-8" });
     const ts = new Date().toISOString().replace(/[:.]/g, "-");
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
