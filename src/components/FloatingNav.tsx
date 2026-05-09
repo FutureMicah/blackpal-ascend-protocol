@@ -1,7 +1,7 @@
 import {
-  Home, Trophy, BarChart3, BookOpen, Vault, Users, CreditCard, Hammer, Coins,
-  Bell, Menu, Search, Megaphone, Wallet, Globe, Copy, Gift, Activity, Map,
-  Wrench, LineChart, Shield, User as UserIcon, LogOut, Sparkles,
+  Home, Trophy, BarChart3, BookOpen, Vault, Users, Megaphone as MegaIcon,
+  CreditCard, Hammer, Coins, Bell, Menu, Search, Megaphone, Wallet, Globe,
+  Gift, Activity, Map, Wrench, User as UserIcon, LogOut, Sparkles,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
@@ -21,7 +21,7 @@ import { Badge } from "@/components/ui/badge";
 // Priority items always visible in header (kept to 3)
 const priorityItems = [
   { name: "Dashboard", path: "/dashboard", icon: Home },
-  { name: "Contest", path: "/contest", icon: Sparkles, comingSoon: true },
+  { name: "Contest", path: "/contest", icon: Sparkles },
   { name: "Market", path: "/market-hub", icon: Globe },
 ];
 
@@ -29,7 +29,7 @@ const priorityItems = [
 const mobileBottomTabs = [
   { name: "Dashboard", path: "/dashboard", icon: Home },
   { name: "Portfolio", path: "/my-accounts", icon: Wallet },
-  { name: "Contest", path: "/contest", icon: Sparkles, comingSoon: true },
+  { name: "Contest", path: "/contest", icon: Sparkles },
   { name: "Vault", path: "/blackvault", icon: Vault },
 ];
 
@@ -40,9 +40,8 @@ const drawerGroups: { label: string; items: { name: string; path: string; icon: 
     items: [
       { name: "Portfolio", path: "/my-accounts", icon: Wallet },
       { name: "Market Hub", path: "/market-hub", icon: Globe },
-      { name: "Trade Terminal", path: "/cinematic-core", icon: LineChart },
+      { name: "Contest", path: "/contest", icon: Sparkles },
       { name: "Forex Tools", path: "/forex-tools", icon: Wrench },
-      { name: "Copy Trading", path: "/copy-trading", icon: Copy },
       { name: "Analytics", path: "/trade-analytics", icon: Activity },
       { name: "Transactions", path: "/blackvault", icon: Vault },
     ],
@@ -64,9 +63,9 @@ const drawerGroups: { label: string; items: { name: string; path: string; icon: 
       { name: "Achievements", path: "/achievements", icon: Trophy },
       { name: "Leaderboard", path: "/leaderboard", icon: BarChart3 },
       { name: "BlackBoard", path: "/blackboard", icon: BookOpen },
-      { name: "BlackPass", path: "/blackpass", icon: CreditCard },
+      { name: "Academy Tools", path: "/blackpass", icon: MegaIcon },
       { name: "BlackForge", path: "/blackforge", icon: Hammer },
-      { name: "BlackCoin", path: "/blackcoin", icon: Coins },
+      { name: "BTAX", path: "/btax", icon: Coins },
     ],
   },
   {
@@ -74,7 +73,6 @@ const drawerGroups: { label: string; items: { name: string; path: string; icon: 
     items: [
       { name: "Profile", path: "/profile/edit", icon: UserIcon },
       { name: "Notifications", path: "/blacknotify", icon: Bell },
-      { name: "Admin", path: "/admin", icon: Shield },
     ],
   },
 ];
@@ -169,13 +167,6 @@ export const FloatingNav = () => {
     navigate("/");
   };
 
-  const handleContest = (e: React.MouseEvent) => {
-    e.preventDefault();
-    toast({
-      title: "Contest — coming soon",
-      description: "We're polishing the leaderboard arena. Stay tuned.",
-    });
-  };
 
   useEffect(() => {
     const loadPendingRequests = async () => {
@@ -211,25 +202,20 @@ export const FloatingNav = () => {
           {priorityItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
-            const sizeCls = item.comingSoon ? "w-7 h-7" : "w-9 h-9";
-            const iconCls = item.comingSoon ? "w-3 h-3" : "w-4 h-4";
             return (
               <Link
                 key={item.path}
                 to={item.path}
-                aria-label={item.name + (item.comingSoon ? " (coming soon)" : "")}
-                title={item.comingSoon ? `${item.name} — coming soon` : item.name}
-                onClick={item.comingSoon ? handleContest : undefined}
+                aria-label={item.name}
+                title={item.name}
                 className={cn(
-                  "rounded-full flex items-center justify-center transition-colors relative",
-                  sizeCls,
+                  "rounded-full flex items-center justify-center transition-colors relative w-9 h-9",
                   isActive
                     ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:text-foreground hover:bg-primary/10",
-                  item.comingSoon && "opacity-70"
+                    : "text-muted-foreground hover:text-foreground hover:bg-primary/10"
                 )}
               >
-                <Icon className={iconCls} />
+                <Icon className="w-4 h-4" />
               </Link>
             );
           })}
@@ -274,20 +260,13 @@ export const FloatingNav = () => {
                 <Link
                   key={item.path}
                   to={item.path}
-                  onClick={item.comingSoon ? handleContest : undefined}
                   className={cn(
                     "relative flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg transition-colors min-w-[56px]",
-                    isActive ? "text-primary" : "text-muted-foreground",
-                    item.comingSoon && "opacity-80"
+                    isActive ? "text-primary" : "text-muted-foreground"
                   )}
                 >
-                  <Icon className={item.comingSoon ? "w-4 h-4" : "w-5 h-5"} />
+                  <Icon className="w-5 h-5" />
                   <span className="text-[10px] font-medium">{item.name}</span>
-                  {item.comingSoon && (
-                    <span className="absolute -top-0.5 right-1 text-[7px] uppercase tracking-wider bg-amber-500/20 text-amber-600 dark:text-amber-400 px-1 rounded-full">
-                      soon
-                    </span>
-                  )}
                 </Link>
               );
             })}
@@ -321,23 +300,16 @@ export const FloatingNav = () => {
               <Link
                 key={item.path}
                 to={item.path}
-                onClick={item.comingSoon ? handleContest : undefined}
-                title={item.comingSoon ? `${item.name} — coming soon` : item.name}
+                title={item.name}
                 className={cn(
                   "group px-3.5 py-2 rounded-full transition-all duration-300 flex items-center gap-2 relative",
                   isActive
                     ? "bg-primary text-primary-foreground shadow-lg"
-                    : "hover:bg-primary/10 text-muted-foreground hover:text-foreground",
-                  item.comingSoon && "opacity-80"
+                    : "hover:bg-primary/10 text-muted-foreground hover:text-foreground"
                 )}
               >
                 <Icon className="w-4 h-4" />
                 <span className="text-sm font-medium">{item.name}</span>
-                {item.comingSoon && (
-                  <span className="text-[8px] uppercase tracking-wider bg-amber-500/20 text-amber-600 dark:text-amber-400 px-1.5 py-0.5 rounded-full">
-                    soon
-                  </span>
-                )}
               </Link>
             );
           })}

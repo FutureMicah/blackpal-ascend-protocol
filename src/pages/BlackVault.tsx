@@ -33,13 +33,11 @@ const BlackVault = () => {
       const { data: profile } = await supabase.from("profiles").select("virtual_currency, xp_points").eq("id", userId).single();
       if (profile) { setBalance(profile.virtual_currency || 0); setXpPoints(profile.xp_points || 0); }
 
-      const { data: paymentData } = await supabase.from("payments").select("*").eq("user_id", userId).order("created_at", { ascending: false }).limit(10);
-      const { data: achievements } = await supabase.from("user_achievements").select("*, achievements(name, xp_reward)").eq("user_id", userId).order("awarded_at", { ascending: false }).limit(5);
+      const { data: paymentData } = await supabase.from("payments").select("*").eq("user_id", userId).order("created_at", { ascending: false }).limit(20);
 
       const txns: Transaction[] = [];
-      achievements?.forEach(a => txns.push({ id: a.id, type: "Achievement Reward", amount: a.achievements?.xp_reward || 0, date: a.awarded_at || new Date().toISOString(), status: "completed" }));
       paymentData?.forEach(p => txns.push({ id: p.id, type: `${p.payment_tier} Payment`, amount: -p.amount_usd, date: p.created_at, status: p.payment_status || "pending" }));
-      setTransactions(txns.slice(0, 10));
+      setTransactions(txns);
     } catch (error) {
       console.error("Error loading vault data:", error);
     } finally {
@@ -47,8 +45,7 @@ const BlackVault = () => {
     }
   };
 
-  const usdEquivalent = (balance * 0.001).toFixed(2);
-  const monthlyGain = Math.floor(balance * 0.15);
+  // No fake derived numbers — only what's actually stored.
 
   if (loading) {
     return <div className="min-h-screen bg-background flex items-center justify-center"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>;
@@ -67,18 +64,12 @@ const BlackVault = () => {
         </header>
 
         {/* Balance Cards */}
-        <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-5">
+        <div className="grid grid-cols-2 gap-2 sm:gap-4 mb-5">
           <Card className="p-3 sm:p-5">
             <DollarSign className="w-5 h-5 text-primary mb-1" />
-            <p className="text-[9px] text-muted-foreground">Balance</p>
+            <p className="text-[9px] text-muted-foreground">BTAX Balance</p>
             <h2 className="text-sm sm:text-xl font-bold font-mono">{balance.toLocaleString()}</h2>
-            <p className="text-[8px] text-muted-foreground">~${usdEquivalent}</p>
-          </Card>
-          <Card className="p-3 sm:p-5">
-            <TrendingUp className="w-5 h-5 text-green-500 mb-1" />
-            <p className="text-[9px] text-muted-foreground">This Month</p>
-            <h2 className="text-sm sm:text-xl font-bold text-green-500">+{monthlyGain.toLocaleString()}</h2>
-            <p className="text-[8px] text-muted-foreground">Rewards</p>
+            <p className="text-[8px] text-muted-foreground">Set by admin</p>
           </Card>
           <Card className="p-3 sm:p-5">
             <Vault className="w-5 h-5 text-primary mb-1" />

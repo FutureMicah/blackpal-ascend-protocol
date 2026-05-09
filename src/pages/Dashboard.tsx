@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Trophy, Users, GitCompare, Fingerprint } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { FloatingNav } from "@/components/FloatingNav";
 import { ProfileHeroCard } from "@/components/dashboard/ProfileHeroCard";
 import { XPReactor } from "@/components/dashboard/XPReactor";
@@ -279,7 +280,10 @@ export default function Dashboard() {
           {/* Middle Column - Main Content */}
           <div className="lg:col-span-6 space-y-3 sm:space-y-6 order-3 lg:order-2">
             <XPReactor profile={profile} />
-            <AchievementsCarousel userId={profile.id} />
+            {/* Achievements moved to /achievements page — slot intentionally left empty */}
+            <Card className="p-6 text-center bg-card/30 border-dashed">
+              <p className="text-xs text-muted-foreground">More tools coming to this space soon.</p>
+            </Card>
             <ActivityFeed userId={profile.id} />
           </div>
 

@@ -97,7 +97,7 @@ const BlackCoin = () => {
         <div className="text-center mb-5">
           <div className="flex items-center justify-center gap-2 mb-1">
             <Coins className="w-5 h-5 text-primary" />
-            <h1 className="text-lg sm:text-2xl font-bold">BlackCoin</h1>
+            <h1 className="text-lg sm:text-2xl font-bold">BTAX</h1>
           </div>
           <p className="text-xs text-muted-foreground">Manage currency & unlock rewards</p>
         </div>
@@ -165,7 +165,7 @@ const BlackCoin = () => {
           {/* Rewards */}
           <div className="space-y-3">
             <Card className="p-3">
-              <h2 className="text-xs font-bold mb-2">Earn Coins</h2>
+              <h2 className="text-xs font-bold mb-2">Earn XP</h2>
               <div className="space-y-1.5">
                 {[
                   { title: "Daily Login", coins: 100, icon: Star, color: "text-yellow-500" },
