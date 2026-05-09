@@ -206,25 +206,93 @@ const WorldMap = () => {
     }
   }, [verifyRealtime]);
 
-  // Load current user + connection status map
+  // Load current user + connection status map + incoming requests
+  const [incomingRequests, setIncomingRequests] = useState<
+    { id: string; from_user_id: string; display_name: string | null; city: string | null; country: string | null }[]
+  >([]);
+
+  const loadConnections = useCallback(async (uid: string) => {
+    const { data: conns } = await supabase
+      .from("friend_connections")
+      .select("id, user_id, friend_id, status")
+      .or(`user_id.eq.${uid},friend_id.eq.${uid}`);
+    const map: Record<string, "none" | "sent" | "accepted" | "pending"> = {};
+    const incomingIds: { id: string; from: string }[] = [];
+    (conns ?? []).forEach((c: any) => {
+      const other = c.user_id === uid ? c.friend_id : c.user_id;
+      map[other] = c.status === "accepted" ? "accepted" : c.user_id === uid ? "sent" : "pending";
+      if (c.status === "pending" && c.friend_id === uid) {
+        incomingIds.push({ id: c.id, from: c.user_id });
+      }
+    });
+    setConnStatus(map);
+
+    if (incomingIds.length) {
+      // Privacy: surface only display name + city/country, never bio/email/etc.
+      const { data: profs } = await supabase
+        .from("profiles")
+        .select("id, display_name, country")
+        .in("id", incomingIds.map((r) => r.from));
+      const { data: locs } = await supabase
+        .from("user_locations")
+        .select("user_id, city, country")
+        .in("user_id", incomingIds.map((r) => r.from));
+      const profMap = new Map((profs ?? []).map((p: any) => [p.id, p]));
+      const locMap = new Map((locs ?? []).map((l: any) => [l.user_id, l]));
+      setIncomingRequests(
+        incomingIds.map((r) => ({
+          id: r.id,
+          from_user_id: r.from,
+          display_name: (profMap.get(r.from) as any)?.display_name ?? null,
+          city: (locMap.get(r.from) as any)?.city ?? null,
+          country: (profMap.get(r.from) as any)?.country ?? (locMap.get(r.from) as any)?.country ?? null,
+        }))
+      );
+    } else {
+      setIncomingRequests([]);
+    }
+  }, []);
+
   useEffect(() => {
     (async () => {
       const { data } = await supabase.auth.getUser();
       const uid = data.user?.id ?? null;
       setCurrentUserId(uid);
       if (!uid) return;
-      const { data: conns } = await supabase
-        .from("friend_connections")
-        .select("user_id, friend_id, status")
-        .or(`user_id.eq.${uid},friend_id.eq.${uid}`);
-      const map: Record<string, "none" | "sent" | "accepted" | "pending"> = {};
-      (conns ?? []).forEach((c: any) => {
-        const other = c.user_id === uid ? c.friend_id : c.user_id;
-        map[other] = c.status === "accepted" ? "accepted" : c.user_id === uid ? "sent" : "pending";
-      });
-      setConnStatus(map);
+      loadConnections(uid);
     })();
-  }, []);
+  }, [loadConnections]);
+
+  const respondToRequest = useCallback(
+    async (requestId: string, fromUserId: string, accept: boolean) => {
+      if (accept) {
+        const { error } = await supabase
+          .from("friend_connections")
+          .update({ status: "accepted" })
+          .eq("id", requestId);
+        if (error) {
+          toast({ variant: "destructive", title: "Couldn't accept", description: error.message });
+          return;
+        }
+        setConnStatus((m) => ({ ...m, [fromUserId]: "accepted" }));
+        toast({ title: "Connected", description: "You're now connected." });
+      } else {
+        const { error } = await supabase.from("friend_connections").delete().eq("id", requestId);
+        if (error) {
+          toast({ variant: "destructive", title: "Couldn't decline", description: error.message });
+          return;
+        }
+        setConnStatus((m) => {
+          const n = { ...m };
+          delete n[fromUserId];
+          return n;
+        });
+        toast({ title: "Request declined" });
+      }
+      setIncomingRequests((rs) => rs.filter((r) => r.id !== requestId));
+    },
+    [toast]
+  );
 
   const connectWith = useCallback(
     async (friendId: string) => {
