@@ -206,22 +206,36 @@ export const FloatingNav = () => {
           {priorityItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
+            const sizeCls = item.comingSoon ? "w-7 h-7" : "w-9 h-9";
+            const iconCls = item.comingSoon ? "w-3 h-3" : "w-4 h-4";
             return (
               <Link
                 key={item.path}
                 to={item.path}
-                aria-label={item.name}
+                aria-label={item.name + (item.comingSoon ? " (coming soon)" : "")}
+                title={item.comingSoon ? `${item.name} — coming soon` : item.name}
+                onClick={item.comingSoon ? handleContest : undefined}
                 className={cn(
-                  "w-9 h-9 rounded-full flex items-center justify-center transition-colors",
+                  "rounded-full flex items-center justify-center transition-colors relative",
+                  sizeCls,
                   isActive
                     ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:text-foreground hover:bg-primary/10"
+                    : "text-muted-foreground hover:text-foreground hover:bg-primary/10",
+                  item.comingSoon && "opacity-70"
                 )}
               >
-                <Icon className="w-4 h-4" />
+                <Icon className={iconCls} />
               </Link>
             );
           })}
+          <button
+            onClick={handleSignOut}
+            aria-label="Sign out"
+            title="Sign out"
+            className="w-9 h-9 rounded-full flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="w-9 h-9 rounded-full">
