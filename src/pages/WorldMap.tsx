@@ -82,6 +82,7 @@ const WorldMap = () => {
   const [view, setView] = useState<"globe" | "map">("globe");
   const [traders, setTraders] = useState<Trader[]>([]);
   const [loading, setLoading] = useState(true);
+  const [enriching, setEnriching] = useState(false);
   const [myPos, setMyPos] = useState<[number, number] | null>(null);
   const [topCountries, setTopCountries] = useState<{ country: string; count: number }[]>([]);
   const [search, setSearch] = useState("");
@@ -98,26 +99,9 @@ const WorldMap = () => {
         .not("longitude", "is", null);
 
       const list = (data ?? []) as Trader[];
-
-      // Enrich with display_name + avatar
-      if (list.length) {
-        const ids = list.map((t) => t.user_id);
-        const { data: profs } = await supabase
-          .from("profiles")
-          .select("id, display_name, avatar_url, xp")
-          .in("id", ids);
-        const map = new Map((profs ?? []).map((p: any) => [p.id, p]));
-        list.forEach((t) => {
-          const p = map.get(t.user_id) as any;
-          if (p) {
-            t.display_name = p.display_name;
-            t.avatar_url = p.avatar_url;
-            t.xp = p.xp;
-          }
-        });
-      }
-
+      // Stage 1: render locations immediately so the map isn't empty
       setTraders(list);
+      setLoading(false);
 
       const counts: Record<string, number> = {};
       list.forEach((t) => {
@@ -129,7 +113,25 @@ const WorldMap = () => {
           .sort((a, b) => b.count - a.count)
           .slice(0, 5)
       );
-      setLoading(false);
+
+      // Stage 2: enrich with display_name + avatar (skeleton overlay shown)
+      if (list.length) {
+        setEnriching(true);
+        const ids = list.map((t) => t.user_id);
+        const { data: profs } = await supabase
+          .from("profiles")
+          .select("id, display_name, avatar_url, xp")
+          .in("id", ids);
+        const profMap = new Map((profs ?? []).map((p: any) => [p.id, p]));
+        const enriched = list.map((t) => {
+          const p = profMap.get(t.user_id) as any;
+          return p
+            ? { ...t, display_name: p.display_name, avatar_url: p.avatar_url, xp: p.xp }
+            : t;
+        });
+        setTraders(enriched);
+        setEnriching(false);
+      }
     };
     init();
 
