@@ -247,7 +247,13 @@ export const PaymentGateway = ({ geoData, userId, onMethodSelect, onBack }: Paym
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.05 * index }}
-                    onClick={() => setSelectedMethod(method.id)}
+                    onClick={() => {
+                      if (method.id === 'flutterwave') {
+                        toast({ title: 'Coming soon', description: 'Flutterwave will be available shortly. Please choose another method.' });
+                        return;
+                      }
+                      setSelectedMethod(method.id);
+                    }}
                     className={`p-4 rounded-2xl border transition-all text-left ${
                       selectedMethod === method.id
                         ? 'border-primary bg-primary/10 scale-[1.02] shadow-lg'
