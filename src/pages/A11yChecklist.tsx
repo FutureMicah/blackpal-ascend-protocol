@@ -1,7 +1,7 @@
 // End-to-end keyboard navigation checklist for the converter and Trader Atlas.
 // Demonstrates focus order, visible focus rings, aria-live announcements, and
 // includes a real-time verification log + downloadable timestamped report.
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
