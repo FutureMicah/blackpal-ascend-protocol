@@ -47,6 +47,7 @@ const WorldMap = () => {
   const [atlasStyle, setAtlasStyle] = useState<AtlasStyleId>("cinematic");
   const [showHeatmap, setShowHeatmap] = useState(false);
   const [acceptedFriendIds, setAcceptedFriendIds] = useState<string[]>([]);
+  const [selectedTrader, setSelectedTrader] = useState<Trader | null>(null);
   const [traders, setTraders] = useState<Trader[]>([]);
   const [loading, setLoading] = useState(true);
   const [enriching, setEnriching] = useState(false);
