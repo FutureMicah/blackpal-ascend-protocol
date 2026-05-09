@@ -516,7 +516,12 @@ const WorldMap = () => {
         )}
 
         {/* Map area */}
-        <Card id="atlas-view-panel" role="tabpanel" aria-label={view === "globe" ? "3D globe view" : "2D map view"} className="relative overflow-hidden h-[60vh] sm:h-[68vh] mb-3 rounded-3xl border-white/10 shadow-2xl">
+        <Card
+          id="atlas-view-panel"
+          role="tabpanel"
+          aria-label={projection === "globe" ? "3D globe view" : "Flat map view"}
+          className="relative overflow-hidden h-[60vh] sm:h-[68vh] mb-3 rounded-3xl border-white/10 shadow-2xl"
+        >
           {loading ? (
             <div
               className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gradient-to-b from-[#1a1530] to-[#05060c]"
@@ -526,10 +531,7 @@ const WorldMap = () => {
               aria-label="Locating traders"
             >
               <Loader2 className="w-7 h-7 animate-spin text-primary" aria-hidden="true" />
-              <p className="text-[10px] text-white/60 uppercase tracking-widest">
-                Locating traders…
-              </p>
-              {/* Skeleton "pins" */}
+              <p className="text-[10px] text-white/60 uppercase tracking-widest">Locating traders…</p>
               <div className="flex gap-2 mt-2" aria-hidden="true">
                 {Array.from({ length: 5 }).map((_, i) => (
                   <div
@@ -540,26 +542,59 @@ const WorldMap = () => {
                 ))}
               </div>
             </div>
-          ) : view === "globe" ? (
-            <div className="relative w-full h-full" style={{ background: "radial-gradient(ellipse at center, #1a1530 0%, #05060c 70%)" }}>
-              <TraderGlobe traders={filtered} />
+          ) : (
+            <div className="relative w-full h-full bg-[#05060c]">
+              <AtlasGlobe
+                traders={filtered}
+                connections={connections}
+                myPos={myPos}
+                styleId={atlasStyle}
+                projection={projection}
+                showHeatmap={showHeatmap}
+                onMarkerClick={(t) => setSelectedTrader(t as Trader)}
+              />
 
+              {/* Floating top search bar */}
+              <div className="absolute top-3 left-3 right-3 z-[1000] flex items-center gap-2 bg-black/55 backdrop-blur-xl rounded-full shadow-lg px-3 py-1.5 border border-white/10 text-white">
+                <Search className="w-4 h-4 text-white/70 shrink-0" aria-hidden="true" />
+                <Input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search traders, cities, countries…"
+                  aria-label="Search traders"
+                  className="border-0 h-7 px-0 text-xs bg-transparent text-white placeholder:text-white/50 focus-visible:ring-0 shadow-none"
+                />
+                <button
+                  onClick={requestPreciseLocation}
+                  className="w-7 h-7 rounded-full bg-primary/20 text-primary-foreground flex items-center justify-center shrink-0 focus-visible:ring-2 focus-visible:ring-primary"
+                  aria-label="Pin me to my precise location"
+                >
+                  <Crosshair className="w-3.5 h-3.5" aria-hidden="true" />
+                </button>
+              </div>
+
+              {/* Live count chip */}
+              <div className="absolute top-14 left-3 z-[1000] rounded-2xl bg-black/45 backdrop-blur-xl border border-white/10 px-3 py-1.5 text-white">
+                <p className="text-[8px] uppercase tracking-widest text-white/60">Live</p>
+                <p className="text-xs font-semibold">{filtered.filter((t) => t.is_online).length} online</p>
+              </div>
+
+              {/* Profile enrichment status */}
               {enriching && (
                 <div
                   role="status"
                   aria-live="polite"
                   aria-busy="true"
-                  className="absolute top-3 left-1/2 -translate-x-1/2 z-[1001] flex items-center gap-2 rounded-full bg-black/60 backdrop-blur-xl border border-white/15 px-3 py-1.5 text-[10px] text-white/90"
+                  className="absolute top-14 left-1/2 -translate-x-1/2 z-[1001] flex items-center gap-2 rounded-full bg-black/65 backdrop-blur-xl border border-white/15 px-3 py-1.5 text-[10px] text-white"
                 >
                   <Loader2 className="w-3 h-3 animate-spin" aria-hidden="true" />
                   Loading trader profiles…
                 </div>
               )}
-
               {enrichError && !enriching && (
                 <div
                   role="alert"
-                  className="absolute top-3 left-1/2 -translate-x-1/2 z-[1001] flex items-center gap-2 rounded-full bg-destructive/90 text-destructive-foreground backdrop-blur-xl border border-white/15 px-3 py-1.5 text-[10px]"
+                  className="absolute top-14 left-1/2 -translate-x-1/2 z-[1001] flex items-center gap-2 rounded-full bg-destructive/95 text-destructive-foreground backdrop-blur-xl border border-white/15 px-3 py-1.5 text-[10px]"
                 >
                   <span>{enrichError}</span>
                   <button
@@ -574,143 +609,77 @@ const WorldMap = () => {
                 </div>
               )}
 
-              {/* Top-left info chip */}
-              <div className="absolute top-3 left-3 z-[1000] rounded-2xl bg-black/40 backdrop-blur-xl border border-white/10 px-3 py-2 text-white">
-                <p className="text-[9px] uppercase tracking-widest text-white/60">Live</p>
-                <p className="text-sm font-semibold">
-                  {filtered.filter((t) => t.is_online).length} online
-                </p>
-              </div>
-
-              {/* Top-right action buttons */}
-              <div className="absolute top-3 right-3 z-[1000] flex flex-col gap-2">
-                <button
-                  onClick={requestPreciseLocation}
-                  className="w-10 h-10 rounded-full bg-black/50 backdrop-blur-xl border border-white/10 flex items-center justify-center text-white hover:bg-black/70 focus-visible:ring-2 focus-visible:ring-primary"
-                  aria-label="Pin me to my precise location"
-                >
-                  <Crosshair className="w-4 h-4" aria-hidden="true" />
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="relative w-full h-full">
-              {enriching && (
+              {/* Selected trader popover */}
+              {selectedTrader && (
                 <div
-                  role="status"
-                  aria-live="polite"
-                  aria-busy="true"
-                  className="absolute top-16 left-1/2 -translate-x-1/2 z-[1001] flex items-center gap-2 rounded-full bg-white/95 backdrop-blur-xl border border-white/40 shadow px-3 py-1.5 text-[10px] text-foreground"
+                  role="dialog"
+                  aria-label={`Trader ${selectedTrader.display_name ?? "anonymous"}`}
+                  className="absolute top-14 right-3 z-[1001] w-60 rounded-2xl bg-black/70 backdrop-blur-xl border border-white/15 p-3 text-white shadow-xl"
                 >
-                  <Loader2 className="w-3 h-3 animate-spin text-primary" aria-hidden="true" />
-                  Loading trader profiles…
-                </div>
-              )}
-              {enrichError && !enriching && (
-                <div
-                  role="alert"
-                  className="absolute top-16 left-1/2 -translate-x-1/2 z-[1001] flex items-center gap-2 rounded-full bg-destructive text-destructive-foreground shadow px-3 py-1.5 text-[10px]"
-                >
-                  <span>{enrichError}</span>
-                  <button
-                    type="button"
-                    autoFocus
-                    onClick={() => enrichProfiles(traders)}
-                    className="px-2 py-0.5 rounded-full bg-white/20 hover:bg-white/30 font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-white/90"
-                    aria-label="Retry loading trader profiles"
-                  >
-                    Retry
-                  </button>
-                </div>
-              )}
-              <MapContainer
-                center={myPos ?? [20, 0]}
-                zoom={3}
-                minZoom={2}
-                maxZoom={18}
-                scrollWheelZoom
-                style={{ height: "100%", width: "100%", background: "#dbeafe" }}
-                worldCopyJump
-                zoomControl={false}
-              >
-                <TileLayer
-                  url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-                  attribution="&copy; OpenStreetMap &copy; CARTO"
-                />
-                <FlyTo pos={myPos} />
-                {filtered.map((t) => {
-                  const status = connStatus[t.user_id];
-                  const isMe = t.user_id === currentUserId;
-                  return (
-                    <Marker key={t.user_id} position={[t.latitude!, t.longitude!]} icon={avatarIcon(t)}>
-                      <Popup>
-                        <div className="text-xs space-y-1.5 min-w-[160px]">
-                          <p className="font-bold">{t.display_name ?? "Trader"}</p>
-                          <p className="text-muted-foreground">
-                            {t.city ?? "—"}, {t.country ?? "—"}
-                          </p>
-                          {t.xp != null && <p className="text-amber-600 font-mono">{t.xp} XP</p>}
-                          {!isMe && (
-                            <button
-                              type="button"
-                              disabled={!!status || connectingId === t.user_id}
-                              onClick={() => connectWith(t.user_id)}
-                              className="w-full mt-1 inline-flex items-center justify-center gap-1 h-7 rounded-md bg-primary text-primary-foreground text-[10px] font-semibold disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-primary"
-                            >
-                              {status === "accepted"
-                                ? "Connected"
-                                : status === "sent" || status === "pending"
-                                ? "Request pending"
-                                : connectingId === t.user_id
-                                ? "Sending…"
-                                : "Connect"}
-                            </button>
-                          )}
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-primary bg-muted shrink-0">
+                      {selectedTrader.avatar_url ? (
+                        <img src={selectedTrader.avatar_url} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-white text-sm font-bold">
+                          {(selectedTrader.display_name ?? "?").slice(0, 1).toUpperCase()}
                         </div>
-                      </Popup>
-                      <Tooltip direction="top" offset={[0, -22]} opacity={0.9}>
-                        {t.display_name ?? "Trader"}
-                      </Tooltip>
-                    </Marker>
-                  );
-                })}
-                {myPos && <Marker position={myPos} icon={youIcon()} />}
-              </MapContainer>
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-bold truncate">{selectedTrader.display_name ?? "Trader"}</p>
+                      <p className="text-[10px] text-white/60 truncate">
+                        {selectedTrader.city ?? "—"}{selectedTrader.country ? `, ${selectedTrader.country}` : ""}
+                      </p>
+                      {selectedTrader.xp != null && (
+                        <p className="text-[10px] text-amber-400 font-mono">{selectedTrader.xp} XP</p>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedTrader(null)}
+                      className="text-white/60 hover:text-white text-lg leading-none focus-visible:ring-2 focus-visible:ring-primary rounded"
+                      aria-label="Close"
+                    >
+                      ×
+                    </button>
+                  </div>
+                  {selectedTrader.user_id !== currentUserId && (
+                    <Button
+                      size="sm"
+                      className="w-full h-7 text-[10px] focus-visible:ring-2 focus-visible:ring-primary"
+                      disabled={
+                        !!connStatus[selectedTrader.user_id] || connectingId === selectedTrader.user_id
+                      }
+                      onClick={() => connectWith(selectedTrader.user_id)}
+                    >
+                      {connStatus[selectedTrader.user_id] === "accepted"
+                        ? "Connected"
+                        : connStatus[selectedTrader.user_id] === "sent" ||
+                          connStatus[selectedTrader.user_id] === "pending"
+                        ? "Request pending"
+                        : connectingId === selectedTrader.user_id
+                        ? "Sending…"
+                        : "Connect"}
+                    </Button>
+                  )}
+                </div>
+              )}
 
-              {/* Floating top search bar (image 3) */}
-              <div className="absolute top-3 left-3 right-3 z-[1000] flex items-center gap-2 bg-white/95 backdrop-blur-xl rounded-full shadow-lg px-3 py-2 border border-white/40">
-                <Search className="w-4 h-4 text-muted-foreground shrink-0" />
-                <Input
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search traders, cities, countries…"
-                  className="border-0 h-7 px-0 text-xs bg-transparent focus-visible:ring-0 shadow-none"
-                />
-                <button
-                  onClick={requestPreciseLocation}
-                  className="w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0"
-                  aria-label="Pin me"
-                >
-                  <Crosshair className="w-3.5 h-3.5" />
-                </button>
-              </div>
-
-              {/* Bottom sheet — Nearby Top Users (image 3) */}
-              <div className="absolute bottom-3 left-3 right-3 z-[1000] rounded-2xl bg-white/95 backdrop-blur-xl border border-white/40 shadow-xl p-3">
+              {/* Bottom sheet — Nearby Top Users */}
+              <div className="absolute bottom-3 left-3 right-3 z-[1000] rounded-2xl bg-black/55 backdrop-blur-xl border border-white/10 shadow-xl p-3 text-white">
                 <div className="flex items-center justify-between mb-2">
                   <div>
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Nearby Top Users</p>
-                    <p className="text-xs font-bold text-foreground">
+                    <p className="text-[10px] text-white/60 uppercase tracking-wider">Nearby Top Users</p>
+                    <p className="text-xs font-bold">
                       {filtered[0]?.city ?? filtered[0]?.country ?? "Worldwide"}
                     </p>
                   </div>
-                  <Badge variant="secondary" className="text-[9px]">
-                    {nearbyTop.length} live
-                  </Badge>
+                  <Badge variant="secondary" className="text-[9px]">{nearbyTop.length} live</Badge>
                 </div>
                 <div className="flex gap-2 overflow-x-auto pb-1">
                   {nearbyTop.length === 0 ? (
-                    <p className="text-[10px] text-muted-foreground py-2">No traders online right now.</p>
+                    <p className="text-[10px] text-white/60 py-2">No traders online right now.</p>
                   ) : (
                     nearbyTop.map((t) => {
                       const status = connStatus[t.user_id];
@@ -721,7 +690,12 @@ const WorldMap = () => {
                           className="shrink-0 flex flex-col items-center gap-1 w-16"
                           title={t.display_name ?? "Trader"}
                         >
-                          <div className="relative">
+                          <button
+                            type="button"
+                            onClick={() => setSelectedTrader(t)}
+                            className="relative focus-visible:ring-2 focus-visible:ring-primary rounded-full"
+                            aria-label={`View ${t.display_name ?? "trader"}`}
+                          >
                             <div className="w-11 h-11 rounded-full overflow-hidden border-2 border-primary bg-muted">
                               {t.avatar_url ? (
                                 <img src={t.avatar_url} alt="" className="w-full h-full object-cover" />
@@ -731,9 +705,9 @@ const WorldMap = () => {
                                 </div>
                               )}
                             </div>
-                            <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-green-500 border-2 border-white" />
-                          </div>
-                          <p className="text-[9px] font-semibold truncate w-full text-center text-foreground">
+                            <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-green-500 border-2 border-[#05060c]" />
+                          </button>
+                          <p className="text-[9px] font-semibold truncate w-full text-center text-white">
                             {t.display_name?.split(" ")[0] ?? "—"}
                           </p>
                           {!isMe && (
@@ -744,11 +718,7 @@ const WorldMap = () => {
                               className="text-[8px] px-1.5 py-0.5 rounded-full bg-primary text-primary-foreground disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-primary"
                               aria-label={`Connect with ${t.display_name ?? "trader"}`}
                             >
-                              {status === "accepted"
-                                ? "✓"
-                                : status === "sent" || status === "pending"
-                                ? "Sent"
-                                : "Connect"}
+                              {status === "accepted" ? "✓" : status === "sent" || status === "pending" ? "Sent" : "Connect"}
                             </button>
                           )}
                         </div>
