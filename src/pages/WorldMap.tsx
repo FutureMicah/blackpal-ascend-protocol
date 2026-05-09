@@ -61,14 +61,38 @@ function FlyTo({ pos }: { pos: [number, number] | null }) {
   return null;
 }
 
+function escapeHtml(str: string) {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+// Only allow http(s) image URLs in marker <img src=...> to block javascript:/data: vectors.
+function safeImageUrl(url: string | null | undefined): string | null {
+  if (!url) return null;
+  try {
+    const u = new URL(url, window.location.origin);
+    if (u.protocol !== "http:" && u.protocol !== "https:") return null;
+    return encodeURI(u.toString());
+  } catch {
+    return null;
+  }
+}
+
 function avatarIcon(t: Trader) {
-  const initials = (t.display_name || "?").slice(0, 1).toUpperCase();
+  const safeName = escapeHtml(t.display_name || "?");
+  const initials = safeName.slice(0, 1).toUpperCase();
   const ring = t.is_online ? "#22c55e" : "#a855f7";
-  const img = t.avatar_url
-    ? `<img src="${t.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:9999px;" onerror="this.style.display='none'"/>`
+  const safeUrl = safeImageUrl(t.avatar_url);
+  const img = safeUrl
+    ? `<img src="${safeUrl}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:9999px;" onerror="this.style.display='none'"/>`
     : `<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;background:linear-gradient(135deg,#7c3aed,#3b82f6);color:#fff;font-weight:700;font-size:14px;border-radius:9999px;">${initials}</div>`;
-  const label = t.display_name
-    ? `<div style="position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);background:rgba(15,15,20,0.85);color:#fff;padding:2px 8px;border-radius:9999px;font-size:9px;font-weight:600;white-space:nowrap;backdrop-filter:blur(8px);">${t.display_name.split(" ")[0]}</div>`
+  const shortName = escapeHtml((t.display_name || "").split(" ")[0] || "");
+  const label = shortName
+    ? `<div style="position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);background:rgba(15,15,20,0.85);color:#fff;padding:2px 8px;border-radius:9999px;font-size:9px;font-weight:600;white-space:nowrap;backdrop-filter:blur(8px);">${shortName}</div>`
     : "";
   return L.divIcon({
     className: "trader-avatar-marker",
