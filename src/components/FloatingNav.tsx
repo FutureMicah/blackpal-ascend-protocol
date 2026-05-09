@@ -1,8 +1,10 @@
 import {
   Home, Trophy, BarChart3, BookOpen, Vault, Users, CreditCard, Hammer, Coins,
   Bell, Menu, Search, Megaphone, Wallet, Globe, Copy, Gift, Activity, Map,
-  Wrench, LineChart, Shield, User as UserIcon,
+  Wrench, LineChart, Shield, User as UserIcon, LogOut, Sparkles,
 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
