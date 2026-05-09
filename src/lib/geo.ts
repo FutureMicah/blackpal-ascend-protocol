@@ -146,8 +146,8 @@ export function getPaymentMethods(tier: PaymentTier): PaymentMethodInfo[] {
       },
       {
         id: 'flutterwave',
-        name: 'Flutterwave',
-        description: 'Card, bank, or mobile money',
+        name: 'Flutterwave (Coming Soon)',
+        description: 'Worldwide payments — launching shortly',
         icon: '⚡',
         category: 'card',
       },

@@ -45,6 +45,7 @@ import Terms from "./pages/Terms";
 import Contest from "./pages/Contest";
 import ReferralLanding from "./pages/ReferralLanding";
 import { AnnouncementPopup } from "./components/AnnouncementPopup";
+import { NotificationsProvider } from "./components/NotificationsProvider";
 
 const queryClient = new QueryClient();
 
@@ -54,6 +55,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <NotificationsProvider />
         <AnnouncementPopup />
         <Routes>
           <Route path="/" element={<Index />} />
