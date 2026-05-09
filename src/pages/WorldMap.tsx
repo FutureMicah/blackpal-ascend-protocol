@@ -19,7 +19,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { FloatingNav } from "@/components/FloatingNav";
-import { TraderGlobe } from "@/components/TraderGlobe";
+import { AtlasGlobe, type AtlasStyleId, type AtlasProjection } from "@/components/atlas/AtlasGlobe";
 import { RealtimeVerifier as RealtimeVerifierLazy } from "@/components/RealtimeVerifier";
 import { supabase } from "@/integrations/supabase/client";
 import { captureUserLocation } from "@/lib/location-tracker";
