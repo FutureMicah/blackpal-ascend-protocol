@@ -186,6 +186,34 @@ export const AdminAnnouncements = () => {
                 : `Visible only to: ${targetRoles.join(", ")}`}
             </p>
           </div>
+          {/* Targeting + schedule simulation preview */}
+          {(title || body) && (
+            <div className="rounded-md border border-primary/30 bg-primary/5 p-2 text-[10px] space-y-1" aria-label="Announcement preview simulation">
+              <p className="font-bold flex items-center gap-1.5">
+                <Megaphone className="w-3 h-3 text-primary" /> Preview · simulated targeting
+              </p>
+              <p>
+                <span className="text-muted-foreground">Audience:</span>{" "}
+                {targetRoles.length === 0 ? "everyone signed in" : targetRoles.join(", ")}
+              </p>
+              <p>
+                <span className="text-muted-foreground">Window:</span>{" "}
+                {(() => {
+                  const now = new Date();
+                  const s = startsAt ? new Date(startsAt) : null;
+                  const e = endsAt ? new Date(endsAt) : null;
+                  const visible = (!s || s <= now) && (!e || e > now);
+                  return `${s ? s.toLocaleString() : "now"} → ${e ? e.toLocaleString() : "indefinite"} · ${
+                    visible ? "VISIBLE NOW" : "scheduled / expired"
+                  }`;
+                })()}
+              </p>
+              <div className="rounded border border-border/60 bg-background p-2 mt-1">
+                <p className="font-bold text-xs">{title || "(title)"}</p>
+                <p className="text-[10px] text-muted-foreground whitespace-pre-wrap">{body || "(body)"}</p>
+              </div>
+            </div>
+          )}
           <Button onClick={create} disabled={saving} className="w-full">
             <Plus className="w-4 h-4 mr-1" /> {saving ? "Publishing…" : "Publish announcement"}
           </Button>

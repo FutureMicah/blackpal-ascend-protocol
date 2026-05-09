@@ -1,8 +1,10 @@
 import {
   Home, Trophy, BarChart3, BookOpen, Vault, Users, CreditCard, Hammer, Coins,
   Bell, Menu, Search, Megaphone, Wallet, Globe, Copy, Gift, Activity, Map,
-  Wrench, LineChart, Shield, User as UserIcon,
+  Wrench, LineChart, Shield, User as UserIcon, LogOut, Sparkles,
 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -18,7 +20,7 @@ import { Badge } from "@/components/ui/badge";
 // Priority items always visible in header (kept to 3)
 const priorityItems = [
   { name: "Dashboard", path: "/dashboard", icon: Home },
-  { name: "Trade", path: "/cinematic-core", icon: LineChart },
+  { name: "Contest", path: "/contest", icon: Sparkles, comingSoon: true },
   { name: "Market", path: "/market-hub", icon: Globe },
 ];
 
@@ -26,8 +28,8 @@ const priorityItems = [
 const mobileBottomTabs = [
   { name: "Dashboard", path: "/dashboard", icon: Home },
   { name: "Portfolio", path: "/my-accounts", icon: Wallet },
-  { name: "Trade", path: "/cinematic-core", icon: LineChart },
-  { name: "Transactions", path: "/blackvault", icon: Vault },
+  { name: "Contest", path: "/contest", icon: Sparkles, comingSoon: true },
+  { name: "Vault", path: "/blackvault", icon: Vault },
 ];
 
 // Side drawer organised into groups (used on both desktop & mobile via the menu)
@@ -150,9 +152,25 @@ const DrawerContents = ({
 
 export const FloatingNav = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
   const [pendingRequests, setPendingRequests] = useState(0);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    toast({ title: "Signed out", description: "See you soon." });
+    navigate("/");
+  };
+
+  const handleContest = (e: React.MouseEvent) => {
+    e.preventDefault();
+    toast({
+      title: "Contest — coming soon",
+      description: "We're polishing the leaderboard arena. Stay tuned.",
+    });
+  };
 
   useEffect(() => {
     const loadPendingRequests = async () => {
@@ -188,22 +206,36 @@ export const FloatingNav = () => {
           {priorityItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
+            const sizeCls = item.comingSoon ? "w-7 h-7" : "w-9 h-9";
+            const iconCls = item.comingSoon ? "w-3 h-3" : "w-4 h-4";
             return (
               <Link
                 key={item.path}
                 to={item.path}
-                aria-label={item.name}
+                aria-label={item.name + (item.comingSoon ? " (coming soon)" : "")}
+                title={item.comingSoon ? `${item.name} — coming soon` : item.name}
+                onClick={item.comingSoon ? handleContest : undefined}
                 className={cn(
-                  "w-9 h-9 rounded-full flex items-center justify-center transition-colors",
+                  "rounded-full flex items-center justify-center transition-colors relative",
+                  sizeCls,
                   isActive
                     ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:text-foreground hover:bg-primary/10"
+                    : "text-muted-foreground hover:text-foreground hover:bg-primary/10",
+                  item.comingSoon && "opacity-70"
                 )}
               >
-                <Icon className="w-4 h-4" />
+                <Icon className={iconCls} />
               </Link>
             );
           })}
+          <button
+            onClick={handleSignOut}
+            aria-label="Sign out"
+            title="Sign out"
+            className="w-9 h-9 rounded-full flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="w-9 h-9 rounded-full">
@@ -237,13 +269,20 @@ export const FloatingNav = () => {
                 <Link
                   key={item.path}
                   to={item.path}
+                  onClick={item.comingSoon ? handleContest : undefined}
                   className={cn(
-                    "flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg transition-colors min-w-[56px]",
-                    isActive ? "text-primary" : "text-muted-foreground"
+                    "relative flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg transition-colors min-w-[56px]",
+                    isActive ? "text-primary" : "text-muted-foreground",
+                    item.comingSoon && "opacity-80"
                   )}
                 >
-                  <Icon className="w-5 h-5" />
+                  <Icon className={item.comingSoon ? "w-4 h-4" : "w-5 h-5"} />
                   <span className="text-[10px] font-medium">{item.name}</span>
+                  {item.comingSoon && (
+                    <span className="absolute -top-0.5 right-1 text-[7px] uppercase tracking-wider bg-amber-500/20 text-amber-600 dark:text-amber-400 px-1 rounded-full">
+                      soon
+                    </span>
+                  )}
                 </Link>
               );
             })}
@@ -277,20 +316,38 @@ export const FloatingNav = () => {
               <Link
                 key={item.path}
                 to={item.path}
+                onClick={item.comingSoon ? handleContest : undefined}
+                title={item.comingSoon ? `${item.name} — coming soon` : item.name}
                 className={cn(
-                  "group px-3.5 py-2 rounded-full transition-all duration-300 flex items-center gap-2",
+                  "group px-3.5 py-2 rounded-full transition-all duration-300 flex items-center gap-2 relative",
                   isActive
                     ? "bg-primary text-primary-foreground shadow-lg"
-                    : "hover:bg-primary/10 text-muted-foreground hover:text-foreground"
+                    : "hover:bg-primary/10 text-muted-foreground hover:text-foreground",
+                  item.comingSoon && "opacity-80"
                 )}
               >
                 <Icon className="w-4 h-4" />
                 <span className="text-sm font-medium">{item.name}</span>
+                {item.comingSoon && (
+                  <span className="text-[8px] uppercase tracking-wider bg-amber-500/20 text-amber-600 dark:text-amber-400 px-1.5 py-0.5 rounded-full">
+                    soon
+                  </span>
+                )}
               </Link>
             );
           })}
           <div className="w-px h-6 bg-border/60 mx-1" />
           <ThemeToggle />
+          <Button
+            variant="ghost"
+            size="sm"
+            className="rounded-full h-9 px-3 gap-2 hover:bg-destructive/10 hover:text-destructive"
+            onClick={handleSignOut}
+            aria-label="Sign out"
+          >
+            <LogOut className="w-4 h-4" />
+            <span className="text-sm font-medium hidden lg:inline">Sign out</span>
+          </Button>
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
               <Button

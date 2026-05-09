@@ -252,25 +252,8 @@ export const ProfileHeroCard = ({ profile, user, onProfileUpdate }: ProfileHeroC
         </div>
       </div>
 
-      {/* Connect to Cinematic Core */}
-      <Button
-        variant="default"
-        className="w-full"
-        onClick={() => window.open("https://blackpal-cinematic-core.lovable.app/", "_blank")}
-      >
-        <ExternalLink className="w-4 h-4 mr-2" />
-        Cinematic Core
-      </Button>
-
-      {/* Sign Out */}
-      <Button
-        variant="outline"
-        className="w-full"
-        onClick={handleSignOut}
-      >
-        <LogOut className="w-4 h-4 mr-2" />
-        Sign Out
-      </Button>
+      {/* Sign-out lives in the header now (top-right). Cinematic Core has been
+          renamed to Contest — surfaced from the bottom tab bar with a coming-soon state. */}
     </motion.div>
   );
 };

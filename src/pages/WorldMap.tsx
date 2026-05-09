@@ -206,25 +206,93 @@ const WorldMap = () => {
     }
   }, [verifyRealtime]);
 
-  // Load current user + connection status map
+  // Load current user + connection status map + incoming requests
+  const [incomingRequests, setIncomingRequests] = useState<
+    { id: string; from_user_id: string; display_name: string | null; city: string | null; country: string | null }[]
+  >([]);
+
+  const loadConnections = useCallback(async (uid: string) => {
+    const { data: conns } = await supabase
+      .from("friend_connections")
+      .select("id, user_id, friend_id, status")
+      .or(`user_id.eq.${uid},friend_id.eq.${uid}`);
+    const map: Record<string, "none" | "sent" | "accepted" | "pending"> = {};
+    const incomingIds: { id: string; from: string }[] = [];
+    (conns ?? []).forEach((c: any) => {
+      const other = c.user_id === uid ? c.friend_id : c.user_id;
+      map[other] = c.status === "accepted" ? "accepted" : c.user_id === uid ? "sent" : "pending";
+      if (c.status === "pending" && c.friend_id === uid) {
+        incomingIds.push({ id: c.id, from: c.user_id });
+      }
+    });
+    setConnStatus(map);
+
+    if (incomingIds.length) {
+      // Privacy: surface only display name + city/country, never bio/email/etc.
+      const { data: profs } = await supabase
+        .from("profiles")
+        .select("id, display_name, country")
+        .in("id", incomingIds.map((r) => r.from));
+      const { data: locs } = await supabase
+        .from("user_locations")
+        .select("user_id, city, country")
+        .in("user_id", incomingIds.map((r) => r.from));
+      const profMap = new Map((profs ?? []).map((p: any) => [p.id, p]));
+      const locMap = new Map((locs ?? []).map((l: any) => [l.user_id, l]));
+      setIncomingRequests(
+        incomingIds.map((r) => ({
+          id: r.id,
+          from_user_id: r.from,
+          display_name: (profMap.get(r.from) as any)?.display_name ?? null,
+          city: (locMap.get(r.from) as any)?.city ?? null,
+          country: (profMap.get(r.from) as any)?.country ?? (locMap.get(r.from) as any)?.country ?? null,
+        }))
+      );
+    } else {
+      setIncomingRequests([]);
+    }
+  }, []);
+
   useEffect(() => {
     (async () => {
       const { data } = await supabase.auth.getUser();
       const uid = data.user?.id ?? null;
       setCurrentUserId(uid);
       if (!uid) return;
-      const { data: conns } = await supabase
-        .from("friend_connections")
-        .select("user_id, friend_id, status")
-        .or(`user_id.eq.${uid},friend_id.eq.${uid}`);
-      const map: Record<string, "none" | "sent" | "accepted" | "pending"> = {};
-      (conns ?? []).forEach((c: any) => {
-        const other = c.user_id === uid ? c.friend_id : c.user_id;
-        map[other] = c.status === "accepted" ? "accepted" : c.user_id === uid ? "sent" : "pending";
-      });
-      setConnStatus(map);
+      loadConnections(uid);
     })();
-  }, []);
+  }, [loadConnections]);
+
+  const respondToRequest = useCallback(
+    async (requestId: string, fromUserId: string, accept: boolean) => {
+      if (accept) {
+        const { error } = await supabase
+          .from("friend_connections")
+          .update({ status: "accepted" })
+          .eq("id", requestId);
+        if (error) {
+          toast({ variant: "destructive", title: "Couldn't accept", description: error.message });
+          return;
+        }
+        setConnStatus((m) => ({ ...m, [fromUserId]: "accepted" }));
+        toast({ title: "Connected", description: "You're now connected." });
+      } else {
+        const { error } = await supabase.from("friend_connections").delete().eq("id", requestId);
+        if (error) {
+          toast({ variant: "destructive", title: "Couldn't decline", description: error.message });
+          return;
+        }
+        setConnStatus((m) => {
+          const n = { ...m };
+          delete n[fromUserId];
+          return n;
+        });
+        toast({ title: "Request declined" });
+      }
+      setIncomingRequests((rs) => rs.filter((r) => r.id !== requestId));
+    },
+    [toast]
+  );
 
   const connectWith = useCallback(
     async (friendId: string) => {
@@ -300,6 +368,40 @@ const WorldMap = () => {
       toast({ variant: "destructive", title: "Location denied", description: "Using IP-based location instead." });
     }
   };
+
+  // Continuous live GPS — uses watchPosition and routes every reading through
+  // setMyPosDebounced, so the throttle slider directly controls how often the
+  // map actually re-renders / re-centres.
+  const [liveGps, setLiveGps] = useState(false);
+  const watchIdRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (!liveGps) {
+      if (watchIdRef.current != null && navigator.geolocation) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+        watchIdRef.current = null;
+      }
+      return;
+    }
+    if (!navigator.geolocation) {
+      toast({ variant: "destructive", title: "Geolocation unavailable" });
+      setLiveGps(false);
+      return;
+    }
+    watchIdRef.current = navigator.geolocation.watchPosition(
+      (pos) => setMyPosDebounced([pos.coords.latitude, pos.coords.longitude]),
+      (err) => {
+        toast({ variant: "destructive", title: "Live GPS error", description: err.message });
+        setLiveGps(false);
+      },
+      { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
+    );
+    return () => {
+      if (watchIdRef.current != null) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+        watchIdRef.current = null;
+      }
+    };
+  }, [liveGps, setMyPosDebounced, toast]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -394,6 +496,59 @@ const WorldMap = () => {
             <p className="text-[9px] text-muted-foreground">Online now</p>
           </Card>
         </div>
+
+        {/* Privacy-respecting incoming connection requests.
+            Shows only display name + city/country — no bio, no email, no avatar URL. */}
+        {incomingRequests.length > 0 && (
+          <Card className="p-3 mb-3" aria-label="Incoming connection requests">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-xs font-bold flex items-center gap-1.5">
+                <Users className="w-3 h-3 text-primary" />
+                Connection Requests
+                <Badge variant="secondary" className="text-[9px]">{incomingRequests.length}</Badge>
+              </h2>
+              <span className="text-[9px] text-muted-foreground">Privacy-safe view</span>
+            </div>
+            <div className="space-y-1.5">
+              {incomingRequests.map((r) => (
+                <div
+                  key={r.id}
+                  className="flex items-center gap-2 p-2 rounded-md bg-muted/30 border border-border/40"
+                >
+                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-white text-xs font-bold shrink-0">
+                    {(r.display_name ?? "?").slice(0, 1).toUpperCase()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold truncate">{r.display_name ?? "Trader"}</p>
+                    <p className="text-[10px] text-muted-foreground truncate">
+                      {r.city ?? "—"}{r.country ? `, ${r.country}` : ""}
+                    </p>
+                  </div>
+                  <Button
+                    size="sm"
+                    className="h-6 text-[10px] px-2 focus-visible:ring-2 focus-visible:ring-primary"
+                    onClick={() => respondToRequest(r.id, r.from_user_id, true)}
+                    aria-label={`Accept request from ${r.display_name ?? "trader"}`}
+                  >
+                    Accept
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-6 text-[10px] px-2 focus-visible:ring-2 focus-visible:ring-destructive"
+                    onClick={() => respondToRequest(r.id, r.from_user_id, false)}
+                    aria-label={`Decline request from ${r.display_name ?? "trader"}`}
+                  >
+                    Decline
+                  </Button>
+                </div>
+              ))}
+            </div>
+            <p className="text-[9px] text-muted-foreground mt-2">
+              Only display name + general location are shown until you accept.
+            </p>
+          </Card>
+        )}
 
         {/* Map area */}
         <Card id="atlas-view-panel" role="tabpanel" aria-label={view === "globe" ? "3D globe view" : "2D map view"} className="relative overflow-hidden h-[60vh] sm:h-[68vh] mb-3 rounded-3xl border-white/10 shadow-2xl">
@@ -683,8 +838,25 @@ const WorldMap = () => {
             className="mt-2 focus-visible:ring-2 focus-visible:ring-primary"
             aria-label="GPS update throttle in milliseconds"
           />
-          <p className="text-[9px] text-muted-foreground mt-1">
-            Last GPS tick: {lastGpsAt ? lastGpsAt.toLocaleTimeString() : "—"} · ticks: {gpsTickCount}
+          <div className="flex items-center justify-between mt-2 gap-2">
+            <p className="text-[9px] text-muted-foreground">
+              Last GPS tick: {lastGpsAt ? lastGpsAt.toLocaleTimeString() : "—"} · ticks: {gpsTickCount}
+            </p>
+            <Button
+              size="sm"
+              variant={liveGps ? "default" : "outline"}
+              className="h-6 text-[10px] px-2 focus-visible:ring-2 focus-visible:ring-primary"
+              onClick={() => setLiveGps((v) => !v)}
+              aria-pressed={liveGps}
+              title="Toggle continuous GPS — throttle slider controls re-render frequency"
+            >
+              {liveGps ? "Live GPS: ON" : "Live GPS: OFF"}
+            </Button>
+          </div>
+          <p className="text-[9px] text-muted-foreground/70 mt-1">
+            {liveGps
+              ? `Tracking continuously — coalescing samples to 1 update / ${gpsThrottleMs}ms`
+              : "Toggle Live GPS to use the throttle slider for continuous tracking."}
           </p>
         </Card>
 

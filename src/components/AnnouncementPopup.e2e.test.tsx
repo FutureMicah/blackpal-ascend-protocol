@@ -80,7 +80,27 @@ describe("AnnouncementPopup E2E", () => {
   it("does not reappear after dismissal on next mount", async () => {
     dismissedIds.add("ann-1");
     render(<AnnouncementPopup />);
-    // Give the async load a tick
+    await new Promise((r) => setTimeout(r, 30));
+    expect(screen.queryByText("Scheduled maintenance tonight")).not.toBeInTheDocument();
+  });
+
+  it("stays dismissed across simulated page refresh and route switch", async () => {
+    // First mount: user dismisses
+    const { unmount } = render(<AnnouncementPopup />);
+    const dismissBtn = await screen.findByRole("button", { name: /dismiss/i });
+    fireEvent.click(dismissBtn);
+    await waitFor(() => expect(dismissedIds.has("ann-1")).toBe(true));
+    unmount();
+
+    // Simulate refresh — fresh mount reads the same persisted dismissal set
+    cleanup();
+    render(<AnnouncementPopup />);
+    await new Promise((r) => setTimeout(r, 30));
+    expect(screen.queryByText("Scheduled maintenance tonight")).not.toBeInTheDocument();
+
+    // Simulate route switch (a11y-checklist → world-map) by remounting again
+    cleanup();
+    render(<AnnouncementPopup />);
     await new Promise((r) => setTimeout(r, 30));
     expect(screen.queryByText("Scheduled maintenance tonight")).not.toBeInTheDocument();
   });
