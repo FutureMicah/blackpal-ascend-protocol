@@ -113,7 +113,11 @@ export const GlobalThemeProvider = () => {
 
     load();
 
-    const { data: sub } = supabase.auth.onAuthStateChange(() => load());
+    const { data: sub } = supabase.auth.onAuthStateChange(() => {
+      window.setTimeout(() => {
+        void load();
+      }, 0);
+    });
 
     // Live preview from ProfileThemeCustomizer
     const onPreview = (e: Event) => {
