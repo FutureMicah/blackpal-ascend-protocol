@@ -31,6 +31,8 @@ export const CurrencyConverter = ({
   const [rate, setRate] = useState<number>(DEFAULT_BTAX_TO_NAIRA);
   const [loadingRate, setLoadingRate] = useState(true);
   const [rateError, setRateError] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [, forceTick] = useState(0);
   const [direction, setDirection] = useState<Direction>(defaultDirection);
   const [input, setInput] = useState<string>("");
 
@@ -41,6 +43,7 @@ export const CurrencyConverter = ({
       if (force) clearBtaxRateCache();
       const r = await getBtaxToNairaRate(force);
       setRate(r);
+      setLastUpdated(new Date());
     } catch (e: any) {
       setRateError("Couldn't load live rate. Using default ₦100/BTAX.");
       setRate(DEFAULT_BTAX_TO_NAIRA);
@@ -48,6 +51,23 @@ export const CurrencyConverter = ({
       setLoadingRate(false);
     }
   }, []);
+
+  // Re-render the "x ago" label every 30s
+  useEffect(() => {
+    const id = setInterval(() => forceTick((n) => n + 1), 30_000);
+    return () => clearInterval(id);
+  }, []);
+
+  const lastUpdatedLabel = useMemo(() => {
+    if (!lastUpdated) return null;
+    const diff = Math.max(0, Date.now() - lastUpdated.getTime());
+    const s = Math.round(diff / 1000);
+    if (s < 60) return `just now`;
+    const m = Math.round(s / 60);
+    if (m < 60) return `${m} min${m === 1 ? "" : "s"} ago`;
+    const h = Math.round(m / 60);
+    return `${h} hr${h === 1 ? "" : "s"} ago`;
+  }, [lastUpdated, rate]);
 
   useEffect(() => {
     loadRate(false);
@@ -98,9 +118,22 @@ export const CurrencyConverter = ({
         </div>
       )}
 
+      <div aria-live="polite" aria-atomic="true" className="sr-only">
+        {loadingRate
+          ? "Loading current rate"
+          : rateError
+          ? rateError
+          : `Current rate: 1 BTAX equals ${rate} Naira${
+              lastUpdatedLabel ? `, updated ${lastUpdatedLabel}` : ""
+            }`}
+      </div>
+
       {rateError && (
-        <div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/10 p-2 text-[10px] text-destructive">
-          <AlertTriangle className="w-3 h-3 mt-0.5 shrink-0" />
+        <div
+          role="alert"
+          className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/10 p-2 text-[10px] text-destructive"
+        >
+          <AlertTriangle className="w-3 h-3 mt-0.5 shrink-0" aria-hidden="true" />
           <div className="flex-1">
             <p>{rateError}</p>
           </div>
@@ -110,6 +143,7 @@ export const CurrencyConverter = ({
             variant="outline"
             className="h-6 text-[10px] px-2"
             onClick={() => loadRate(true)}
+            aria-label="Retry loading rate"
           >
             Retry
           </Button>
@@ -148,7 +182,11 @@ export const CurrencyConverter = ({
         <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">
           {outLabel}
         </Label>
-        <div className="h-10 px-3 rounded-md bg-muted/40 border border-border flex items-center font-mono text-base font-semibold">
+        <div
+          className="h-10 px-3 rounded-md bg-muted/40 border border-border flex items-center font-mono text-base font-semibold"
+          aria-live="polite"
+          aria-atomic="true"
+        >
           {outDisplay}
         </div>
       </div>
@@ -157,6 +195,14 @@ export const CurrencyConverter = ({
         <div className="space-y-1 pt-1">
           <p className="text-[10px] text-muted-foreground text-center">
             Live rate from academy settings · 1 BTAX = ₦{rate.toLocaleString()}
+            {lastUpdated && (
+              <span
+                className="ml-1 text-muted-foreground/70"
+                title={lastUpdated.toLocaleString()}
+              >
+                · updated {lastUpdatedLabel}
+              </span>
+            )}
           </p>
           <p
             data-testid="naira-context-note"

@@ -1,7 +1,7 @@
 // Trader Atlas — redesigned.
 // 3D view: photoreal earth in deep space (image 1 weather aesthetic) with glass rail overlays.
 // 2D view: Snap-Map / Apple-Maps hybrid with avatar bubble markers and floating cards (images 2 & 3).
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { MapContainer, TileLayer, Marker, Tooltip, useMap, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -45,8 +45,18 @@ interface Trader {
 
 function FlyTo({ pos }: { pos: [number, number] | null }) {
   const map = useMap();
+  const lastFlown = useRef<[number, number] | null>(null);
   useEffect(() => {
-    if (pos) map.flyTo(pos, 6, { duration: 1.5 });
+    if (!pos) return;
+    // Skip near-duplicate updates (< ~50m) to avoid jitter from GPS noise
+    const prev = lastFlown.current;
+    if (prev) {
+      const dLat = Math.abs(prev[0] - pos[0]);
+      const dLng = Math.abs(prev[1] - pos[1]);
+      if (dLat < 0.0005 && dLng < 0.0005) return;
+    }
+    lastFlown.current = pos;
+    map.flyTo(pos, 6, { duration: 1.5 });
   }, [pos, map]);
   return null;
 }
@@ -83,14 +93,59 @@ const WorldMap = () => {
   const [traders, setTraders] = useState<Trader[]>([]);
   const [loading, setLoading] = useState(true);
   const [enriching, setEnriching] = useState(false);
+  const [enrichError, setEnrichError] = useState<string | null>(null);
   const [myPos, setMyPos] = useState<[number, number] | null>(null);
   const [topCountries, setTopCountries] = useState<{ country: string; count: number }[]>([]);
   const [search, setSearch] = useState("");
 
+  // Debounced GPS setter — coalesces rapid location updates so the globe/map
+  // doesn't re-render on every GPS sample.
+  const gpsTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const setMyPosDebounced = useCallback((next: [number, number]) => {
+    if (gpsTimer.current) clearTimeout(gpsTimer.current);
+    gpsTimer.current = setTimeout(() => {
+      setMyPos((prev) => {
+        if (prev) {
+          const dLat = Math.abs(prev[0] - next[0]);
+          const dLng = Math.abs(prev[1] - next[1]);
+          if (dLat < 0.0005 && dLng < 0.0005) return prev;
+        }
+        return next;
+      });
+    }, 350);
+  }, []);
+
+  const enrichProfiles = useCallback(async (list: Trader[]) => {
+    if (!list.length) return;
+    setEnrichError(null);
+    setEnriching(true);
+    try {
+      const ids = list.map((t) => t.user_id);
+      const { data: profs, error } = await supabase
+        .from("profiles")
+        .select("id, display_name, avatar_url, xp")
+        .in("id", ids);
+      if (error) throw error;
+      const profMap = new Map((profs ?? []).map((p: any) => [p.id, p]));
+      setTraders((curr) =>
+        curr.map((t) => {
+          const p = profMap.get(t.user_id) as any;
+          return p
+            ? { ...t, display_name: p.display_name, avatar_url: p.avatar_url, xp: p.xp }
+            : t;
+        })
+      );
+    } catch (e: any) {
+      setEnrichError("Couldn't load trader profiles. Names and avatars may be missing.");
+    } finally {
+      setEnriching(false);
+    }
+  }, []);
+
   useEffect(() => {
     const init = async () => {
       const loc = await captureUserLocation({ askGPS: false });
-      if (loc?.latitude && loc?.longitude) setMyPos([loc.latitude, loc.longitude]);
+      if (loc?.latitude && loc?.longitude) setMyPosDebounced([loc.latitude, loc.longitude]);
 
       const { data } = await supabase
         .from("user_locations")
@@ -99,7 +154,6 @@ const WorldMap = () => {
         .not("longitude", "is", null);
 
       const list = (data ?? []) as Trader[];
-      // Stage 1: render locations immediately so the map isn't empty
       setTraders(list);
       setLoading(false);
 
@@ -114,24 +168,7 @@ const WorldMap = () => {
           .slice(0, 5)
       );
 
-      // Stage 2: enrich with display_name + avatar (skeleton overlay shown)
-      if (list.length) {
-        setEnriching(true);
-        const ids = list.map((t) => t.user_id);
-        const { data: profs } = await supabase
-          .from("profiles")
-          .select("id, display_name, avatar_url, xp")
-          .in("id", ids);
-        const profMap = new Map((profs ?? []).map((p: any) => [p.id, p]));
-        const enriched = list.map((t) => {
-          const p = profMap.get(t.user_id) as any;
-          return p
-            ? { ...t, display_name: p.display_name, avatar_url: p.avatar_url, xp: p.xp }
-            : t;
-        });
-        setTraders(enriched);
-        setEnriching(false);
-      }
+      enrichProfiles(list);
     };
     init();
 
@@ -141,14 +178,15 @@ const WorldMap = () => {
       .subscribe();
     return () => {
       supabase.removeChannel(ch);
+      if (gpsTimer.current) clearTimeout(gpsTimer.current);
     };
-  }, []);
+  }, [enrichProfiles, setMyPosDebounced]);
 
   const requestPreciseLocation = async () => {
     toast({ title: "Requesting precise location", description: "Allow access in your browser." });
     const loc = await captureUserLocation({ askGPS: true });
     if (loc?.latitude && loc?.longitude) {
-      setMyPos([loc.latitude, loc.longitude]);
+      setMyPosDebounced([loc.latitude, loc.longitude]);
       toast({ title: "Pinned!", description: "Your precise location is now on the map." });
     } else {
       toast({ variant: "destructive", title: "Location denied", description: "Using IP-based location instead." });
@@ -234,13 +272,19 @@ const WorldMap = () => {
         {/* Map area */}
         <Card className="relative overflow-hidden h-[60vh] sm:h-[68vh] mb-3 rounded-3xl border-white/10 shadow-2xl">
           {loading ? (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gradient-to-b from-[#1a1530] to-[#05060c]">
-              <Loader2 className="w-7 h-7 animate-spin text-primary" />
+            <div
+              className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gradient-to-b from-[#1a1530] to-[#05060c]"
+              role="status"
+              aria-live="polite"
+              aria-busy="true"
+              aria-label="Locating traders"
+            >
+              <Loader2 className="w-7 h-7 animate-spin text-primary" aria-hidden="true" />
               <p className="text-[10px] text-white/60 uppercase tracking-widest">
                 Locating traders…
               </p>
               {/* Skeleton "pins" */}
-              <div className="flex gap-2 mt-2">
+              <div className="flex gap-2 mt-2" aria-hidden="true">
                 {Array.from({ length: 5 }).map((_, i) => (
                   <div
                     key={i}
@@ -255,9 +299,30 @@ const WorldMap = () => {
               <TraderGlobe traders={filtered} />
 
               {enriching && (
-                <div className="absolute top-3 left-1/2 -translate-x-1/2 z-[1001] flex items-center gap-2 rounded-full bg-black/60 backdrop-blur-xl border border-white/15 px-3 py-1.5 text-[10px] text-white/90">
-                  <Loader2 className="w-3 h-3 animate-spin" />
+                <div
+                  role="status"
+                  aria-live="polite"
+                  aria-busy="true"
+                  className="absolute top-3 left-1/2 -translate-x-1/2 z-[1001] flex items-center gap-2 rounded-full bg-black/60 backdrop-blur-xl border border-white/15 px-3 py-1.5 text-[10px] text-white/90"
+                >
+                  <Loader2 className="w-3 h-3 animate-spin" aria-hidden="true" />
                   Loading trader profiles…
+                </div>
+              )}
+
+              {enrichError && !enriching && (
+                <div
+                  role="alert"
+                  className="absolute top-3 left-1/2 -translate-x-1/2 z-[1001] flex items-center gap-2 rounded-full bg-destructive/90 text-destructive-foreground backdrop-blur-xl border border-white/15 px-3 py-1.5 text-[10px]"
+                >
+                  <span>{enrichError}</span>
+                  <button
+                    onClick={() => enrichProfiles(traders)}
+                    className="px-2 py-0.5 rounded-full bg-white/20 hover:bg-white/30 font-semibold"
+                    aria-label="Retry loading trader profiles"
+                  >
+                    Retry
+                  </button>
                 </div>
               )}
 
@@ -314,9 +379,29 @@ const WorldMap = () => {
           ) : (
             <div className="relative w-full h-full">
               {enriching && (
-                <div className="absolute top-16 left-1/2 -translate-x-1/2 z-[1001] flex items-center gap-2 rounded-full bg-white/95 backdrop-blur-xl border border-white/40 shadow px-3 py-1.5 text-[10px] text-foreground">
-                  <Loader2 className="w-3 h-3 animate-spin text-primary" />
+                <div
+                  role="status"
+                  aria-live="polite"
+                  aria-busy="true"
+                  className="absolute top-16 left-1/2 -translate-x-1/2 z-[1001] flex items-center gap-2 rounded-full bg-white/95 backdrop-blur-xl border border-white/40 shadow px-3 py-1.5 text-[10px] text-foreground"
+                >
+                  <Loader2 className="w-3 h-3 animate-spin text-primary" aria-hidden="true" />
                   Loading trader profiles…
+                </div>
+              )}
+              {enrichError && !enriching && (
+                <div
+                  role="alert"
+                  className="absolute top-16 left-1/2 -translate-x-1/2 z-[1001] flex items-center gap-2 rounded-full bg-destructive text-destructive-foreground shadow px-3 py-1.5 text-[10px]"
+                >
+                  <span>{enrichError}</span>
+                  <button
+                    onClick={() => enrichProfiles(traders)}
+                    className="px-2 py-0.5 rounded-full bg-white/20 hover:bg-white/30 font-semibold"
+                    aria-label="Retry loading trader profiles"
+                  >
+                    Retry
+                  </button>
                 </div>
               )}
               <MapContainer
