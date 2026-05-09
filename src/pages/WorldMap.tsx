@@ -379,9 +379,29 @@ const WorldMap = () => {
           ) : (
             <div className="relative w-full h-full">
               {enriching && (
-                <div className="absolute top-16 left-1/2 -translate-x-1/2 z-[1001] flex items-center gap-2 rounded-full bg-white/95 backdrop-blur-xl border border-white/40 shadow px-3 py-1.5 text-[10px] text-foreground">
-                  <Loader2 className="w-3 h-3 animate-spin text-primary" />
+                <div
+                  role="status"
+                  aria-live="polite"
+                  aria-busy="true"
+                  className="absolute top-16 left-1/2 -translate-x-1/2 z-[1001] flex items-center gap-2 rounded-full bg-white/95 backdrop-blur-xl border border-white/40 shadow px-3 py-1.5 text-[10px] text-foreground"
+                >
+                  <Loader2 className="w-3 h-3 animate-spin text-primary" aria-hidden="true" />
                   Loading trader profiles…
+                </div>
+              )}
+              {enrichError && !enriching && (
+                <div
+                  role="alert"
+                  className="absolute top-16 left-1/2 -translate-x-1/2 z-[1001] flex items-center gap-2 rounded-full bg-destructive text-destructive-foreground shadow px-3 py-1.5 text-[10px]"
+                >
+                  <span>{enrichError}</span>
+                  <button
+                    onClick={() => enrichProfiles(traders)}
+                    className="px-2 py-0.5 rounded-full bg-white/20 hover:bg-white/30 font-semibold"
+                    aria-label="Retry loading trader profiles"
+                  >
+                    Retry
+                  </button>
                 </div>
               )}
               <MapContainer
