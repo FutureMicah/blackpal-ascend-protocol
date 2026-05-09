@@ -14,6 +14,119 @@ export type Database = {
   }
   public: {
     Tables: {
+      academy_ads: {
+        Row: {
+          body: string | null
+          created_at: string
+          cta_label: string | null
+          cta_url: string | null
+          display_order: number
+          id: string
+          image_url: string | null
+          is_active: boolean
+          title: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          cta_label?: string | null
+          cta_url?: string | null
+          display_order?: number
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          title: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          cta_label?: string | null
+          cta_url?: string | null
+          display_order?: number
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          title?: string
+        }
+        Relationships: []
+      }
+      academy_courses: {
+        Row: {
+          cover_url: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          display_order: number
+          id: string
+          is_published: boolean
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          cover_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          display_order?: number
+          id?: string
+          is_published?: boolean
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          cover_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          display_order?: number
+          id?: string
+          is_published?: boolean
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      academy_lessons: {
+        Row: {
+          body: string | null
+          course_id: string | null
+          created_at: string
+          display_order: number
+          id: string
+          media_type: string | null
+          media_url: string | null
+          title: string
+        }
+        Insert: {
+          body?: string | null
+          course_id?: string | null
+          created_at?: string
+          display_order?: number
+          id?: string
+          media_type?: string | null
+          media_url?: string | null
+          title: string
+        }
+        Update: {
+          body?: string | null
+          course_id?: string | null
+          created_at?: string
+          display_order?: number
+          id?: string
+          media_type?: string | null
+          media_url?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "academy_lessons_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "academy_courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       academy_products: {
         Row: {
           category: string | null
@@ -50,27 +163,33 @@ export type Database = {
       academy_settings: {
         Row: {
           btax_to_naira_rate: number
+          gate_pass_usd: number
           operations_pool_balance: number
           reward_pool_balance: number
           scholarship_pool_balance: number
           singleton: boolean
           updated_at: string
+          usd_to_ngn_rate: number
         }
         Insert: {
           btax_to_naira_rate?: number
+          gate_pass_usd?: number
           operations_pool_balance?: number
           reward_pool_balance?: number
           scholarship_pool_balance?: number
           singleton?: boolean
           updated_at?: string
+          usd_to_ngn_rate?: number
         }
         Update: {
           btax_to_naira_rate?: number
+          gate_pass_usd?: number
           operations_pool_balance?: number
           reward_pool_balance?: number
           scholarship_pool_balance?: number
           singleton?: boolean
           updated_at?: string
+          usd_to_ngn_rate?: number
         }
         Relationships: []
       }
@@ -1174,6 +1293,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      contests: {
+        Row: {
+          cover_url: string | null
+          created_at: string
+          description: string | null
+          ends_at: string | null
+          id: string
+          is_active: boolean
+          prize_btax: number
+          rules: string | null
+          starts_at: string | null
+          title: string
+        }
+        Insert: {
+          cover_url?: string | null
+          created_at?: string
+          description?: string | null
+          ends_at?: string | null
+          id?: string
+          is_active?: boolean
+          prize_btax?: number
+          rules?: string | null
+          starts_at?: string | null
+          title: string
+        }
+        Update: {
+          cover_url?: string | null
+          created_at?: string
+          description?: string | null
+          ends_at?: string | null
+          id?: string
+          is_active?: boolean
+          prize_btax?: number
+          rules?: string | null
+          starts_at?: string | null
+          title?: string
+        }
+        Relationships: []
       }
       copy_trading_follows: {
         Row: {
@@ -4400,6 +4558,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_strategies: {
+        Row: {
+          asset: string
+          created_at: string
+          id: string
+          is_deployed: boolean
+          name: string
+          stop_loss: string | null
+          take_profit: string | null
+          timeframe: string
+          user_id: string
+        }
+        Insert: {
+          asset: string
+          created_at?: string
+          id?: string
+          is_deployed?: boolean
+          name: string
+          stop_loss?: string | null
+          take_profit?: string | null
+          timeframe: string
+          user_id: string
+        }
+        Update: {
+          asset?: string
+          created_at?: string
+          id?: string
+          is_deployed?: boolean
+          name?: string
+          stop_loss?: string | null
+          take_profit?: string | null
+          timeframe?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       user_subscriptions: {
         Row: {
