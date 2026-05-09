@@ -42,6 +42,14 @@ All colors MUST be HSL.
     --ring: 248 84% 65%;
 
     --radius: 1rem;
+    --radius-sm: 0.5rem;
+    --radius-pill: 9999px;
+
+    /* Uniform interaction tokens */
+    --icon-stroke: 1.5;
+    --icon-color: 248 84% 65%;
+    --focus-ring: 248 84% 65%;
+    --hover-bg: 248 84% 65%;
 
     /* Brand tokens */
     --violet-royal: 248 84% 65%;
