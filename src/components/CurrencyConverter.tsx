@@ -141,9 +141,10 @@ export const CurrencyConverter = ({
             type="button"
             size="sm"
             variant="outline"
-            className="h-6 text-[10px] px-2"
+            className="h-6 text-[10px] px-2 focus-visible:ring-2 focus-visible:ring-destructive"
             onClick={() => loadRate(true)}
             aria-label="Retry loading rate"
+            autoFocus
           >
             Retry
           </Button>
