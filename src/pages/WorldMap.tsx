@@ -591,29 +591,48 @@ const WorldMap = () => {
                   {nearbyTop.length === 0 ? (
                     <p className="text-[10px] text-muted-foreground py-2">No traders online right now.</p>
                   ) : (
-                    nearbyTop.map((t) => (
-                      <div
-                        key={t.user_id}
-                        className="shrink-0 flex flex-col items-center gap-1 w-14"
-                        title={t.display_name ?? "Trader"}
-                      >
-                        <div className="relative">
-                          <div className="w-11 h-11 rounded-full overflow-hidden border-2 border-primary bg-muted">
-                            {t.avatar_url ? (
-                              <img src={t.avatar_url} alt="" className="w-full h-full object-cover" />
-                            ) : (
-                              <div className="w-full h-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-white text-sm font-bold">
-                                {(t.display_name ?? "?").slice(0, 1).toUpperCase()}
-                              </div>
-                            )}
+                    nearbyTop.map((t) => {
+                      const status = connStatus[t.user_id];
+                      const isMe = t.user_id === currentUserId;
+                      return (
+                        <div
+                          key={t.user_id}
+                          className="shrink-0 flex flex-col items-center gap-1 w-16"
+                          title={t.display_name ?? "Trader"}
+                        >
+                          <div className="relative">
+                            <div className="w-11 h-11 rounded-full overflow-hidden border-2 border-primary bg-muted">
+                              {t.avatar_url ? (
+                                <img src={t.avatar_url} alt="" className="w-full h-full object-cover" />
+                              ) : (
+                                <div className="w-full h-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-white text-sm font-bold">
+                                  {(t.display_name ?? "?").slice(0, 1).toUpperCase()}
+                                </div>
+                              )}
+                            </div>
+                            <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-green-500 border-2 border-white" />
                           </div>
-                          <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-green-500 border-2 border-white" />
+                          <p className="text-[9px] font-semibold truncate w-full text-center text-foreground">
+                            {t.display_name?.split(" ")[0] ?? "—"}
+                          </p>
+                          {!isMe && (
+                            <button
+                              type="button"
+                              disabled={!!status || connectingId === t.user_id}
+                              onClick={() => connectWith(t.user_id)}
+                              className="text-[8px] px-1.5 py-0.5 rounded-full bg-primary text-primary-foreground disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-primary"
+                              aria-label={`Connect with ${t.display_name ?? "trader"}`}
+                            >
+                              {status === "accepted"
+                                ? "✓"
+                                : status === "sent" || status === "pending"
+                                ? "Sent"
+                                : "Connect"}
+                            </button>
+                          )}
                         </div>
-                        <p className="text-[9px] font-semibold truncate w-full text-center text-foreground">
-                          {t.display_name?.split(" ")[0] ?? "—"}
-                        </p>
-                      </div>
-                    ))
+                      );
+                    })
                   )}
                 </div>
               </div>
