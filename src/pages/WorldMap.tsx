@@ -17,10 +17,6 @@ import {
   Loader2,
   Crosshair,
   Search,
-  Layers,
-  Thermometer,
-  Droplets,
-  Wind,
   Sparkles,
 } from "lucide-react";
 import { FloatingNav } from "@/components/FloatingNav";
