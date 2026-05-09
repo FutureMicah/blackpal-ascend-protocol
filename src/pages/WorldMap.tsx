@@ -45,8 +45,18 @@ interface Trader {
 
 function FlyTo({ pos }: { pos: [number, number] | null }) {
   const map = useMap();
+  const lastFlown = useRef<[number, number] | null>(null);
   useEffect(() => {
-    if (pos) map.flyTo(pos, 6, { duration: 1.5 });
+    if (!pos) return;
+    // Skip near-duplicate updates (< ~50m) to avoid jitter from GPS noise
+    const prev = lastFlown.current;
+    if (prev) {
+      const dLat = Math.abs(prev[0] - pos[0]);
+      const dLng = Math.abs(prev[1] - pos[1]);
+      if (dLat < 0.0005 && dLng < 0.0005) return;
+    }
+    lastFlown.current = pos;
+    map.flyTo(pos, 6, { duration: 1.5 });
   }, [pos, map]);
   return null;
 }
