@@ -199,13 +199,11 @@ export const AdminAnnouncements = () => {
               <p>
                 <span className="text-muted-foreground">Window:</span>{" "}
                 {(() => {
-                  const now = new Date();
-                  const s = startsAt ? new Date(startsAt) : null;
-                  const e = endsAt ? new Date(endsAt) : null;
-                  const visible = (!s || s <= now) && (!e || e > now);
-                  return `${s ? s.toLocaleString() : "now"} → ${e ? e.toLocaleString() : "indefinite"} · ${
-                    visible ? "VISIBLE NOW" : "scheduled / expired"
-                  }`;
+                  // Uses the shared pure predicate so the preview matches the
+                  // RLS rule applied at publish time exactly.
+                  // eslint-disable-next-line @typescript-eslint/no-var-requires
+                  const { describeAnnouncementWindow } = require("@/lib/announcement-targeting");
+                  return describeAnnouncementWindow({ starts_at: startsAt || null, ends_at: endsAt || null });
                 })()}
               </p>
               <div className="rounded border border-border/60 bg-background p-2 mt-1">
