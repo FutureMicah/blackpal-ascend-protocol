@@ -365,6 +365,7 @@ export default function AdminDashboard() {
                     </span>
                   )}
                 </TabsTrigger>
+                <TabsTrigger value="topups" className="gap-1"><Coins className="w-3 h-3" /> Top-ups</TabsTrigger>
               </>
             )}
             {canManageContent && <TabsTrigger value="broadcast" className="gap-1"><Megaphone className="w-3 h-3" /> Broadcast</TabsTrigger>}
