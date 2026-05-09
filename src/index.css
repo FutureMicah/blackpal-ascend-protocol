@@ -464,3 +464,45 @@ All colors MUST be HSL.
   color: inherit;
   stroke-width: 2;
 }
+
+/* Stronger overrides — make every Lucide icon slim + brand purple, regardless
+   of inherited Tailwind text colors. Use !important so utilities like
+   text-yellow-500, text-emerald-400, etc. don't override the brand. */
+svg.lucide,
+svg.lucide * {
+  color: hsl(var(--icon-color)) !important;
+  stroke: currentColor !important;
+  stroke-width: var(--icon-stroke) !important;
+}
+/* Escape hatch (e.g. status indicators that intentionally need green/red) */
+.icon-keep-color svg.lucide,
+svg.lucide.icon-keep-color {
+  color: inherit !important;
+  stroke: currentColor !important;
+  stroke-width: 2 !important;
+}
+
+/* Uniform focus ring across interactive elements */
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid hsl(var(--focus-ring));
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* Translate widget — keep clean */
+.goog-te-banner-frame.skiptranslate { display: none !important; }
+body { top: 0 !important; }
+.goog-te-gadget { font-size: 0 !important; }
+.goog-te-gadget .goog-te-combo {
+  font-size: 12px;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
