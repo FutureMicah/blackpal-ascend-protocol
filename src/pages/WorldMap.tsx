@@ -152,9 +152,11 @@ const WorldMap = () => {
       .or(`user_id.eq.${uid},friend_id.eq.${uid}`);
     const map: Record<string, "none" | "sent" | "accepted" | "pending"> = {};
     const incomingIds: { id: string; from: string }[] = [];
+    const accepted: string[] = [];
     (conns ?? []).forEach((c: any) => {
       const other = c.user_id === uid ? c.friend_id : c.user_id;
       map[other] = c.status === "accepted" ? "accepted" : c.user_id === uid ? "sent" : "pending";
+      if (c.status === "accepted") accepted.push(other);
       if (c.status === "pending" && c.friend_id === uid) {
         incomingIds.push({ id: c.id, from: c.user_id });
       }
