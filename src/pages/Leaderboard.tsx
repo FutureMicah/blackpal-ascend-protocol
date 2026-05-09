@@ -36,7 +36,8 @@ const Leaderboard = () => {
       if (!user) { navigate("/"); return; }
       setCurrentUserId(user.id);
 
-      const { data: profiles, error: profilesError } = await supabase.from("profiles").select("*").order("xp_points", { ascending: false });
+      const { PUBLIC_PROFILE_FIELDS } = await import("@/lib/profile-fields");
+      const { data: profiles, error: profilesError } = await supabase.from("profiles").select(PUBLIC_PROFILE_FIELDS).order("xp_points", { ascending: false });
       if (profilesError) throw profilesError;
 
       const featured = profiles?.filter(p => { const c = calculateProfileCompletion(p); return c.isComplete && c.hasCustomTheme; }).slice(0, 3) || [];

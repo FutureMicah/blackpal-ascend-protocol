@@ -56,10 +56,12 @@ export default function PublicProfile() {
       // Get current user to check relationship
       const { data: { user } } = await supabase.auth.getUser();
 
-      // Fetch profile
+      // Fetch profile — owner gets all columns, others only safe public fields.
+      const { PUBLIC_PROFILE_FIELDS } = await import("@/lib/profile-fields");
+      const isOwner = user?.id === userId;
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
-        .select("*")
+        .select(isOwner ? "*" : PUBLIC_PROFILE_FIELDS)
         .eq("id", userId)
         .single();
 
