@@ -48,15 +48,34 @@ export const RealtimeVerifier = ({ className = "" }: { className?: string }) => 
           <Activity className="w-3 h-3 text-primary" />
           Realtime Verification Log
         </h3>
-        <Button
-          size="sm"
-          variant="ghost"
-          className="h-6 px-2 text-[10px]"
-          onClick={() => setEntries([])}
-          aria-label="Clear log"
-        >
-          <Trash2 className="w-3 h-3" />
-        </Button>
+        <div className="flex gap-1">
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-6 px-2 text-[10px]"
+            onClick={() =>
+              downloadRealtimeReport(
+                entries.map((e) => ({
+                  at: e.at.toISOString(),
+                  channel: e.channel,
+                  summary: e.summary,
+                })),
+              )
+            }
+            aria-label="Download realtime verification report"
+          >
+            <Download className="w-3 h-3" />
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-6 px-2 text-[10px]"
+            onClick={() => setEntries([])}
+            aria-label="Clear log"
+          >
+            <Trash2 className="w-3 h-3" />
+          </Button>
+        </div>
       </div>
       <div
         ref={ref}
