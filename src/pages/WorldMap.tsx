@@ -39,73 +39,7 @@ interface Trader {
   xp?: number | null;
 }
 
-function FlyTo({ pos }: { pos: [number, number] | null }) {
-  const map = useMap();
-  const lastFlown = useRef<[number, number] | null>(null);
-  useEffect(() => {
-    if (!pos) return;
-    // Skip near-duplicate updates (< ~50m) to avoid jitter from GPS noise
-    const prev = lastFlown.current;
-    if (prev) {
-      const dLat = Math.abs(prev[0] - pos[0]);
-      const dLng = Math.abs(prev[1] - pos[1]);
-      if (dLat < 0.0005 && dLng < 0.0005) return;
-    }
-    lastFlown.current = pos;
-    map.flyTo(pos, 6, { duration: 1.5 });
-  }, [pos, map]);
-  return null;
-}
-
-function escapeHtml(str: string) {
-  return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
-
-// Only allow http(s) image URLs in marker <img src=...> to block javascript:/data: vectors.
-function safeImageUrl(url: string | null | undefined): string | null {
-  if (!url) return null;
-  try {
-    const u = new URL(url, window.location.origin);
-    if (u.protocol !== "http:" && u.protocol !== "https:") return null;
-    return encodeURI(u.toString());
-  } catch {
-    return null;
-  }
-}
-
-function avatarIcon(t: Trader) {
-  const safeName = escapeHtml(t.display_name || "?");
-  const initials = safeName.slice(0, 1).toUpperCase();
-  const ring = t.is_online ? "#22c55e" : "#a855f7";
-  const safeUrl = safeImageUrl(t.avatar_url);
-  const img = safeUrl
-    ? `<img src="${safeUrl}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:9999px;" onerror="this.style.display='none'"/>`
-    : `<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;background:linear-gradient(135deg,#7c3aed,#3b82f6);color:#fff;font-weight:700;font-size:14px;border-radius:9999px;">${initials}</div>`;
-  const shortName = escapeHtml((t.display_name || "").split(" ")[0] || "");
-  const label = shortName
-    ? `<div style="position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);background:rgba(15,15,20,0.85);color:#fff;padding:2px 8px;border-radius:9999px;font-size:9px;font-weight:600;white-space:nowrap;backdrop-filter:blur(8px);">${shortName}</div>`
-    : "";
-  return L.divIcon({
-    className: "trader-avatar-marker",
-    html: `<div style="position:relative;width:42px;height:42px;border-radius:9999px;border:3px solid ${ring};box-shadow:0 6px 16px rgba(0,0,0,0.35);overflow:visible;background:#0f0f14;"><div style="width:100%;height:100%;border-radius:9999px;overflow:hidden;">${img}</div>${label}</div>`,
-    iconSize: [42, 42],
-    iconAnchor: [21, 21],
-  });
-}
-
-function youIcon() {
-  return L.divIcon({
-    className: "you-marker",
-    html: `<div style="position:relative;"><div style="width:18px;height:18px;border-radius:9999px;background:#3b82f6;border:3px solid #fff;box-shadow:0 0 0 6px rgba(59,130,246,0.25);"></div></div>`,
-    iconSize: [18, 18],
-    iconAnchor: [9, 9],
-  });
-}
+// (Leaflet helpers removed — AtlasGlobe handles markers, fly-to, and sanitization internally.)
 
 const WorldMap = () => {
   const { toast } = useToast();
