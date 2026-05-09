@@ -167,13 +167,6 @@ export const FloatingNav = () => {
     navigate("/");
   };
 
-  const handleContest = (e: React.MouseEvent) => {
-    e.preventDefault();
-    toast({
-      title: "Contest — coming soon",
-      description: "We're polishing the leaderboard arena. Stay tuned.",
-    });
-  };
 
   useEffect(() => {
     const loadPendingRequests = async () => {
