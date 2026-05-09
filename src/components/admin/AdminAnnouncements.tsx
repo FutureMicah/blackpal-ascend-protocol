@@ -218,6 +218,25 @@ export const AdminAnnouncements = () => {
                   </div>
                   <p className="text-sm font-semibold truncate">{a.title}</p>
                   <p className="text-xs text-muted-foreground line-clamp-2">{a.body}</p>
+                  <div className="flex flex-wrap gap-1 mt-1.5">
+                    {(a.target_roles ?? []).length === 0 ? (
+                      <Badge variant="outline" className="text-[8px]">everyone</Badge>
+                    ) : (
+                      a.target_roles!.map((r) => (
+                        <Badge key={r} variant="outline" className="text-[8px]">{r}</Badge>
+                      ))
+                    )}
+                    {a.starts_at && (
+                      <span className="text-[9px] text-muted-foreground">
+                        from {format(new Date(a.starts_at), "MMM d HH:mm")}
+                      </span>
+                    )}
+                    {a.ends_at && (
+                      <span className="text-[9px] text-muted-foreground">
+                        → {format(new Date(a.ends_at), "MMM d HH:mm")}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <div className="flex flex-col items-end gap-2">
                   <Switch checked={a.is_active} onCheckedChange={() => toggle(a)} aria-label="Toggle active" />
