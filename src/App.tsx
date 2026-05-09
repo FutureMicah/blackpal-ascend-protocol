@@ -26,6 +26,7 @@ import BlackArenaPlus from "./pages/BlackArenaPlus";
 import GlobeEmbed from "./pages/GlobeEmbed";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminLogin from "./pages/AdminLogin";
+import AdminSignup from "./pages/AdminSignup";
 import Community from "./pages/Community";
 import CinematicCore from "./pages/CinematicCore";
 import CinematicAccess from "./pages/CinematicAccess";
@@ -84,6 +85,7 @@ const App = () => (
           <Route path="/profile/edit" element={<ProfileEdit />} />
           {/* Admin entry: hidden /admin-login route only — no in-app /admin link */}
           <Route path="/admin-login" element={<AdminLogin />} />
+          <Route path="/admin-signup" element={<AdminSignup />} />
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/community" element={<Community />} />
           <Route path="/cinematic-core" element={<CinematicCore />} />

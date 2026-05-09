@@ -20,6 +20,7 @@ import { format } from "date-fns";
 import { AdminBroadcastChannel } from "@/components/AdminBroadcastChannel";
 import { AdminPropManager } from "@/components/AdminPropManager";
 import { GatePassSettings } from "@/components/admin/GatePassSettings";
+import { AdminApprovalsPanel } from "@/components/admin/AdminApprovalsPanel";
 import { AdminSupportTickets } from "@/components/AdminSupportTickets";
 import { AdminTopupReview } from "@/components/admin/AdminTopupReview";
 import { AdminAnnouncements } from "@/components/admin/AdminAnnouncements";
@@ -756,6 +757,7 @@ export default function AdminDashboard() {
           {isSuperAdmin && (
             <TabsContent value="settings">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <AdminApprovalsPanel />
                 <GatePassSettings />
                 <Card className="border-border bg-card/80">
                   <CardHeader>

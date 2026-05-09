@@ -858,6 +858,69 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_pins: {
+        Row: {
+          pin_hash: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          pin_hash: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          pin_hash?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      admin_signup_requests: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          email: string
+          face_photo_path: string
+          id: string
+          pin_hash: string
+          requested_role: string
+          review_note: string | null
+          reviewed_at: string | null
+          reviewer_id: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          email: string
+          face_photo_path: string
+          id?: string
+          pin_hash: string
+          requested_role?: string
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          email?: string
+          face_photo_path?: string
+          id?: string
+          pin_hash?: string
+          requested_role?: string
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       admin_staff: {
         Row: {
           assigned_by: string | null
@@ -5027,6 +5090,10 @@ export type Database = {
         }
         Returns: string
       }
+      approve_admin_request: {
+        Args: { _note?: string; _request_id: string }
+        Returns: undefined
+      }
       approve_prop_payout: {
         Args: { p_note?: string; p_request_id: string }
         Returns: undefined
@@ -5051,6 +5118,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      reject_admin_request: {
+        Args: { _note?: string; _request_id: string }
+        Returns: undefined
+      }
       reject_prop_payout: {
         Args: { p_note?: string; p_request_id: string }
         Returns: undefined
@@ -5069,11 +5140,22 @@ export type Database = {
         }
         Returns: string
       }
+      set_admin_pin: { Args: { _pin: string }; Returns: undefined }
       spend_wallet: {
         Args: {
           p_btax_amount: number
           p_description?: string
           p_reference?: string
+        }
+        Returns: string
+      }
+      submit_admin_request: {
+        Args: {
+          _display_name: string
+          _email: string
+          _face_photo_path: string
+          _pin: string
+          _requested_role: string
         }
         Returns: string
       }
@@ -5088,6 +5170,7 @@ export type Database = {
           user_id: string
         }[]
       }
+      verify_admin_pin: { Args: { _pin: string }; Returns: boolean }
     }
     Enums: {
       app_role:
