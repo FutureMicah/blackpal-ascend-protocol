@@ -52,18 +52,20 @@ export default function Referrals() {
     load();
   }, []);
 
+  const shortLink = referralCode ? `${window.location.origin}/r/${referralCode}` : "";
+
   const copyCode = () => {
-    const link = `${window.location.origin}/auth?ref=${referralCode}`;
-    navigator.clipboard.writeText(link);
+    if (!shortLink) return;
+    navigator.clipboard.writeText(shortLink);
     setCopied(true);
     toast({ title: "Copied!", description: "Referral link copied to clipboard" });
     setTimeout(() => setCopied(false), 2000);
   };
 
   const shareCode = async () => {
-    const link = `${window.location.origin}/auth?ref=${referralCode}`;
+    if (!shortLink) return;
     if (navigator.share) {
-      await navigator.share({ title: "Join BlackPal", text: "Join me on BlackPal — the ultimate trading platform!", url: link });
+      await navigator.share({ title: "Join BlackPal", text: "Join me on BlackPal — the ultimate trading platform!", url: shortLink });
     } else {
       copyCode();
     }
