@@ -4319,6 +4319,54 @@ export type Database = {
         }
         Relationships: []
       }
+      wallet_topup_requests: {
+        Row: {
+          btax_preview: number
+          created_at: string
+          id: string
+          naira_amount: number
+          payer_note: string | null
+          rate_at_submission: number
+          receipt_url: string | null
+          review_note: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["topup_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          btax_preview: number
+          created_at?: string
+          id?: string
+          naira_amount: number
+          payer_note?: string | null
+          rate_at_submission: number
+          receipt_url?: string | null
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["topup_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          btax_preview?: number
+          created_at?: string
+          id?: string
+          naira_amount?: number
+          payer_note?: string | null
+          rate_at_submission?: number
+          receipt_url?: string | null
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["topup_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       wallet_transactions: {
         Row: {
           btax_amount: number
@@ -4539,6 +4587,10 @@ export type Database = {
         }
         Returns: string
       }
+      approve_wallet_topup: {
+        Args: { p_note?: string; p_request_id: string }
+        Returns: string
+      }
       fund_wallet: {
         Args: {
           p_description?: string
@@ -4554,6 +4606,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      reject_wallet_topup: {
+        Args: { p_note?: string; p_request_id: string }
+        Returns: undefined
       }
       reward_user: {
         Args: {
@@ -4610,6 +4666,7 @@ export type Database = {
         | "failed"
         | "expired"
       payment_tier: "NIGERIA" | "AFRICA" | "INTERNATIONAL"
+      topup_status: "pending" | "approved" | "rejected"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -4765,6 +4822,7 @@ export const Constants = {
         "expired",
       ],
       payment_tier: ["NIGERIA", "AFRICA", "INTERNATIONAL"],
+      topup_status: ["pending", "approved", "rejected"],
     },
   },
 } as const
