@@ -1,6 +1,6 @@
 // Naira ↔ BTAX live converter. Reads rate from academy_settings, defaults to ₦100/BTAX.
-import { useEffect, useMemo, useState } from "react";
-import { ArrowDownUp, Loader2 } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { ArrowDownUp, Loader2, RefreshCw, AlertTriangle } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import {
   DEFAULT_BTAX_TO_NAIRA,
   btaxToNaira,
+  clearBtaxRateCache,
   formatBtax,
   formatNaira,
   getBtaxToNairaRate,
