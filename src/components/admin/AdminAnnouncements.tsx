@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { Megaphone, Trash2, Plus } from "lucide-react";
 import { format } from "date-fns";
+import { describeAnnouncementWindow } from "@/lib/announcement-targeting";
 
 type RoleKey = "student" | "sponsor" | "admin" | "moderator";
 const ROLE_OPTIONS: RoleKey[] = ["student", "sponsor", "moderator", "admin"];
