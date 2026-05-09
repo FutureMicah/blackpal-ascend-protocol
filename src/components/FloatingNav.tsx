@@ -269,13 +269,20 @@ export const FloatingNav = () => {
                 <Link
                   key={item.path}
                   to={item.path}
+                  onClick={item.comingSoon ? handleContest : undefined}
                   className={cn(
-                    "flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg transition-colors min-w-[56px]",
-                    isActive ? "text-primary" : "text-muted-foreground"
+                    "relative flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg transition-colors min-w-[56px]",
+                    isActive ? "text-primary" : "text-muted-foreground",
+                    item.comingSoon && "opacity-80"
                   )}
                 >
-                  <Icon className="w-5 h-5" />
+                  <Icon className={item.comingSoon ? "w-4 h-4" : "w-5 h-5"} />
                   <span className="text-[10px] font-medium">{item.name}</span>
+                  {item.comingSoon && (
+                    <span className="absolute -top-0.5 right-1 text-[7px] uppercase tracking-wider bg-amber-500/20 text-amber-600 dark:text-amber-400 px-1 rounded-full">
+                      soon
+                    </span>
+                  )}
                 </Link>
               );
             })}
