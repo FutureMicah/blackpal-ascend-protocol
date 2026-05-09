@@ -757,6 +757,7 @@ export default function AdminDashboard() {
           {isSuperAdmin && (
             <TabsContent value="settings">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <AdminApprovalsPanel />
                 <GatePassSettings />
                 <Card className="border-border bg-card/80">
                   <CardHeader>
