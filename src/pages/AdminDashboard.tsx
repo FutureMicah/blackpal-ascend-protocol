@@ -21,6 +21,7 @@ import { AdminBroadcastChannel } from "@/components/AdminBroadcastChannel";
 import { AdminPropManager } from "@/components/AdminPropManager";
 import { GatePassSettings } from "@/components/admin/GatePassSettings";
 import { AdminApprovalsPanel } from "@/components/admin/AdminApprovalsPanel";
+import { WebhookEventsPanel } from "@/components/admin/WebhookEventsPanel";
 import { AdminSupportTickets } from "@/components/AdminSupportTickets";
 import { AdminTopupReview } from "@/components/admin/AdminTopupReview";
 import { AdminAnnouncements } from "@/components/admin/AdminAnnouncements";
@@ -759,6 +760,7 @@ export default function AdminDashboard() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <AdminApprovalsPanel />
                 <GatePassSettings />
+                <WebhookEventsPanel />
                 <Card className="border-border bg-card/80">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-sm"><Settings className="w-4 h-4" /> App Configuration</CardTitle>
