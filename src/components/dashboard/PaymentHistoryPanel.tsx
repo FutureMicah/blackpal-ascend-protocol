@@ -86,10 +86,19 @@ export const PaymentHistoryPanel = ({ userId }: { userId: string | null }) => {
 
   return (
     <Card className="border-border bg-card/60">
-      <CardHeader className="pb-2">
+      <CardHeader className="pb-2 flex flex-row items-center justify-between gap-2 space-y-0">
         <CardTitle className="flex items-center gap-2 text-sm">
           <Receipt className="w-4 h-4 text-primary" /> Payment History
         </CardTitle>
+        <Button
+          size="sm"
+          variant="outline"
+          className="h-7 text-[10px] gap-1"
+          disabled={!rows.some((r) => ["completed", "failed", "refunded", "disputed"].includes(r.payment_status || ""))}
+          onClick={() => downloadCsv(rows)}
+        >
+          <Download className="w-3 h-3" /> CSV
+        </Button>
       </CardHeader>
       <CardContent>
         {loading ? (
