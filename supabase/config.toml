@@ -3,3 +3,7 @@ project_id = "jszzconlvdwgqtnxnhes"
 # Public Paystack webhook — must not require JWT
 [functions.paystack-webhook]
 verify_jwt = false
+
+# Internal email helper, invoked with service role from other functions
+[functions.send-payment-receipt]
+verify_jwt = false

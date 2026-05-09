@@ -25,6 +25,11 @@ export const emitThemePreview = (theme: ProfileTheme | null) => {
 const backgrounds = [
   { id: "default", name: "Default", preview: "bg-gradient-to-br from-background to-background border" },
   { id: "dark", name: "Dark Night", preview: "bg-gradient-to-br from-gray-900 to-black" },
+  // African aesthetic presets
+  { id: "afro-savanna", name: "Savanna Sun", preview: "bg-gradient-to-t from-[#1a0a05] via-[#f06a1f] to-[#ffb04a]" },
+  { id: "afro-tribal",  name: "Tribal Onyx", preview: "bg-gradient-to-br from-[#1a0f08] via-[#3a1f0c] to-[#5c2e10]" },
+  { id: "afro-clay",    name: "Clay Heritage", preview: "bg-gradient-to-br from-[#f5e9d4] via-[#e8c79a] to-[#b97840]" },
+  { id: "afro-ankara",  name: "Ankara Bloom", preview: "bg-gradient-to-br from-[#0a2818] via-[#c47a2b] to-[#1a0a05]" },
   { id: "heritage-frost", name: "Heritage Frost", preview: "bg-gradient-to-br from-sky-100 via-white to-amber-100" },
   { id: "liquid-glass", name: "Liquid Glass", preview: "bg-gradient-to-br from-sky-200 via-white to-slate-200" },
   { id: "royal-blue", name: "Royal Blue", preview: "theme-pattern theme-bg-royal-blue" },
@@ -58,6 +63,8 @@ const accentColors = [
   { id: "orange", name: "Orange", color: "hsl(25, 95%, 53%)" },
   { id: "pink", name: "Pink", color: "hsl(330, 81%, 60%)" },
   { id: "cyan", name: "Cyan", color: "hsl(189, 85%, 43%)" },
+  { id: "amber", name: "Amber", color: "hsl(38, 92%, 50%)" },
+  { id: "earth", name: "Earth Clay", color: "hsl(28, 65%, 45%)" },
 ];
 
 export const ProfileThemeCustomizer = ({

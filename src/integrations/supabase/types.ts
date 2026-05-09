@@ -789,6 +789,48 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_alerts: {
+        Row: {
+          acknowledged: boolean
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          alert_type: string
+          created_at: string
+          id: string
+          message: string
+          metadata: Json | null
+          reference: string | null
+          severity: string
+          user_id: string | null
+        }
+        Insert: {
+          acknowledged?: boolean
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          alert_type: string
+          created_at?: string
+          id?: string
+          message: string
+          metadata?: Json | null
+          reference?: string | null
+          severity?: string
+          user_id?: string | null
+        }
+        Update: {
+          acknowledged?: boolean
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          alert_type?: string
+          created_at?: string
+          id?: string
+          message?: string
+          metadata?: Json | null
+          reference?: string | null
+          severity?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       admin_broadcasts: {
         Row: {
           admin_id: string
@@ -2574,6 +2616,48 @@ export type Database = {
           transaction_id?: string | null
           updated_at?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      paystack_webhook_events: {
+        Row: {
+          amount_minor: number | null
+          created_at: string
+          currency: string | null
+          error: string | null
+          event_type: string
+          id: string
+          new_status: string | null
+          prior_status: string | null
+          raw: Json | null
+          reference: string | null
+          signature_valid: boolean
+        }
+        Insert: {
+          amount_minor?: number | null
+          created_at?: string
+          currency?: string | null
+          error?: string | null
+          event_type: string
+          id?: string
+          new_status?: string | null
+          prior_status?: string | null
+          raw?: Json | null
+          reference?: string | null
+          signature_valid?: boolean
+        }
+        Update: {
+          amount_minor?: number | null
+          created_at?: string
+          currency?: string | null
+          error?: string | null
+          event_type?: string
+          id?: string
+          new_status?: string | null
+          prior_status?: string | null
+          raw?: Json | null
+          reference?: string | null
+          signature_valid?: boolean
         }
         Relationships: []
       }
