@@ -315,7 +315,7 @@ const WorldMap = () => {
         </div>
 
         {/* Map area */}
-        <Card className="relative overflow-hidden h-[60vh] sm:h-[68vh] mb-3 rounded-3xl border-white/10 shadow-2xl">
+        <Card id="atlas-view-panel" role="tabpanel" aria-label={view === "globe" ? "3D globe view" : "2D map view"} className="relative overflow-hidden h-[60vh] sm:h-[68vh] mb-3 rounded-3xl border-white/10 shadow-2xl">
           {loading ? (
             <div
               className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gradient-to-b from-[#1a1530] to-[#05060c]"
