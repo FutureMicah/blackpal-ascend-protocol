@@ -31,6 +31,8 @@ export const CurrencyConverter = ({
   const [rate, setRate] = useState<number>(DEFAULT_BTAX_TO_NAIRA);
   const [loadingRate, setLoadingRate] = useState(true);
   const [rateError, setRateError] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [, forceTick] = useState(0);
   const [direction, setDirection] = useState<Direction>(defaultDirection);
   const [input, setInput] = useState<string>("");
 
@@ -41,6 +43,7 @@ export const CurrencyConverter = ({
       if (force) clearBtaxRateCache();
       const r = await getBtaxToNairaRate(force);
       setRate(r);
+      setLastUpdated(new Date());
     } catch (e: any) {
       setRateError("Couldn't load live rate. Using default ₦100/BTAX.");
       setRate(DEFAULT_BTAX_TO_NAIRA);
@@ -48,6 +51,23 @@ export const CurrencyConverter = ({
       setLoadingRate(false);
     }
   }, []);
+
+  // Re-render the "x ago" label every 30s
+  useEffect(() => {
+    const id = setInterval(() => forceTick((n) => n + 1), 30_000);
+    return () => clearInterval(id);
+  }, []);
+
+  const lastUpdatedLabel = useMemo(() => {
+    if (!lastUpdated) return null;
+    const diff = Math.max(0, Date.now() - lastUpdated.getTime());
+    const s = Math.round(diff / 1000);
+    if (s < 60) return `just now`;
+    const m = Math.round(s / 60);
+    if (m < 60) return `${m} min${m === 1 ? "" : "s"} ago`;
+    const h = Math.round(m / 60);
+    return `${h} hr${h === 1 ? "" : "s"} ago`;
+  }, [lastUpdated, rate]);
 
   useEffect(() => {
     loadRate(false);
