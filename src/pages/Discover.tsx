@@ -21,6 +21,7 @@ interface UserProfile {
   rank_level: number | null;
   bio: string | null;
   connectionStatus?: 'none' | 'pending' | 'accepted' | 'sent';
+  connectionId?: string;
 }
 
 const Discover = () => {
