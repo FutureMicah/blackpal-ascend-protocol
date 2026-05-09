@@ -118,9 +118,22 @@ export const CurrencyConverter = ({
         </div>
       )}
 
+      <div aria-live="polite" aria-atomic="true" className="sr-only">
+        {loadingRate
+          ? "Loading current rate"
+          : rateError
+          ? rateError
+          : `Current rate: 1 BTAX equals ${rate} Naira${
+              lastUpdatedLabel ? `, updated ${lastUpdatedLabel}` : ""
+            }`}
+      </div>
+
       {rateError && (
-        <div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/10 p-2 text-[10px] text-destructive">
-          <AlertTriangle className="w-3 h-3 mt-0.5 shrink-0" />
+        <div
+          role="alert"
+          className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/10 p-2 text-[10px] text-destructive"
+        >
+          <AlertTriangle className="w-3 h-3 mt-0.5 shrink-0" aria-hidden="true" />
           <div className="flex-1">
             <p>{rateError}</p>
           </div>
@@ -130,6 +143,7 @@ export const CurrencyConverter = ({
             variant="outline"
             className="h-6 text-[10px] px-2"
             onClick={() => loadRate(true)}
+            aria-label="Retry loading rate"
           >
             Retry
           </Button>
