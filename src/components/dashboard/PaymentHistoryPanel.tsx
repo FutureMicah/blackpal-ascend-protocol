@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Receipt, CheckCircle2, Clock, XCircle, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Receipt, CheckCircle2, Clock, XCircle, Loader2, Download, RotateCcw, AlertTriangle } from "lucide-react";
 
 interface PaymentRow {
   id: string;
@@ -17,10 +18,37 @@ interface PaymentRow {
 }
 
 const statusMeta: Record<string, { icon: any; label: string; cls: string }> = {
-  completed: { icon: CheckCircle2, label: "Completed", cls: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30" },
-  pending:   { icon: Clock,        label: "Pending",   cls: "bg-amber-500/15 text-amber-400 border-amber-500/30" },
-  failed:    { icon: XCircle,      label: "Failed",    cls: "bg-rose-500/15 text-rose-400 border-rose-500/30" },
+  completed: { icon: CheckCircle2,  label: "Completed", cls: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30" },
+  pending:   { icon: Clock,         label: "Pending",   cls: "bg-amber-500/15 text-amber-400 border-amber-500/30" },
+  failed:    { icon: XCircle,       label: "Failed",    cls: "bg-rose-500/15 text-rose-400 border-rose-500/30" },
+  refunded:  { icon: RotateCcw,     label: "Refunded",  cls: "bg-sky-500/15 text-sky-400 border-sky-500/30" },
+  disputed:  { icon: AlertTriangle, label: "Disputed",  cls: "bg-orange-500/15 text-orange-400 border-orange-500/30" },
 };
+
+function downloadCsv(rows: PaymentRow[]) {
+  const header = ["Date", "Method", "Status", "Amount Local", "Currency", "Amount USD", "Reference"];
+  const lines = rows
+    .filter((r) => r.payment_status === "completed" || r.payment_status === "failed" || r.payment_status === "refunded" || r.payment_status === "disputed")
+    .map((r) => [
+      new Date(r.completed_at || r.created_at).toISOString(),
+      r.payment_method,
+      r.payment_status ?? "",
+      r.amount_local ?? "",
+      r.local_currency ?? "",
+      r.amount_usd ?? "",
+      r.transaction_id ?? "",
+    ].map((v) => `"${String(v).replace(/"/g, '""')}"`).join(","));
+  const csv = [header.join(","), ...lines].join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `payments-${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
 
 export const PaymentHistoryPanel = ({ userId }: { userId: string | null }) => {
   const [rows, setRows] = useState<PaymentRow[]>([]);
