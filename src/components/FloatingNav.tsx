@@ -20,7 +20,7 @@ import { Badge } from "@/components/ui/badge";
 // Priority items always visible in header (kept to 3)
 const priorityItems = [
   { name: "Dashboard", path: "/dashboard", icon: Home },
-  { name: "Trade", path: "/cinematic-core", icon: LineChart },
+  { name: "Contest", path: "/contest", icon: Sparkles, comingSoon: true },
   { name: "Market", path: "/market-hub", icon: Globe },
 ];
 
@@ -28,8 +28,8 @@ const priorityItems = [
 const mobileBottomTabs = [
   { name: "Dashboard", path: "/dashboard", icon: Home },
   { name: "Portfolio", path: "/my-accounts", icon: Wallet },
-  { name: "Trade", path: "/cinematic-core", icon: LineChart },
-  { name: "Transactions", path: "/blackvault", icon: Vault },
+  { name: "Contest", path: "/contest", icon: Sparkles, comingSoon: true },
+  { name: "Vault", path: "/blackvault", icon: Vault },
 ];
 
 // Side drawer organised into groups (used on both desktop & mobile via the menu)
