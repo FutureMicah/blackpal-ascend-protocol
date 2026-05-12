@@ -887,6 +887,8 @@ export default function AdminDashboard() {
               </div>
             </TabsContent>
           )}
+
+          {canManageUsers && <AdminPropManager adminUserId={adminUserId} users={users} />}
         </Tabs>
 
         {/* Proof Review Dialog */}
@@ -1041,8 +1043,7 @@ export default function AdminDashboard() {
           </DialogContent>
         </Dialog>
 
-        {/* Prop Firm Management Tab Content */}
-        <AdminPropManager adminUserId={adminUserId} users={users} />
+        {/* Prop Firm tab content is mounted inside <Tabs> above */}
       </div>
     </div>
   );
