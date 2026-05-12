@@ -25,6 +25,8 @@ import { WebhookEventsPanel } from "@/components/admin/WebhookEventsPanel";
 import { AdminSupportTickets } from "@/components/AdminSupportTickets";
 import { AdminTopupReview } from "@/components/admin/AdminTopupReview";
 import { AdminAnnouncements } from "@/components/admin/AdminAnnouncements";
+import { AdminErrorBoundary } from "@/components/admin/AdminErrorBoundary";
+import { AdminDiagnosticsPanel } from "@/components/admin/AdminDiagnosticsPanel";
 import { CurrencyConverter } from "@/components/CurrencyConverter";
 import logo from "@/assets/blackpal-logo.jpg";
 
