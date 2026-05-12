@@ -12,11 +12,11 @@ import { toast } from "sonner";
 import { Plus, Trophy, Users, Search, Eye, Ban, Check, RefreshCw, BarChart3 } from "lucide-react";
 
 interface AdminPropManagerProps {
-  adminUserId: string;
-  users: any[];
+  adminUserId?: string;
+  users?: any[];
 }
 
-export function AdminPropManager({ adminUserId, users }: AdminPropManagerProps) {
+export function AdminPropManager({ adminUserId = "", users = [] }: AdminPropManagerProps) {
   const [tiers, setTiers] = useState<any[]>([]);
   const [propAccounts, setPropAccounts] = useState<any[]>([]);
   const [showAssign, setShowAssign] = useState(false);

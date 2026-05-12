@@ -25,6 +25,8 @@ import { WebhookEventsPanel } from "@/components/admin/WebhookEventsPanel";
 import { AdminSupportTickets } from "@/components/AdminSupportTickets";
 import { AdminTopupReview } from "@/components/admin/AdminTopupReview";
 import { AdminAnnouncements } from "@/components/admin/AdminAnnouncements";
+import { AdminErrorBoundary } from "@/components/admin/AdminErrorBoundary";
+import { AdminDiagnosticsPanel } from "@/components/admin/AdminDiagnosticsPanel";
 import { CurrencyConverter } from "@/components/CurrencyConverter";
 import logo from "@/assets/blackpal-logo.jpg";
 
@@ -37,7 +39,7 @@ interface StaffMember {
   email?: string;
 }
 
-export default function AdminDashboard() {
+function AdminDashboardInner() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [adminRole, setAdminRole] = useState<AdminRole | null>(null);
@@ -785,6 +787,12 @@ export default function AdminDashboard() {
                 <AdminApprovalsPanel />
                 <GatePassSettings />
                 <WebhookEventsPanel />
+                <AdminDiagnosticsPanel
+                  adminUserId={adminUserId}
+                  adminRole={adminRole}
+                  usersLoaded={users.length}
+                  paymentsLoaded={payments.length}
+                />
                 <Card className="border-border bg-card/80">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-sm"><Settings className="w-4 h-4" /> App Configuration</CardTitle>
@@ -1046,5 +1054,13 @@ export default function AdminDashboard() {
         {/* Prop Firm tab content is mounted inside <Tabs> above */}
       </div>
     </div>
+  );
+}
+
+export default function AdminDashboard() {
+  return (
+    <AdminErrorBoundary>
+      <AdminDashboardInner />
+    </AdminErrorBoundary>
   );
 }
