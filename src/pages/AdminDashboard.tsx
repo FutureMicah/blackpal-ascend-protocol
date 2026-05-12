@@ -887,6 +887,8 @@ export default function AdminDashboard() {
               </div>
             </TabsContent>
           )}
+
+          {canManageUsers && <AdminPropManager adminUserId={adminUserId} users={users} />}
         </Tabs>
 
         {/* Proof Review Dialog */}
