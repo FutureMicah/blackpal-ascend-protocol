@@ -39,7 +39,7 @@ interface StaffMember {
   email?: string;
 }
 
-export default function AdminDashboard() {
+function AdminDashboardInner() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [adminRole, setAdminRole] = useState<AdminRole | null>(null);
@@ -787,6 +787,12 @@ export default function AdminDashboard() {
                 <AdminApprovalsPanel />
                 <GatePassSettings />
                 <WebhookEventsPanel />
+                <AdminDiagnosticsPanel
+                  adminUserId={adminUserId}
+                  adminRole={adminRole}
+                  usersLoaded={users.length}
+                  paymentsLoaded={payments.length}
+                />
                 <Card className="border-border bg-card/80">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-sm"><Settings className="w-4 h-4" /> App Configuration</CardTitle>
