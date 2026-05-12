@@ -1056,3 +1056,11 @@ function AdminDashboardInner() {
     </div>
   );
 }
+
+export default function AdminDashboard() {
+  return (
+    <AdminErrorBoundary>
+      <AdminDashboardInner />
+    </AdminErrorBoundary>
+  );
+}
