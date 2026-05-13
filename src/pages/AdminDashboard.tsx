@@ -349,6 +349,27 @@ function AdminDashboardInner() {
         </div>
       </header>
 
+      {/* Role / loading gate status — always visible at top of /admin */}
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 pt-3">
+        <div className={`rounded-lg border p-2.5 text-xs flex items-center justify-between gap-2 ${
+          adminRole
+            ? "border-emerald-500/30 bg-emerald-500/5 text-emerald-400"
+            : loading
+              ? "border-yellow-500/30 bg-yellow-500/5 text-yellow-400"
+              : "border-destructive/30 bg-destructive/5 text-destructive"
+        }`}>
+          <div className="flex items-center gap-2">
+            {adminRole ? <Check className="w-3.5 h-3.5" /> : loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <X className="w-3.5 h-3.5" />}
+            <span className="font-semibold">
+              {adminRole ? `Approved · ${adminRole.replace("_", " ")}` : loading ? "Verifying admin session…" : "Access denied"}
+            </span>
+          </div>
+          <span className="text-[10px] opacity-70 font-mono truncate max-w-[55%]" title={adminUserId}>
+            uid: {adminUserId ? adminUserId.slice(0, 8) + "…" : "—"} · users:{users.length} · payments:{payments.length}
+          </span>
+        </div>
+      </div>
+
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-6">
         {/* Stats Overview */}
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3 mb-6">
