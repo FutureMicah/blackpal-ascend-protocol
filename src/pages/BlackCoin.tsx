@@ -130,18 +130,17 @@ const BlackCoin = () => {
                   <TabsTrigger value="withdraw" className="text-[10px] gap-1"><ArrowUpFromLine className="w-3 h-3" />Withdraw</TabsTrigger>
                 </TabsList>
                 <TabsContent value="deposit" className="space-y-2">
-                  <h3 className="text-xs font-bold">Deposit Funds</h3>
-                  <div className="flex gap-2">
-                    <Input type="number" placeholder="Amount" value={depositAmount} onChange={e => setDepositAmount(e.target.value)} className="flex-1 h-8 text-xs" />
-                    <Button onClick={handleDeposit} disabled={processing || !depositAmount} className="h-8 text-xs bg-green-600 hover:bg-green-700">
-                      {processing ? <Loader2 className="w-3 h-3 animate-spin" /> : "Deposit"}
-                    </Button>
-                  </div>
-                  <div className="flex gap-1.5 flex-wrap">
-                    {[100, 500, 1000, 5000].map(a => (
-                      <Button key={a} variant="outline" size="sm" className="h-6 text-[9px] px-2" onClick={() => setDepositAmount(a.toString())}>+{a}</Button>
-                    ))}
-                  </div>
+                  <h3 className="text-xs font-bold">Deposit Naira → BTAX</h3>
+                  <p className="text-[10px] text-muted-foreground leading-relaxed">
+                    Send Naira to one of BlackPal's official accounts, upload your receipt,
+                    and BTAX is credited to your wallet after admin verification.
+                  </p>
+                  <Button onClick={() => navigate("/wallet/topup")} className="w-full h-9 text-xs bg-green-600 hover:bg-green-700">
+                    <ArrowDownToLine className="w-3.5 h-3.5 mr-1.5" /> Open Naira Top-up
+                  </Button>
+                  <p className="text-[9px] text-muted-foreground text-center">
+                    Minimum ₦100 · Default rate 1 BTAX = ₦100
+                  </p>
                 </TabsContent>
                 <TabsContent value="convert" className="space-y-3">
                   <h3 className="text-xs font-bold">Naira ↔ BTAX Converter</h3>
