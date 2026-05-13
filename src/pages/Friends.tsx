@@ -135,7 +135,7 @@ const Friends = () => {
     <div className="min-h-screen bg-background">
       <FloatingNav />
       
-      <div className="pt-16 sm:pt-20 pb-4 sm:pb-8 px-2 sm:px-4 max-w-6xl mx-auto">
+      <div className="pt-16 sm:pt-20 pb-20 sm:pb-8 px-1.5 sm:px-4 max-w-6xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -221,7 +221,7 @@ const Friends = () => {
         </AnimatePresence>
 
         {/* Main Content */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-6 h-[calc(100vh-180px)] sm:h-[calc(100vh-220px)]">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-6 h-[calc(100vh-220px)] sm:h-[calc(100vh-220px)]">
           {/* Friends List */}
           <div className={`md:col-span-1 ${view === 'chat' ? 'hidden md:block' : ''}`}>
             <FriendsList

@@ -61,10 +61,10 @@ export const WalletSnapshot = ({ userId }: WalletSnapshotProps) => {
           variant="secondary"
           size="sm"
           className="flex-col h-auto py-2.5 gap-1 bg-white/15 hover:bg-white/25 text-white border-0 backdrop-blur"
-          onClick={() => navigate("/blackcoin?action=deposit")}
+          onClick={() => navigate("/wallet/topup")}
         >
           <ArrowDownToLine className="w-4 h-4" />
-          <span className="text-[10px]">Receive</span>
+          <span className="text-[10px]">Deposit ₦</span>
         </Button>
         <Button
           variant="secondary"

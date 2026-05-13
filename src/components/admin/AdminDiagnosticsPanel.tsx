@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Activity, RefreshCw, CheckCircle2, XCircle, Loader2 } from "lucide-react";
+import { Activity, RefreshCw, CheckCircle2, XCircle, Loader2, Download, History } from "lucide-react";
 
 interface Probe {
   label: string;
@@ -12,6 +12,12 @@ interface Probe {
   ms: number | null;
   error?: string;
   ranAt?: string;
+}
+
+interface RunRecord {
+  ranAt: string;
+  durationMs: number;
+  probes: Probe[];
 }
 
 interface Props {
@@ -23,11 +29,14 @@ interface Props {
 
 export const AdminDiagnosticsPanel = ({ adminUserId, adminRole, usersLoaded, paymentsLoaded }: Props) => {
   const [probes, setProbes] = useState<Probe[]>([]);
+  const [history, setHistory] = useState<RunRecord[]>([]);
   const [running, setRunning] = useState(false);
   const [lastError, setLastError] = useState<any>(null);
+  const [themeState, setThemeState] = useState<any>(null);
 
   const run = async () => {
     setRunning(true);
+    const startedAll = performance.now();
     const tasks: Array<[string, () => Promise<{ count: number | null }>]> = [
       ["paystack_webhook_events", async () => {
         const { count, error } = await supabase
@@ -37,7 +46,6 @@ export const AdminDiagnosticsPanel = ({ adminUserId, adminRole, usersLoaded, pay
         return { count: count ?? 0 };
       }],
       ["payment_status_transitions", async () => {
-        // Status transitions are recorded in webhook events (prior_status -> new_status)
         const { count, error } = await supabase
           .from("paystack_webhook_events")
           .select("*", { count: "exact", head: true })
@@ -76,29 +84,68 @@ export const AdminDiagnosticsPanel = ({ adminUserId, adminRole, usersLoaded, pay
       }
     }
     setProbes(results);
+    setHistory((prev) => [
+      { ranAt: new Date().toISOString(), durationMs: Math.round(performance.now() - startedAll), probes: results },
+      ...prev,
+    ].slice(0, 20));
     setRunning(false);
   };
 
   useEffect(() => {
     run();
+    // Pick up current theme state if already applied
+    setThemeState((window as any).__BLACKPAL_THEME__ ?? null);
+    const onTheme = (e: Event) => setThemeState((e as CustomEvent).detail);
+    window.addEventListener("blackpal:theme-applied", onTheme);
     const t = setInterval(() => {
       const err = (window as any).__ADMIN_LAST_ERROR__;
       if (err) setLastError(err);
     }, 1500);
-    return () => clearInterval(t);
+    return () => {
+      window.removeEventListener("blackpal:theme-applied", onTheme);
+      clearInterval(t);
+    };
   }, []);
 
-  const themeBg = typeof document !== "undefined" ? (document.body.style.background || "(default)") : "(ssr)";
+  const exportJson = () => {
+    const payload = {
+      exportedAt: new Date().toISOString(),
+      adminRole,
+      adminUserId,
+      usersLoaded,
+      paymentsLoaded,
+      themeState,
+      latest: probes,
+      history,
+      lastError,
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `admin-diagnostics-${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const themeLabel = themeState?.theme?.background
+    ? `${themeState.theme.background} · ${themeState.theme.accentColor || "default accent"}`
+    : "(default / no theme applied)";
 
   return (
     <Card className="border-border bg-card/80 md:col-span-2">
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-sm">
           <Activity className="w-4 h-4 text-primary" /> Admin Diagnostics
-          <Button size="sm" variant="ghost" className="ml-auto h-7 text-[11px]" onClick={run} disabled={running}>
-            {running ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <RefreshCw className="w-3 h-3 mr-1" />}
-            Re-run
-          </Button>
+          <div className="ml-auto flex gap-1">
+            <Button size="sm" variant="ghost" className="h-7 text-[11px]" onClick={exportJson} disabled={running || probes.length === 0}>
+              <Download className="w-3 h-3 mr-1" /> Export JSON
+            </Button>
+            <Button size="sm" variant="ghost" className="h-7 text-[11px]" onClick={run} disabled={running}>
+              {running ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <RefreshCw className="w-3 h-3 mr-1" />}
+              Re-run
+            </Button>
+          </div>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -120,8 +167,11 @@ export const AdminDiagnosticsPanel = ({ adminUserId, adminRole, usersLoaded, pay
             <p className="font-semibold">{paymentsLoaded}</p>
           </div>
           <div className="rounded border border-border bg-muted/30 p-2 col-span-2 sm:col-span-4">
-            <p className="text-muted-foreground">Body theme background</p>
-            <p className="font-mono text-[10px] truncate" title={themeBg}>{themeBg}</p>
+            <p className="text-muted-foreground">Active theme (from provider)</p>
+            <p className="font-mono text-[10px] truncate" title={themeLabel}>{themeLabel}</p>
+            {themeState?.appliedAt && (
+              <p className="text-[9px] text-muted-foreground">applied {new Date(themeState.appliedAt).toLocaleTimeString()}</p>
+            )}
           </div>
         </div>
 
@@ -161,6 +211,28 @@ export const AdminDiagnosticsPanel = ({ adminUserId, adminRole, usersLoaded, pay
             </tbody>
           </table>
         </div>
+
+        {history.length > 0 && (
+          <div className="rounded border border-border bg-muted/10 p-2">
+            <p className="text-[11px] font-semibold flex items-center gap-1 mb-1">
+              <History className="w-3 h-3" /> Probe run history ({history.length})
+            </p>
+            <div className="max-h-32 overflow-y-auto space-y-1">
+              {history.map((h, i) => {
+                const okCount = h.probes.filter((p) => p.ok).length;
+                const failCount = h.probes.length - okCount;
+                return (
+                  <div key={i} className="flex items-center justify-between text-[10px] p-1.5 rounded bg-muted/30">
+                    <span className="font-mono">{new Date(h.ranAt).toLocaleTimeString()}</span>
+                    <span className="text-muted-foreground">{h.durationMs}ms</span>
+                    <span className="text-emerald-400">{okCount} ok</span>
+                    <span className={failCount ? "text-rose-400" : "text-muted-foreground"}>{failCount} fail</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {lastError && (
           <div className="rounded border border-destructive/30 bg-destructive/5 p-2 text-[11px]">
