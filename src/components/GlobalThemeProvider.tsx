@@ -58,6 +58,10 @@ function applyTheme(t: Theme | null) {
   const html = document.documentElement;
   const body = document.body;
 
+  let appliedBg = "";
+  let appliedFont = "";
+  let appliedAccent: string | null = null;
+
   if (!t || !t.background) {
     body.style.background = "";
     body.style.fontFamily = "";
@@ -65,29 +69,42 @@ function applyTheme(t: Theme | null) {
     html.style.removeProperty("--ring");
     html.style.removeProperty("--accent");
     html.classList.remove("theme-afro");
-    return;
-  }
-
-  const bg = BG_GRADIENTS[t.background] ?? "";
-  body.style.background = bg;
-  body.style.backgroundAttachment = bg ? "fixed" : "";
-
-  const font = t.font ? FONT_STACK[t.font] : null;
-  body.style.fontFamily = font || "";
-
-  if (t.accentColor && ACCENT_HSL[t.accentColor]) {
-    html.style.setProperty("--primary", ACCENT_HSL[t.accentColor]);
-    html.style.setProperty("--ring", ACCENT_HSL[t.accentColor]);
-    html.style.setProperty("--accent", ACCENT_HSL[t.accentColor]);
-    html.style.setProperty("--icon-color", ACCENT_HSL[t.accentColor]);
   } else {
-    html.style.removeProperty("--primary");
-    html.style.removeProperty("--ring");
-    html.style.removeProperty("--accent");
-    html.style.removeProperty("--icon-color");
+    const bg = BG_GRADIENTS[t.background] ?? "";
+    body.style.background = bg;
+    body.style.backgroundAttachment = bg ? "fixed" : "";
+    appliedBg = bg;
+
+    const font = t.font ? FONT_STACK[t.font] : null;
+    body.style.fontFamily = font || "";
+    appliedFont = font || "";
+
+    if (t.accentColor && ACCENT_HSL[t.accentColor]) {
+      html.style.setProperty("--primary", ACCENT_HSL[t.accentColor]);
+      html.style.setProperty("--ring", ACCENT_HSL[t.accentColor]);
+      html.style.setProperty("--accent", ACCENT_HSL[t.accentColor]);
+      html.style.setProperty("--icon-color", ACCENT_HSL[t.accentColor]);
+      appliedAccent = ACCENT_HSL[t.accentColor];
+    } else {
+      html.style.removeProperty("--primary");
+      html.style.removeProperty("--ring");
+      html.style.removeProperty("--accent");
+      html.style.removeProperty("--icon-color");
+    }
+
+    html.classList.toggle("theme-afro", AFRO_BACKGROUNDS.has(t.background));
   }
 
-  html.classList.toggle("theme-afro", AFRO_BACKGROUNDS.has(t.background));
+  // Expose current state for diagnostics + dispatch event
+  const state = {
+    theme: t || null,
+    background: appliedBg,
+    font: appliedFont,
+    accent: appliedAccent,
+    appliedAt: new Date().toISOString(),
+  };
+  (window as any).__BLACKPAL_THEME__ = state;
+  window.dispatchEvent(new CustomEvent("blackpal:theme-applied", { detail: state }));
 }
 
 export const GlobalThemeProvider = () => {
