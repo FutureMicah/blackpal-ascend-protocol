@@ -1,7 +1,7 @@
 import {
   Home, Trophy, BarChart3, BookOpen, Vault, Users, Megaphone as MegaIcon,
   CreditCard, Hammer, Coins, Bell, Menu, Search, Megaphone, Wallet, Globe,
-  Gift, Activity, Map, Wrench, User as UserIcon, LogOut, Sparkles,
+  Gift, Activity, Map, Wrench, User as UserIcon, LogOut, Sparkles, ArrowDownToLine,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
@@ -44,6 +44,7 @@ const drawerGroups: { label: string; items: { name: string; path: string; icon: 
       { name: "Forex Tools", path: "/forex-tools", icon: Wrench },
       { name: "Analytics", path: "/trade-analytics", icon: Activity },
       { name: "Transactions", path: "/blackvault", icon: Vault },
+      { name: "Deposit ₦ → BTAX", path: "/wallet/topup", icon: ArrowDownToLine },
     ],
   },
   {

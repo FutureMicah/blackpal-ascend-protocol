@@ -81,8 +81,8 @@ const BlackVault = () => {
 
         {/* Quick Actions */}
         <div className="grid grid-cols-3 gap-2 mb-5">
-          <Button className="h-9 text-xs" onClick={() => navigate("/blackcoin?action=deposit")}>
-            <ArrowDownRight className="w-3.5 h-3.5 mr-1" /> Deposit
+          <Button className="h-9 text-xs" onClick={() => navigate("/wallet/topup")}>
+            <ArrowDownRight className="w-3.5 h-3.5 mr-1" /> Deposit ₦
           </Button>
           <Button variant="outline" className="h-9 text-xs" onClick={() => navigate("/blackcoin?action=withdraw")}>
             <ArrowUpRight className="w-3.5 h-3.5 mr-1" /> Withdraw
