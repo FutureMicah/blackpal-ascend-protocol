@@ -989,6 +989,17 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
                   <CardContent className="space-y-6">
                     {/* Avatar Upload */}
                     <div className="flex flex-col items-center gap-4">
+                      {/* Face-photo reminder */}
+                      <div className="w-full flex items-start gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-[11px] sm:text-xs text-amber-200">
+                        <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                        <div className="leading-snug">
+                          <strong className="block text-amber-100">Upload an ACTUAL photo of your face.</strong>
+                          Your selfie is automatically transformed into a 3D Memoji-style avatar
+                          that preserves your real likeness. Fake, group, cartoon, celebrity, or
+                          non-face images will produce a broken avatar and may be removed by moderators.
+                        </div>
+                      </div>
+
                       <div className="relative">
                         {avatarPreview ? (
                           <PremiumAvatar src={avatarPreview} size={128} />
@@ -997,14 +1008,26 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
                             👤
                           </div>
                         )}
+                        {stylizing && (
+                          <div className="absolute inset-0 rounded-full bg-background/80 backdrop-blur-sm flex flex-col items-center justify-center gap-1 text-[10px] text-primary">
+                            <LoaderIcon className="w-6 h-6 animate-spin" />
+                            <span>Sculpting 3D…</span>
+                          </div>
+                        )}
+                        {is3DAvatar && !stylizing && (
+                          <div className="absolute -bottom-1 -right-1 rounded-full bg-primary text-primary-foreground p-1 shadow-lg">
+                            <Sparkles className="w-3.5 h-3.5" />
+                          </div>
+                        )}
                       </div>
 
-                      <div className="flex gap-2">
+                      <div className="flex flex-wrap gap-2 justify-center">
                         <Button
                           type="button"
                           variant="outline"
                           size="sm"
                           onClick={() => document.getElementById('camera-input')?.click()}
+                          disabled={stylizing}
                         >
                           <Camera className="w-4 h-4 mr-2" />
                           Camera
@@ -1014,10 +1037,39 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
                           variant="outline"
                           size="sm"
                           onClick={() => document.getElementById('avatar-input')?.click()}
+                          disabled={stylizing}
                         >
                           <Upload className="w-4 h-4 mr-2" />
                           Gallery
                         </Button>
+                        {originalPhotoUrl && (
+                          <>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={restylize}
+                              disabled={stylizing}
+                              title="Generate a new 3D avatar from your original photo"
+                            >
+                              <Sparkles className="w-4 h-4 mr-2" />
+                              Re-stylize
+                            </Button>
+                            {is3DAvatar && (
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={revertToOriginal}
+                                disabled={stylizing}
+                                title="Use the original photo instead"
+                              >
+                                <Undo2 className="w-4 h-4 mr-2" />
+                                Use original
+                              </Button>
+                            )}
+                          </>
+                        )}
                       </div>
 
                       <input
