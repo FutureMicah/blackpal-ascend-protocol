@@ -462,8 +462,39 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
     }
   };
 
+  const stylizeTo3D = async (sourceDataUrl: string) => {
+    setStylizing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("stylize-avatar-3d", {
+        body: { imageUrl: sourceDataUrl },
+      });
+      if (error) throw error;
+      const stylized = (data as any)?.stylizedImageUrl;
+      if (!stylized) throw new Error("AI did not return an avatar");
+
+      setAvatarPreview(stylized);
+      setIs3DAvatar(true);
+      const res = await fetch(stylized);
+      const blob = await res.blob();
+      setAvatarFile(new File([blob], "avatar-3d.png", { type: blob.type || "image/png" }));
+      toast({ title: "3D avatar ready", description: "Your photo was stylized into a 3D character." });
+    } catch (err: any) {
+      console.error("stylize failed", err);
+      toast({
+        variant: "destructive",
+        title: "3D stylization failed",
+        description: err?.message || "Kept your original photo. You can retry from the preview.",
+      });
+    } finally {
+      setStylizing(false);
+    }
+  };
+
   const handleImageEdited = (editedImageUrl: string) => {
+    // Show original immediately so user has feedback while AI runs
+    setOriginalPhotoUrl(editedImageUrl);
     setAvatarPreview(editedImageUrl);
+    setIs3DAvatar(false);
     fetch(editedImageUrl)
       .then((res) => res.blob())
       .then((blob) => {
@@ -472,6 +503,21 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
       });
     setShowImageEditor(false);
     setTempImageForEdit(null);
+    // Fire-and-forget the 3D stylization
+    void stylizeTo3D(editedImageUrl);
+  };
+
+  const revertToOriginal = () => {
+    if (!originalPhotoUrl) return;
+    setAvatarPreview(originalPhotoUrl);
+    setIs3DAvatar(false);
+    fetch(originalPhotoUrl)
+      .then((r) => r.blob())
+      .then((b) => setAvatarFile(new File([b], "avatar.jpg", { type: "image/jpeg" })));
+  };
+
+  const restylize = () => {
+    if (originalPhotoUrl) void stylizeTo3D(originalPhotoUrl);
   };
 
   const handleHistoryRevert = (historyEntry: any) => {
