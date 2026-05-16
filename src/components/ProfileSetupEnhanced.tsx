@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { GeoData, detectGeo, calculatePaymentTier } from "@/lib/geo";
 import { profileSchema } from "@/lib/validations";
-import { Upload, CheckCircle2, XCircle, Camera, Eye, EyeOff, Download, RotateCcw, Share2, History, Palette, TrendingUp, Users, BarChart3, HelpCircle, Save, Loader2 as LoaderIcon, Diamond } from "lucide-react";
+import { Upload, CheckCircle2, XCircle, Camera, Eye, EyeOff, Download, RotateCcw, Share2, History, Palette, TrendingUp, Users, BarChart3, HelpCircle, Save, Loader2 as LoaderIcon, Diamond, AlertTriangle, Sparkles, Undo2 } from "lucide-react";
 import { NFTProfileCard } from "./NFTProfileCard";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import confetti from "canvas-confetti";
@@ -51,6 +51,9 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
   const [phoneNumber, setPhoneNumber] = useState(existingProfile?.phone_number || "");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(existingProfile?.avatar_url || null);
+  const [originalPhotoUrl, setOriginalPhotoUrl] = useState<string | null>(null);
+  const [stylizing, setStylizing] = useState(false);
+  const [is3DAvatar, setIs3DAvatar] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [fieldStatus, setFieldStatus] = useState<Record<string, 'valid' | 'invalid' | null>>({});
@@ -459,8 +462,39 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
     }
   };
 
+  const stylizeTo3D = async (sourceDataUrl: string) => {
+    setStylizing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("stylize-avatar-3d", {
+        body: { imageUrl: sourceDataUrl },
+      });
+      if (error) throw error;
+      const stylized = (data as any)?.stylizedImageUrl;
+      if (!stylized) throw new Error("AI did not return an avatar");
+
+      setAvatarPreview(stylized);
+      setIs3DAvatar(true);
+      const res = await fetch(stylized);
+      const blob = await res.blob();
+      setAvatarFile(new File([blob], "avatar-3d.png", { type: blob.type || "image/png" }));
+      toast({ title: "3D avatar ready", description: "Your photo was stylized into a 3D character." });
+    } catch (err: any) {
+      console.error("stylize failed", err);
+      toast({
+        variant: "destructive",
+        title: "3D stylization failed",
+        description: err?.message || "Kept your original photo. You can retry from the preview.",
+      });
+    } finally {
+      setStylizing(false);
+    }
+  };
+
   const handleImageEdited = (editedImageUrl: string) => {
+    // Show original immediately so user has feedback while AI runs
+    setOriginalPhotoUrl(editedImageUrl);
     setAvatarPreview(editedImageUrl);
+    setIs3DAvatar(false);
     fetch(editedImageUrl)
       .then((res) => res.blob())
       .then((blob) => {
@@ -469,6 +503,21 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
       });
     setShowImageEditor(false);
     setTempImageForEdit(null);
+    // Fire-and-forget the 3D stylization
+    void stylizeTo3D(editedImageUrl);
+  };
+
+  const revertToOriginal = () => {
+    if (!originalPhotoUrl) return;
+    setAvatarPreview(originalPhotoUrl);
+    setIs3DAvatar(false);
+    fetch(originalPhotoUrl)
+      .then((r) => r.blob())
+      .then((b) => setAvatarFile(new File([b], "avatar.jpg", { type: "image/jpeg" })));
+  };
+
+  const restylize = () => {
+    if (originalPhotoUrl) void stylizeTo3D(originalPhotoUrl);
   };
 
   const handleHistoryRevert = (historyEntry: any) => {
@@ -940,6 +989,17 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
                   <CardContent className="space-y-6">
                     {/* Avatar Upload */}
                     <div className="flex flex-col items-center gap-4">
+                      {/* Face-photo reminder */}
+                      <div className="w-full flex items-start gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-[11px] sm:text-xs text-amber-200">
+                        <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                        <div className="leading-snug">
+                          <strong className="block text-amber-100">Upload an ACTUAL photo of your face.</strong>
+                          Your selfie is automatically transformed into a 3D Memoji-style avatar
+                          that preserves your real likeness. Fake, group, cartoon, celebrity, or
+                          non-face images will produce a broken avatar and may be removed by moderators.
+                        </div>
+                      </div>
+
                       <div className="relative">
                         {avatarPreview ? (
                           <PremiumAvatar src={avatarPreview} size={128} />
@@ -948,14 +1008,26 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
                             👤
                           </div>
                         )}
+                        {stylizing && (
+                          <div className="absolute inset-0 rounded-full bg-background/80 backdrop-blur-sm flex flex-col items-center justify-center gap-1 text-[10px] text-primary">
+                            <LoaderIcon className="w-6 h-6 animate-spin" />
+                            <span>Sculpting 3D…</span>
+                          </div>
+                        )}
+                        {is3DAvatar && !stylizing && (
+                          <div className="absolute -bottom-1 -right-1 rounded-full bg-primary text-primary-foreground p-1 shadow-lg">
+                            <Sparkles className="w-3.5 h-3.5" />
+                          </div>
+                        )}
                       </div>
 
-                      <div className="flex gap-2">
+                      <div className="flex flex-wrap gap-2 justify-center">
                         <Button
                           type="button"
                           variant="outline"
                           size="sm"
                           onClick={() => document.getElementById('camera-input')?.click()}
+                          disabled={stylizing}
                         >
                           <Camera className="w-4 h-4 mr-2" />
                           Camera
@@ -965,10 +1037,39 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
                           variant="outline"
                           size="sm"
                           onClick={() => document.getElementById('avatar-input')?.click()}
+                          disabled={stylizing}
                         >
                           <Upload className="w-4 h-4 mr-2" />
                           Gallery
                         </Button>
+                        {originalPhotoUrl && (
+                          <>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={restylize}
+                              disabled={stylizing}
+                              title="Generate a new 3D avatar from your original photo"
+                            >
+                              <Sparkles className="w-4 h-4 mr-2" />
+                              Re-stylize
+                            </Button>
+                            {is3DAvatar && (
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={revertToOriginal}
+                                disabled={stylizing}
+                                title="Use the original photo instead"
+                              >
+                                <Undo2 className="w-4 h-4 mr-2" />
+                                Use original
+                              </Button>
+                            )}
+                          </>
+                        )}
                       </div>
 
                       <input
