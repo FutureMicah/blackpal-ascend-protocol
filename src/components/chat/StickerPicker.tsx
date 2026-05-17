@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { X, Lock, Crown } from "lucide-react";
+import { X } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 
