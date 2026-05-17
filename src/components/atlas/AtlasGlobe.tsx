@@ -89,6 +89,7 @@ function greatCircle(a: [number, number], b: [number, number], steps = 64): [num
 function buildStyle(id: AtlasStyleId): StyleSpecification {
   const satellite: StyleSpecification = {
     version: 8,
+    glyphs: "https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf",
     sources: {
       esri: {
         type: "raster",
