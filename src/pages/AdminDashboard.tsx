@@ -20,6 +20,7 @@ import { format } from "date-fns";
 import { AdminBroadcastChannel } from "@/components/AdminBroadcastChannel";
 import { AdminPropManager } from "@/components/AdminPropManager";
 import { GatePassSettings } from "@/components/admin/GatePassSettings";
+import { AdminCredentialsPanel } from "@/components/admin/AdminCredentialsPanel";
 import { AdminApprovalsPanel } from "@/components/admin/AdminApprovalsPanel";
 import { WebhookEventsPanel } from "@/components/admin/WebhookEventsPanel";
 import { AdminSupportTickets } from "@/components/AdminSupportTickets";
