@@ -20,37 +20,44 @@ interface StickerPickerProps {
   onClose: () => void;
 }
 
-// Premium animated sticker URLs (placeholder - in production, store in DB)
+import stickerHeadphones from "@/assets/stickers/memoji-headphones.png";
+import stickerWink from "@/assets/stickers/memoji-wink.png";
+import stickerGhost from "@/assets/stickers/memoji-ghost.png";
+import stickerInspiring from "@/assets/stickers/memoji-inspiring.png";
+import stickerFingerHeart from "@/assets/stickers/memoji-finger-heart.png";
+import stickerPotion from "@/assets/stickers/memoji-potion.png";
+import stickerVerified from "@/assets/stickers/memoji-verified.png";
+import stickerCat from "@/assets/stickers/memoji-cat.png";
+
+// 3D Memoji-style stickers — all free, premium feel like Apple/Snapchat stickers.
 const STICKER_SETS: Record<string, { id: string; url: string; name: string }[]> = {
   "Classic Emojis": [
-    { id: "classic-1", url: "https://em-content.zobj.net/source/animated-noto-color-emoji/356/grinning-face_1f600.gif", name: "Grinning" },
-    { id: "classic-2", url: "https://em-content.zobj.net/source/animated-noto-color-emoji/356/face-with-tears-of-joy_1f602.gif", name: "Joy" },
-    { id: "classic-3", url: "https://em-content.zobj.net/source/animated-noto-color-emoji/356/smiling-face-with-heart-eyes_1f60d.gif", name: "Heart Eyes" },
-    { id: "classic-4", url: "https://em-content.zobj.net/source/animated-noto-color-emoji/356/thinking-face_1f914.gif", name: "Thinking" },
-    { id: "classic-5", url: "https://em-content.zobj.net/source/animated-noto-color-emoji/356/fire_1f525.gif", name: "Fire" },
-    { id: "classic-6", url: "https://em-content.zobj.net/source/animated-noto-color-emoji/356/thumbs-up_1f44d.gif", name: "Thumbs Up" },
-    { id: "classic-7", url: "https://em-content.zobj.net/source/animated-noto-color-emoji/356/party-popper_1f389.gif", name: "Party" },
-    { id: "classic-8", url: "https://em-content.zobj.net/source/animated-noto-color-emoji/356/red-heart_2764-fe0f.gif", name: "Heart" },
+    { id: "memoji-headphones", url: stickerHeadphones, name: "Beats" },
+    { id: "memoji-wink", url: stickerWink, name: "Pink Vibes" },
+    { id: "memoji-ghost", url: stickerGhost, name: "Boo Heart" },
+    { id: "memoji-cat", url: stickerCat, name: "Cool Cat" },
+    { id: "memoji-inspiring", url: stickerInspiring, name: "Inspiring" },
+    { id: "memoji-finger-heart", url: stickerFingerHeart, name: "Love" },
+    { id: "memoji-verified", url: stickerVerified, name: "Verified" },
+    { id: "memoji-potion", url: stickerPotion, name: "Potion" },
   ],
   "Premium Gold": [
-    { id: "gold-1", url: "https://em-content.zobj.net/source/animated-noto-color-emoji/356/star_2b50.gif", name: "Star" },
-    { id: "gold-2", url: "https://em-content.zobj.net/source/animated-noto-color-emoji/356/crown_1f451.gif", name: "Crown" },
-    { id: "gold-3", url: "https://em-content.zobj.net/source/animated-noto-color-emoji/356/trophy_1f3c6.gif", name: "Trophy" },
-    { id: "gold-4", url: "https://em-content.zobj.net/source/animated-noto-color-emoji/356/gem-stone_1f48e.gif", name: "Diamond" },
-    { id: "gold-5", url: "https://em-content.zobj.net/source/animated-noto-color-emoji/356/money-bag_1f4b0.gif", name: "Money Bag" },
-    { id: "gold-6", url: "https://em-content.zobj.net/source/animated-noto-color-emoji/356/sparkles_2728.gif", name: "Sparkles" },
+    { id: "memoji-verified", url: stickerVerified, name: "Verified" },
+    { id: "memoji-potion", url: stickerPotion, name: "Potion" },
+    { id: "memoji-inspiring", url: stickerInspiring, name: "Inspiring" },
+    { id: "memoji-finger-heart", url: stickerFingerHeart, name: "Love" },
   ],
   "Trader Vibes": [
-    { id: "trader-1", url: "https://em-content.zobj.net/source/animated-noto-color-emoji/356/chart-increasing_1f4c8.gif", name: "Bull" },
-    { id: "trader-2", url: "https://em-content.zobj.net/source/animated-noto-color-emoji/356/chart-decreasing_1f4c9.gif", name: "Bear" },
-    { id: "trader-3", url: "https://em-content.zobj.net/source/animated-noto-color-emoji/356/rocket_1f680.gif", name: "Rocket" },
-    { id: "trader-4", url: "https://em-content.zobj.net/source/animated-noto-color-emoji/356/money-with-wings_1f4b8.gif", name: "Money Wings" },
+    { id: "memoji-headphones", url: stickerHeadphones, name: "Focus" },
+    { id: "memoji-wink", url: stickerWink, name: "Hype" },
+    { id: "memoji-ghost", url: stickerGhost, name: "Spirit" },
+    { id: "memoji-cat", url: stickerCat, name: "Chill" },
   ],
   "Crypto Pack": [
-    { id: "crypto-1", url: "https://em-content.zobj.net/source/animated-noto-color-emoji/356/coin_1fa99.gif", name: "Coin" },
-    { id: "crypto-2", url: "https://em-content.zobj.net/source/animated-noto-color-emoji/356/high-voltage_26a1.gif", name: "Lightning" },
-    { id: "crypto-3", url: "https://em-content.zobj.net/source/animated-noto-color-emoji/356/full-moon_1f315.gif", name: "Moon" },
-    { id: "crypto-4", url: "https://em-content.zobj.net/source/animated-noto-color-emoji/356/slot-machine_1f3b0.gif", name: "Gamble" },
+    { id: "memoji-potion", url: stickerPotion, name: "Alchemy" },
+    { id: "memoji-verified", url: stickerVerified, name: "Verified" },
+    { id: "memoji-inspiring", url: stickerInspiring, name: "Inspiring" },
+    { id: "memoji-finger-heart", url: stickerFingerHeart, name: "Love" },
   ]
 };
 
