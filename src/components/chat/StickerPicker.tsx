@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { X, Lock, Crown } from "lucide-react";
+import { X } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 
@@ -157,46 +157,29 @@ export const StickerPicker = ({ onSelect, onClose }: StickerPickerProps) => {
           >
             <span className="text-lg">{pack.thumbnail_url}</span>
             {pack.name}
-            {pack.is_premium && !ownedPacks.includes(pack.id) && (
-              <Crown className="h-3 w-3 text-yellow-500" />
-            )}
           </Button>
         ))}
       </div>
 
-      {/* Stickers Grid */}
-      {isPremiumLocked ? (
-        <div className="flex flex-col items-center justify-center py-8 text-center">
-          <Lock className="h-12 w-12 text-muted-foreground mb-3" />
-          <p className="text-muted-foreground mb-2">Premium Pack</p>
-          <Badge variant="secondary" className="mb-4">
-            {currentPack?.price_coins} coins
-          </Badge>
-          <Button onClick={() => currentPack && handlePurchasePack(currentPack)}>
-            <Crown className="h-4 w-4 mr-2" />
-            Unlock Pack
-          </Button>
-        </div>
-      ) : (
-        <div className="grid grid-cols-4 gap-2 max-h-[200px] overflow-y-auto">
-          {stickers.map((sticker, index) => (
-            <motion.button
-              key={sticker.id}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: index * 0.03 }}
-              onClick={() => onSelect(sticker.id, sticker.url)}
-              className="w-16 h-16 flex items-center justify-center hover:bg-muted rounded-lg transition-colors p-1"
-            >
-              <img
-                src={sticker.url}
-                alt={sticker.name}
-                className="w-full h-full object-contain"
-              />
-            </motion.button>
-          ))}
-        </div>
-      )}
+      {/* Stickers Grid - all free */}
+      <div className="grid grid-cols-4 gap-2 max-h-[200px] overflow-y-auto">
+        {stickers.map((sticker, index) => (
+          <motion.button
+            key={sticker.id}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: index * 0.03 }}
+            onClick={() => onSelect(sticker.id, sticker.url)}
+            className="w-16 h-16 flex items-center justify-center hover:bg-muted rounded-lg transition-colors p-1"
+          >
+            <img
+              src={sticker.url}
+              alt={sticker.name}
+              className="w-full h-full object-contain"
+            />
+          </motion.button>
+        ))}
+      </div>
     </div>
   );
 };

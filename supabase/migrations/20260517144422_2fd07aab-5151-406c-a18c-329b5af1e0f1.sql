@@ -1,0 +1,1 @@
+UPDATE public.sticker_packs SET is_premium = false, price_coins = 0;
