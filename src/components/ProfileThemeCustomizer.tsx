@@ -91,6 +91,9 @@ export const ProfileThemeCustomizer = ({
   const handleSave = () => {
     onSave(theme);
     emitThemePreview(null);
+    // Tell GlobalThemeProvider to re-fetch the persisted theme so it themes
+    // the whole app immediately after save (incl. African presets).
+    window.dispatchEvent(new CustomEvent("blackpal:theme-saved"));
     onClose();
   };
 
