@@ -90,9 +90,9 @@ const BlackCoin = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       <FloatingNav />
-      <div className="max-w-5xl mx-auto px-3 sm:px-6 pt-16 pb-8">
+      <div className="w-full max-w-5xl mx-auto px-2 sm:px-6 pt-16 pb-24">
         {/* Header */}
         <div className="text-center mb-5">
           <div className="flex items-center justify-center gap-2 mb-1">

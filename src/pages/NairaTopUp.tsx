@@ -111,9 +111,10 @@ const NairaTopUp = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       <FloatingNav />
-      <div className="max-w-3xl mx-auto px-3 sm:px-6 pt-16 pb-24 space-y-4">
+      <div className="w-full max-w-3xl mx-auto px-2 sm:px-6 pt-16 pb-24 space-y-4">
+
         <div>
           <h1 className="text-xl sm:text-2xl font-bold gradient-text-cyber flex items-center gap-2">
             <Coins className="w-5 h-5" /> Top up BTAX with Naira
