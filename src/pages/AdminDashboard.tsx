@@ -28,6 +28,7 @@ import { AdminTopupReview } from "@/components/admin/AdminTopupReview";
 import { AdminAnnouncements } from "@/components/admin/AdminAnnouncements";
 import { AdminErrorBoundary } from "@/components/admin/AdminErrorBoundary";
 import { AdminDiagnosticsPanel } from "@/components/admin/AdminDiagnosticsPanel";
+import { AdminSettingsPanelShell } from "@/components/admin/AdminSettingsPanelShell";
 import { CurrencyConverter } from "@/components/CurrencyConverter";
 import logo from "@/assets/blackpal-logo.jpg";
 
@@ -806,21 +807,26 @@ function AdminDashboardInner() {
           {isSuperAdmin && (
             <TabsContent value="settings">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <AdminApprovalsPanel />
-                <GatePassSettings />
-                <AdminCredentialsPanel />
+                <AdminSettingsPanelShell title="Pending Approvals" icon={Check}>
+                  <AdminApprovalsPanel />
+                </AdminSettingsPanelShell>
+                <AdminSettingsPanelShell title="Gate Pass Settings" icon={Lock}>
+                  <GatePassSettings />
+                </AdminSettingsPanelShell>
+                <AdminSettingsPanelShell title="Admin Credentials" icon={UserCog}>
+                  <AdminCredentialsPanel />
+                </AdminSettingsPanelShell>
+                {/* WebhookEventsPanel intentionally left without shell per spec */}
                 <WebhookEventsPanel />
-                <AdminDiagnosticsPanel
-                  adminUserId={adminUserId}
-                  adminRole={adminRole}
-                  usersLoaded={users.length}
-                  paymentsLoaded={payments.length}
-                />
-                <Card className="border-border bg-card/80">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-sm"><Settings className="w-4 h-4" /> App Configuration</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
+                <AdminSettingsPanelShell title="Diagnostics" icon={Activity}>
+                  <AdminDiagnosticsPanel
+                    adminUserId={adminUserId}
+                    adminRole={adminRole}
+                    usersLoaded={users.length}
+                    paymentsLoaded={payments.length}
+                  />
+                </AdminSettingsPanelShell>
+                <AdminSettingsPanelShell title="App Configuration" icon={Settings} dataCount={3}>
                     <div className="space-y-3">
                       <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30 border border-border">
                         <div>
@@ -844,8 +850,8 @@ function AdminDashboardInner() {
                         <Badge variant="default">Enabled</Badge>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
+                </AdminSettingsPanelShell>
+
 
                 <Card className="border-border bg-card/80">
                   <CardHeader>
