@@ -84,10 +84,10 @@ const BlackVault = () => {
           <Button className="h-9 text-xs" onClick={() => navigate("/wallet/topup")}>
             <ArrowDownRight className="w-3.5 h-3.5 mr-1" /> Deposit ₦
           </Button>
-          <Button variant="outline" className="h-9 text-xs" onClick={() => navigate("/blackcoin?action=withdraw")}>
+          <Button variant="outline" className="h-9 text-xs" onClick={() => navigate("/btax?action=withdraw")}>
             <ArrowUpRight className="w-3.5 h-3.5 mr-1" /> Withdraw
           </Button>
-          <Button variant="outline" className="h-9 text-xs" onClick={() => navigate("/blackcoin?action=convert")}>
+          <Button variant="outline" className="h-9 text-xs" onClick={() => navigate("/btax?action=convert")}>
             <History className="w-3.5 h-3.5 mr-1" /> Convert
           </Button>
         </div>

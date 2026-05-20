@@ -204,7 +204,7 @@ export const ChatRoom = ({ friend, currentUserId }: ChatRoomProps) => {
   };
 
   return (
-    <div className="h-full rounded-xl bg-card border border-border flex flex-col">
+    <div className="h-full rounded-xl bg-card border border-border flex flex-col pb-20 sm:pb-0" style={{ paddingBottom: 'max(5rem, env(safe-area-inset-bottom))' }}>
       {/* Header */}
       <div className="p-4 border-b border-border flex items-center gap-3">
         <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden">

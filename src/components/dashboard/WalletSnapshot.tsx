@@ -70,7 +70,7 @@ export const WalletSnapshot = ({ userId }: WalletSnapshotProps) => {
           variant="secondary"
           size="sm"
           className="flex-col h-auto py-2.5 gap-1 bg-white text-[hsl(248_84%_30%)] hover:bg-white/90 border-0"
-          onClick={() => navigate("/blackcoin?action=convert")}
+          onClick={() => navigate("/btax?action=convert")}
         >
           <RefreshCw className="w-4 h-4" />
           <span className="text-[10px] font-semibold">Convert</span>
@@ -79,7 +79,7 @@ export const WalletSnapshot = ({ userId }: WalletSnapshotProps) => {
           variant="secondary"
           size="sm"
           className="flex-col h-auto py-2.5 gap-1 bg-white/15 hover:bg-white/25 text-white border-0 backdrop-blur"
-          onClick={() => navigate("/blackcoin?action=withdraw")}
+          onClick={() => navigate("/btax?action=withdraw")}
         >
           <ArrowUpFromLine className="w-4 h-4" />
           <span className="text-[10px]">Send</span>
