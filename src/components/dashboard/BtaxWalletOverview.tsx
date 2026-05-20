@@ -166,7 +166,7 @@ export const BtaxWalletOverview = ({ userId }: BtaxWalletOverviewProps) => {
         <div className="text-[11px] text-ink-soft mt-2 flex items-center justify-between">
           <span>Convertible to {nairaToBtax.toLocaleString()} BTAX (₦100 = 1 BTAX)</span>
           <a
-            href="/blackcoin?action=convert"
+            href="/btax?action=convert"
             className="text-primary font-semibold hover:underline"
           >
             Convert →

@@ -68,6 +68,6 @@ describe("Naira dashboard (admin-controlled)", () => {
   it("links Convert to the BlackCoin convert flow (not a free-form input)", async () => {
     render(<BtaxWalletOverview userId="u1" />);
     const link = await screen.findByRole("link", { name: /Convert/ });
-    expect(link.getAttribute("href")).toBe("/blackcoin?action=convert");
+    expect(link.getAttribute("href")).toBe("/btax?action=convert");
   });
 });
