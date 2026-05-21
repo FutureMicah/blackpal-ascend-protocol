@@ -35,6 +35,8 @@ const NairaTopUp = () => {
   const [note, setNote] = useState<string>("");
   const [file, setFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [paying, setPaying] = useState(false);
+  const [mode, setMode] = useState<"paystack" | "manual">("paystack");
   const [history, setHistory] = useState<TopupRequest[]>([]);
   const [loading, setLoading] = useState(true);
 
