@@ -5159,6 +5159,10 @@ export type Database = {
         }
         Returns: string
       }
+      system_approve_wallet_topup: {
+        Args: { p_reference: string; p_request_id: string }
+        Returns: string
+      }
       update_achievement_streak: {
         Args: { user_id_param: string }
         Returns: number
