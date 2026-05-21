@@ -10,7 +10,7 @@ import { FloatingNav } from "@/components/FloatingNav";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { getBtaxToNairaRate, nairaToBtax, formatBtax, formatNaira, DEFAULT_BTAX_TO_NAIRA } from "@/lib/btax";
-import { ArrowDown, Coins, Upload, Loader2, Clock, CheckCircle2, XCircle, AlertTriangle } from "lucide-react";
+import { ArrowDown, Coins, Upload, Loader2, Clock, CheckCircle2, XCircle, AlertTriangle, Zap, FileText } from "lucide-react";
 
 interface TopupRequest {
   id: string;
@@ -35,6 +35,8 @@ const NairaTopUp = () => {
   const [note, setNote] = useState<string>("");
   const [file, setFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [paying, setPaying] = useState(false);
+  const [mode, setMode] = useState<"paystack" | "manual">("paystack");
   const [history, setHistory] = useState<TopupRequest[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -54,8 +56,21 @@ const NairaTopUp = () => {
       }
       await loadHistory(user.id);
       setLoading(false);
+
+      // Paystack callback handler
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("paystack") === "1") {
+        toast({
+          title: "Payment received",
+          description: "Verifying with Paystack… BTAX will appear in your wallet within seconds.",
+        });
+        // Refresh history a couple times to catch the webhook credit
+        setTimeout(() => loadHistory(user.id), 3000);
+        setTimeout(() => loadHistory(user.id), 8000);
+        window.history.replaceState({}, "", "/wallet/topup");
+      }
     })();
-  }, [navigate]);
+  }, [navigate, toast]);
 
   const loadHistory = async (uid: string) => {
     const { data } = await supabase
@@ -107,6 +122,28 @@ const NairaTopUp = () => {
       toast({ variant: "destructive", title: "Submission failed", description: err.message });
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const payWithPaystack = async () => {
+    if (!userId) return;
+    if (nairaNum < 100) {
+      toast({ variant: "destructive", title: "Minimum ₦100", description: "Enter at least ₦100." });
+      return;
+    }
+    setPaying(true);
+    try {
+      const callback_url = `${window.location.origin}/wallet/topup?paystack=1`;
+      const { data, error } = await supabase.functions.invoke("paystack-init-topup", {
+        body: { naira_amount: nairaNum, callback_url },
+      });
+      if (error || !data?.authorization_url) {
+        throw new Error(error?.message || data?.error || "Could not start Paystack");
+      }
+      window.location.href = data.authorization_url;
+    } catch (err: any) {
+      toast({ variant: "destructive", title: "Paystack error", description: err.message });
+      setPaying(false);
     }
   };
 
@@ -162,23 +199,65 @@ const NairaTopUp = () => {
               <p className="text-[10px] text-muted-foreground">@ 1 BTAX = {formatNaira(rate)}</p>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="receipt">Payment receipt (optional)</Label>
-              <div className="flex items-center gap-2">
-                <Input id="receipt" type="file" accept="image/*,application/pdf" onChange={(e) => setFile(e.target.files?.[0] ?? null)} className="h-10" />
-                {file && <Badge variant="secondary" className="text-[10px]"><Upload className="w-3 h-3 mr-1" />{file.name.slice(0, 16)}…</Badge>}
-              </div>
-              <p className="text-[10px] text-muted-foreground">Upload a screenshot of your bank transfer to BlackPal's account. Speeds up admin approval.</p>
+            {/* Payment method toggle */}
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setMode("paystack")}
+                className={`p-3 rounded-xl border text-left transition ${
+                  mode === "paystack"
+                    ? "border-primary bg-primary/10 ring-1 ring-primary"
+                    : "border-border bg-muted/20 hover:border-primary/40"
+                }`}
+              >
+                <div className="flex items-center gap-2 text-xs font-bold">
+                  <Zap className="w-3.5 h-3.5 text-primary" /> Pay with Paystack
+                </div>
+                <p className="text-[10px] text-muted-foreground mt-0.5">Instant. Auto-credits BTAX.</p>
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode("manual")}
+                className={`p-3 rounded-xl border text-left transition ${
+                  mode === "manual"
+                    ? "border-primary bg-primary/10 ring-1 ring-primary"
+                    : "border-border bg-muted/20 hover:border-primary/40"
+                }`}
+              >
+                <div className="flex items-center gap-2 text-xs font-bold">
+                  <FileText className="w-3.5 h-3.5 text-primary" /> Bank receipt
+                </div>
+                <p className="text-[10px] text-muted-foreground mt-0.5">Upload proof, admin approves.</p>
+              </button>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="note">Note (optional)</Label>
-              <Textarea id="note" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Reference, sender name, etc." className="min-h-[60px] text-xs" />
-            </div>
+            {mode === "manual" && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="receipt">Payment receipt</Label>
+                  <div className="flex items-center gap-2">
+                    <Input id="receipt" type="file" accept="image/*,application/pdf" onChange={(e) => setFile(e.target.files?.[0] ?? null)} className="h-10" />
+                    {file && <Badge variant="secondary" className="text-[10px]"><Upload className="w-3 h-3 mr-1" />{file.name.slice(0, 16)}…</Badge>}
+                  </div>
+                  <p className="text-[10px] text-muted-foreground">Upload a screenshot of your bank transfer to BlackPal's account.</p>
+                </div>
 
-            <Button type="submit" disabled={submitting} className="w-full h-11">
-              {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Submit for admin verification"}
-            </Button>
+                <div className="space-y-2">
+                  <Label htmlFor="note">Note (optional)</Label>
+                  <Textarea id="note" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Reference, sender name, etc." className="min-h-[60px] text-xs" />
+                </div>
+
+                <Button type="submit" disabled={submitting} className="w-full h-11">
+                  {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Submit for admin verification"}
+                </Button>
+              </>
+            )}
+
+            {mode === "paystack" && (
+              <Button type="button" onClick={payWithPaystack} disabled={paying} className="w-full h-11 bg-gradient-to-r from-primary to-primary/80">
+                {paying ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Zap className="w-4 h-4 mr-1.5" /> Pay {formatNaira(nairaNum)} with Paystack</>}
+              </Button>
+            )}
           </form>
         </Card>
 

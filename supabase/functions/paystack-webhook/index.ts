@@ -85,12 +85,31 @@ Deno.serve(async (req) => {
               .update({ payment_status: "completed", completed_at: new Date().toISOString() })
               .eq("transaction_id", reference)
               .eq("payment_status", "pending")
-              .select("id, amount_local, local_currency");
+              .select("id, amount_local, local_currency, payment_tier");
             if (updated && updated.length > 0) {
               newStatus = "completed";
-              await service.from("profiles")
-                .update({ payment_completed: true })
-                .eq("id", row.user_id);
+              const tier = (updated[0] as any).payment_tier;
+              const purpose: string | undefined =
+                event?.data?.metadata?.purpose ||
+                event?.data?.transaction?.metadata?.purpose;
+              const topupRequestId: string | undefined =
+                event?.data?.metadata?.topup_request_id ||
+                event?.data?.transaction?.metadata?.topup_request_id;
+
+              if (purpose === "wallet_topup" || tier === "WALLET_TOPUP") {
+                // Auto-credit BTAX wallet
+                if (topupRequestId) {
+                  await service.rpc("system_approve_wallet_topup", {
+                    p_request_id: topupRequestId,
+                    p_reference: reference,
+                  });
+                }
+              } else {
+                // Standard activation fee path
+                await service.from("profiles")
+                  .update({ payment_completed: true })
+                  .eq("id", row.user_id);
+              }
               try {
                 await service.functions.invoke("send-payment-receipt", {
                   body: {
