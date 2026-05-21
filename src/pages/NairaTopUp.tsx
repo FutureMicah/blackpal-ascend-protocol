@@ -112,6 +112,28 @@ const NairaTopUp = () => {
     }
   };
 
+  const payWithPaystack = async () => {
+    if (!userId) return;
+    if (nairaNum < 100) {
+      toast({ variant: "destructive", title: "Minimum ₦100", description: "Enter at least ₦100." });
+      return;
+    }
+    setPaying(true);
+    try {
+      const callback_url = `${window.location.origin}/wallet/topup?paystack=1`;
+      const { data, error } = await supabase.functions.invoke("paystack-init-topup", {
+        body: { naira_amount: nairaNum, callback_url },
+      });
+      if (error || !data?.authorization_url) {
+        throw new Error(error?.message || data?.error || "Could not start Paystack");
+      }
+      window.location.href = data.authorization_url;
+    } catch (err: any) {
+      toast({ variant: "destructive", title: "Paystack error", description: err.message });
+      setPaying(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
       <FloatingNav />
