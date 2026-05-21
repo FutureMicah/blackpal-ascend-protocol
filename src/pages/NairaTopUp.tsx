@@ -10,7 +10,7 @@ import { FloatingNav } from "@/components/FloatingNav";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { getBtaxToNairaRate, nairaToBtax, formatBtax, formatNaira, DEFAULT_BTAX_TO_NAIRA } from "@/lib/btax";
-import { ArrowDown, Coins, Upload, Loader2, Clock, CheckCircle2, XCircle, AlertTriangle } from "lucide-react";
+import { ArrowDown, Coins, Upload, Loader2, Clock, CheckCircle2, XCircle, AlertTriangle, Zap, FileText } from "lucide-react";
 
 interface TopupRequest {
   id: string;
