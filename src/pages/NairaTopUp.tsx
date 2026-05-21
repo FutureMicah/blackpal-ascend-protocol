@@ -186,23 +186,65 @@ const NairaTopUp = () => {
               <p className="text-[10px] text-muted-foreground">@ 1 BTAX = {formatNaira(rate)}</p>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="receipt">Payment receipt (optional)</Label>
-              <div className="flex items-center gap-2">
-                <Input id="receipt" type="file" accept="image/*,application/pdf" onChange={(e) => setFile(e.target.files?.[0] ?? null)} className="h-10" />
-                {file && <Badge variant="secondary" className="text-[10px]"><Upload className="w-3 h-3 mr-1" />{file.name.slice(0, 16)}…</Badge>}
-              </div>
-              <p className="text-[10px] text-muted-foreground">Upload a screenshot of your bank transfer to BlackPal's account. Speeds up admin approval.</p>
+            {/* Payment method toggle */}
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setMode("paystack")}
+                className={`p-3 rounded-xl border text-left transition ${
+                  mode === "paystack"
+                    ? "border-primary bg-primary/10 ring-1 ring-primary"
+                    : "border-border bg-muted/20 hover:border-primary/40"
+                }`}
+              >
+                <div className="flex items-center gap-2 text-xs font-bold">
+                  <Zap className="w-3.5 h-3.5 text-primary" /> Pay with Paystack
+                </div>
+                <p className="text-[10px] text-muted-foreground mt-0.5">Instant. Auto-credits BTAX.</p>
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode("manual")}
+                className={`p-3 rounded-xl border text-left transition ${
+                  mode === "manual"
+                    ? "border-primary bg-primary/10 ring-1 ring-primary"
+                    : "border-border bg-muted/20 hover:border-primary/40"
+                }`}
+              >
+                <div className="flex items-center gap-2 text-xs font-bold">
+                  <FileText className="w-3.5 h-3.5 text-primary" /> Bank receipt
+                </div>
+                <p className="text-[10px] text-muted-foreground mt-0.5">Upload proof, admin approves.</p>
+              </button>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="note">Note (optional)</Label>
-              <Textarea id="note" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Reference, sender name, etc." className="min-h-[60px] text-xs" />
-            </div>
+            {mode === "manual" && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="receipt">Payment receipt</Label>
+                  <div className="flex items-center gap-2">
+                    <Input id="receipt" type="file" accept="image/*,application/pdf" onChange={(e) => setFile(e.target.files?.[0] ?? null)} className="h-10" />
+                    {file && <Badge variant="secondary" className="text-[10px]"><Upload className="w-3 h-3 mr-1" />{file.name.slice(0, 16)}…</Badge>}
+                  </div>
+                  <p className="text-[10px] text-muted-foreground">Upload a screenshot of your bank transfer to BlackPal's account.</p>
+                </div>
 
-            <Button type="submit" disabled={submitting} className="w-full h-11">
-              {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Submit for admin verification"}
-            </Button>
+                <div className="space-y-2">
+                  <Label htmlFor="note">Note (optional)</Label>
+                  <Textarea id="note" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Reference, sender name, etc." className="min-h-[60px] text-xs" />
+                </div>
+
+                <Button type="submit" disabled={submitting} className="w-full h-11">
+                  {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Submit for admin verification"}
+                </Button>
+              </>
+            )}
+
+            {mode === "paystack" && (
+              <Button type="button" onClick={payWithPaystack} disabled={paying} className="w-full h-11 bg-gradient-to-r from-primary to-primary/80">
+                {paying ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Zap className="w-4 h-4 mr-1.5" /> Pay {formatNaira(nairaNum)} with Paystack</>}
+              </Button>
+            )}
           </form>
         </Card>
 
