@@ -56,8 +56,21 @@ const NairaTopUp = () => {
       }
       await loadHistory(user.id);
       setLoading(false);
+
+      // Paystack callback handler
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("paystack") === "1") {
+        toast({
+          title: "Payment received",
+          description: "Verifying with Paystack… BTAX will appear in your wallet within seconds.",
+        });
+        // Refresh history a couple times to catch the webhook credit
+        setTimeout(() => loadHistory(user.id), 3000);
+        setTimeout(() => loadHistory(user.id), 8000);
+        window.history.replaceState({}, "", "/wallet/topup");
+      }
     })();
-  }, [navigate]);
+  }, [navigate, toast]);
 
   const loadHistory = async (uid: string) => {
     const { data } = await supabase
