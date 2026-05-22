@@ -262,6 +262,13 @@ const WorldMap = () => {
         .not("longitude", "is", null);
 
       const list = (data ?? []) as Trader[];
+      // Derive "fresh online" from last_seen_at < 5 minutes (heartbeat window)
+      const now = Date.now();
+      list.forEach((t) => {
+        const seen = t.last_seen_at ? new Date(t.last_seen_at).getTime() : 0;
+        if (now - seen < 5 * 60_000) t.is_online = true;
+        else if (now - seen > 10 * 60_000) t.is_online = false;
+      });
       setTraders(list);
       setLoading(false);
 
@@ -280,11 +287,36 @@ const WorldMap = () => {
     };
     init();
 
+    // Heartbeat: every 45s, mark me online + bump last_seen_at so other viewers
+    // see me as live. On unmount or tab hidden, mark offline.
+    const heartbeat = setInterval(() => {
+      supabase.auth.getUser().then(({ data }) => {
+        const uid = data.user?.id;
+        if (!uid) return;
+        supabase
+          .from("user_locations")
+          .update({ is_online: true, last_seen_at: new Date().toISOString() })
+          .eq("user_id", uid);
+      });
+    }, 45_000);
+    const setOffline = () => {
+      supabase.auth.getUser().then(({ data }) => {
+        const uid = data.user?.id;
+        if (!uid) return;
+        supabase.from("user_locations").update({ is_online: false }).eq("user_id", uid);
+      });
+    };
+    const onVis = () => { if (document.hidden) setOffline(); };
+    document.addEventListener("visibilitychange", onVis);
+
     const ch = supabase
       .channel("locations-stream")
       .on("postgres_changes", { event: "*", schema: "public", table: "user_locations" }, () => init())
       .subscribe();
     return () => {
+      clearInterval(heartbeat);
+      document.removeEventListener("visibilitychange", onVis);
+      setOffline();
       supabase.removeChannel(ch);
       if (gpsTimer.current) clearTimeout(gpsTimer.current);
     };
@@ -388,44 +420,7 @@ const WorldMap = () => {
             </p>
           </div>
           <div className="flex flex-col gap-1.5 items-end">
-            <div
-              className="flex gap-1 bg-muted/30 p-1 rounded-full"
-              role="tablist"
-              aria-label="Atlas projection"
-              onKeyDown={(e) => {
-                if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
-                  e.preventDefault();
-                  setProjection((p) => (p === "globe" ? "mercator" : "globe"));
-                }
-              }}
-            >
-              <Button
-                size="sm"
-                variant={projection === "globe" ? "default" : "ghost"}
-                className="h-7 text-[10px] px-3 rounded-full focus-visible:ring-2 focus-visible:ring-primary"
-                onClick={() => setProjection("globe")}
-                role="tab"
-                aria-selected={projection === "globe"}
-                aria-controls="atlas-view-panel"
-                tabIndex={projection === "globe" ? 0 : -1}
-              >
-                <Globe2 className="w-3 h-3 mr-1" aria-hidden="true" />
-                Globe
-              </Button>
-              <Button
-                size="sm"
-                variant={projection === "mercator" ? "default" : "ghost"}
-                className="h-7 text-[10px] px-3 rounded-full focus-visible:ring-2 focus-visible:ring-primary"
-                onClick={() => setProjection("mercator")}
-                role="tab"
-                aria-selected={projection === "mercator"}
-                aria-controls="atlas-view-panel"
-                tabIndex={projection === "mercator" ? 0 : -1}
-              >
-                <MapIcon className="w-3 h-3 mr-1" aria-hidden="true" />
-                Flat
-              </Button>
-            </div>
+            {/* Flat map view removed — globe is the only projection now. */}
             <div className="flex gap-1 bg-muted/30 p-1 rounded-full" role="tablist" aria-label="Atlas style">
               {(["cinematic", "satellite", "hybrid"] as AtlasStyleId[]).map((s) => (
                 <Button

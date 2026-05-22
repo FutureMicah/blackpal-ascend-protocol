@@ -352,6 +352,27 @@ All colors MUST be HSL.
     background: linear-gradient(180deg, hsla(220, 40%, 4%, 0.35), hsla(220, 40%, 4%, 0.55));
   }
 
+  /* African aesthetic backgrounds — gradients live in GlobalThemeProvider;
+     here we layer a kente-inspired pattern overlay + warm vignette so the
+     four afro presets actually feel African (per project brief). */
+  .theme-afro { position: relative; }
+  .theme-afro::before {
+    content: "";
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background-image:
+      radial-gradient(80% 50% at 50% 0%, hsla(38, 90%, 55%, 0.18), transparent 60%),
+      radial-gradient(60% 60% at 50% 100%, hsla(18, 80%, 30%, 0.35), transparent 65%),
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'><g fill='none' stroke-width='1.4'><path d='M0 40 H80 M40 0 V80' stroke='%23f6c25a' stroke-opacity='0.18'/><path d='M0 0 L80 80 M80 0 L0 80' stroke='%23c1542a' stroke-opacity='0.14'/><rect x='10' y='10' width='14' height='14' stroke='%23f6c25a' stroke-opacity='0.22'/><rect x='56' y='10' width='14' height='14' stroke='%23c1542a' stroke-opacity='0.22'/><rect x='10' y='56' width='14' height='14' stroke='%23c1542a' stroke-opacity='0.22'/><rect x='56' y='56' width='14' height='14' stroke='%23f6c25a' stroke-opacity='0.22'/><path d='M40 20 l8 12 l-8 12 l-8 -12 z' stroke='%23f6c25a' stroke-opacity='0.28'/><circle cx='40' cy='40' r='6' stroke='%23c1542a' stroke-opacity='0.28'/></g></svg>");
+    background-size: auto, auto, 80px 80px;
+    background-repeat: no-repeat, no-repeat, repeat;
+    opacity: 0.7;
+  }
+  .theme-afro::after {
+    content: "";
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background: linear-gradient(180deg, transparent 60%, hsla(18, 60%, 6%, 0.55) 100%);
+  }
+
   
   .bg-gradient-radial {
     background: radial-gradient(circle, var(--tw-gradient-stops));
