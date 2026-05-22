@@ -388,44 +388,7 @@ const WorldMap = () => {
             </p>
           </div>
           <div className="flex flex-col gap-1.5 items-end">
-            <div
-              className="flex gap-1 bg-muted/30 p-1 rounded-full"
-              role="tablist"
-              aria-label="Atlas projection"
-              onKeyDown={(e) => {
-                if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
-                  e.preventDefault();
-                  setProjection((p) => (p === "globe" ? "mercator" : "globe"));
-                }
-              }}
-            >
-              <Button
-                size="sm"
-                variant={projection === "globe" ? "default" : "ghost"}
-                className="h-7 text-[10px] px-3 rounded-full focus-visible:ring-2 focus-visible:ring-primary"
-                onClick={() => setProjection("globe")}
-                role="tab"
-                aria-selected={projection === "globe"}
-                aria-controls="atlas-view-panel"
-                tabIndex={projection === "globe" ? 0 : -1}
-              >
-                <Globe2 className="w-3 h-3 mr-1" aria-hidden="true" />
-                Globe
-              </Button>
-              <Button
-                size="sm"
-                variant={projection === "mercator" ? "default" : "ghost"}
-                className="h-7 text-[10px] px-3 rounded-full focus-visible:ring-2 focus-visible:ring-primary"
-                onClick={() => setProjection("mercator")}
-                role="tab"
-                aria-selected={projection === "mercator"}
-                aria-controls="atlas-view-panel"
-                tabIndex={projection === "mercator" ? 0 : -1}
-              >
-                <MapIcon className="w-3 h-3 mr-1" aria-hidden="true" />
-                Flat
-              </Button>
-            </div>
+            {/* Flat map view removed — globe is the only projection now. */}
             <div className="flex gap-1 bg-muted/30 p-1 rounded-full" role="tablist" aria-label="Atlas style">
               {(["cinematic", "satellite", "hybrid"] as AtlasStyleId[]).map((s) => (
                 <Button
