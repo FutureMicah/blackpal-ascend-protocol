@@ -678,7 +678,7 @@ function Metric({ label, value, palette }: { label: string; value: string; palet
     <div
       className="rounded-2xl px-2 py-2 text-center"
       style={{
-        background: "rgba(255,255,255,0.7)",
+        background: "rgba(255,255,255,0.06)",
         border: `1px solid ${palette.accentSoft}`,
         backdropFilter: "blur(8px)",
       }}
@@ -698,8 +698,9 @@ function Trait({ label, value, palette }: { label: string; value: string; palett
     <div
       className="rounded-xl px-3 py-2"
       style={{
-        background: "rgba(255,255,255,0.55)",
+        background: "rgba(255,255,255,0.05)",
         border: `1px solid ${palette.accentSoft}`,
+        backdropFilter: "blur(6px)",
       }}
     >
       <div className="text-[9px] tracking-[0.22em] opacity-65" style={{ color: palette.sealText }}>
