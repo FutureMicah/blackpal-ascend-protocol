@@ -563,9 +563,10 @@ export function NFTProfileCard({ userId, onClose }: NFTProfileCardProps) {
                             key={a.id}
                             className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium"
                             style={{
-                              background: "rgba(255,255,255,0.7)",
+                              background: "rgba(255,255,255,0.08)",
                               border: `1px solid ${palette.accentSoft}`,
                               color: palette.text,
+                              backdropFilter: "blur(6px)",
                             }}
                           >
                             <span className="text-sm leading-none">{a.icon || "✦"}</span>
