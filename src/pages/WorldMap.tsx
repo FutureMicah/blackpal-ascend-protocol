@@ -262,6 +262,13 @@ const WorldMap = () => {
         .not("longitude", "is", null);
 
       const list = (data ?? []) as Trader[];
+      // Derive "fresh online" from last_seen_at < 5 minutes (heartbeat window)
+      const now = Date.now();
+      list.forEach((t) => {
+        const seen = t.last_seen_at ? new Date(t.last_seen_at).getTime() : 0;
+        if (now - seen < 5 * 60_000) t.is_online = true;
+        else if (now - seen > 10 * 60_000) t.is_online = false;
+      });
       setTraders(list);
       setLoading(false);
 
