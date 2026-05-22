@@ -497,7 +497,7 @@ export function NFTProfileCard({ userId, onClose }: NFTProfileCardProps) {
                           padding: 2,
                         }}
                       >
-                        <div className="w-full h-full rounded-[14px] overflow-hidden bg-white/80 flex items-center justify-center">
+                        <div className="w-full h-full rounded-[14px] overflow-hidden bg-black/40 flex items-center justify-center">
                           {profile?.avatar_url ? (
                             <img
                               src={profile.avatar_url}
