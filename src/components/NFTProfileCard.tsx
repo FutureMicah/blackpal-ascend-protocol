@@ -313,31 +313,52 @@ export function NFTProfileCard({ userId, onClose }: NFTProfileCardProps) {
     );
   }
 
-  // Color tokens per rarity
-  const palette = isFounder
-    ? {
-        accent: "#E9C56A",       // warm gold
-        accentSoft: "rgba(233,197,106,0.45)",
-        ring: "linear-gradient(135deg,#F6E0A1,#C8943A)",
-        chipBg: "linear-gradient(135deg,#FFE7A8,#E9B445)",
-        text: "#2A1A05",
-        sealText: "#7C5410",
-      }
-    : {
-        accent: "#CFE3F2",        // icy blue
-        accentSoft: "rgba(207,227,242,0.45)",
-        ring: "linear-gradient(135deg,#F2F6FA,#9FB6CB)",
-        chipBg: "linear-gradient(135deg,#FFFFFF,#D6E4F0)",
-        text: "#0F1A2B",
-        sealText: "#2C4256",
-      };
+  // Color tokens per rarity — every tier gets its own cinematic dark palette
+  // (no more "looks like a white document"). Founder = solar gold, Prestige =
+  // royal violet, Elite = chrome ink, Ascendant = onyx violet.
+  const palette =
+    rarity === "founder"
+      ? {
+          accent: "#F4D27A", accentSoft: "rgba(244,210,122,0.45)",
+          ring: "linear-gradient(135deg,#F6E0A1,#C8943A 55%,#5C3A0E)",
+          chipBg: "linear-gradient(135deg,#FFE7A8,#E9B445)",
+          text: "#FAEAC2", sealText: "#F4D27A",
+          body: `radial-gradient(120% 80% at 50% 0%, rgba(244,210,122,0.18), rgba(0,0,0,0) 60%), linear-gradient(180deg,#1B0F02 0%,#2A1A05 60%,#0A0500 100%)`,
+          strokeRGB: "%23E9C56A",
+        }
+      : rarity === "prestige"
+      ? {
+          accent: "#C9A6FF", accentSoft: "rgba(201,166,255,0.45)",
+          ring: "linear-gradient(135deg,#E6D2FF,#7A45D9 55%,#2A0F58)",
+          chipBg: "linear-gradient(135deg,#E2CBFF,#9269E6)",
+          text: "#EADBFF", sealText: "#C9A6FF",
+          body: `radial-gradient(120% 80% at 50% 0%, rgba(201,166,255,0.18), rgba(0,0,0,0) 60%), linear-gradient(180deg,#160826 0%,#22103C 55%,#08020F 100%)`,
+          strokeRGB: "%23C9A6FF",
+        }
+      : rarity === "elite"
+      ? {
+          accent: "#9FB6CB", accentSoft: "rgba(159,182,203,0.45)",
+          ring: "linear-gradient(135deg,#E8EEF5,#6D8198 55%,#1B2733)",
+          chipBg: "linear-gradient(135deg,#E2ECF6,#8FA5BB)",
+          text: "#E5EEF7", sealText: "#B7C8DA",
+          body: `radial-gradient(120% 80% at 50% 0%, rgba(207,227,242,0.14), rgba(0,0,0,0) 60%), linear-gradient(180deg,#0C111A 0%,#162232 60%,#05080D 100%)`,
+          strokeRGB: "%239FB6CB",
+        }
+      : {
+          accent: "#B69CFF", accentSoft: "rgba(182,156,255,0.4)",
+          ring: "linear-gradient(135deg,#CBB5FF,#5A3AC2 55%,#1B0E45)",
+          chipBg: "linear-gradient(135deg,#C9B3FF,#7654DF)",
+          text: "#E6DCFF", sealText: "#B69CFF",
+          body: `radial-gradient(120% 80% at 50% 0%, rgba(182,156,255,0.16), rgba(0,0,0,0) 60%), linear-gradient(180deg,#0E0720 0%,#190C36 55%,#04020B 100%)`,
+          strokeRGB: "%23B69CFF",
+        };
 
   // SVG patterns inlined for crisp print-grade rendering
   const woven = encodeURIComponent(
-    `<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'><g fill='none' stroke='${isFounder ? "%23B8862C" : "%23889CB1"}' stroke-width='1' stroke-opacity='0.55'><path d='M0 20 L10 10 L20 20 L30 10 L40 20 L30 30 L20 20 L10 30 Z'/><path d='M0 0 L40 40 M40 0 L0 40' stroke-opacity='0.18'/></g></svg>`
+    `<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'><g fill='none' stroke='${palette.strokeRGB}' stroke-width='1' stroke-opacity='0.6'><path d='M0 20 L10 10 L20 20 L30 10 L40 20 L30 30 L20 20 L10 30 Z'/><path d='M0 0 L40 40 M40 0 L0 40' stroke-opacity='0.2'/></g></svg>`
   );
   const mandala = encodeURIComponent(
-    `<svg xmlns='http://www.w3.org/2000/svg' width='600' height='600' viewBox='0 0 600 600'><g fill='none' stroke='${isFounder ? "%23B8862C" : "%237891A8"}' stroke-opacity='0.18' stroke-width='1.2'><circle cx='300' cy='300' r='270'/><circle cx='300' cy='300' r='220'/><circle cx='300' cy='300' r='170'/><circle cx='300' cy='300' r='120'/><g><path d='M300 30 L300 570 M30 300 L570 300 M85 85 L515 515 M515 85 L85 515'/></g><path d='M300 100 l28 60 l66 8 l-48 46 l12 66 l-58 -32 l-58 32 l12 -66 l-48 -46 l66 -8 z'/></g></svg>`
+    `<svg xmlns='http://www.w3.org/2000/svg' width='600' height='600' viewBox='0 0 600 600'><g fill='none' stroke='${palette.strokeRGB}' stroke-opacity='0.22' stroke-width='1.2'><circle cx='300' cy='300' r='270'/><circle cx='300' cy='300' r='220'/><circle cx='300' cy='300' r='170'/><circle cx='300' cy='300' r='120'/><g><path d='M300 30 L300 570 M30 300 L570 300 M85 85 L515 515 M515 85 L85 515'/></g><path d='M300 100 l28 60 l66 8 l-48 46 l12 66 l-58 -32 l-58 32 l12 -66 l-48 -46 l66 -8 z'/></g></svg>`
   );
 
   return (
@@ -389,13 +410,7 @@ export function NFTProfileCard({ userId, onClose }: NFTProfileCardProps) {
                 {/* Card body */}
                 <div
                   className="relative rounded-[30px] overflow-hidden"
-                  style={{
-                    background: `
-                      radial-gradient(120% 80% at 50% 0%, rgba(255,255,255,0.85), rgba(255,255,255,0.55) 40%, rgba(214,228,240,0.45) 75%, rgba(160,184,205,0.35) 100%),
-                      linear-gradient(180deg, #EAF2F8 0%, #F6F9FC 60%, #DCE6EF 100%)
-                    `,
-                    color: palette.text,
-                  }}
+                  style={{ background: palette.body, color: palette.text }}
                 >
                   {/* Mandala watermark */}
                   <div
@@ -405,7 +420,7 @@ export function NFTProfileCard({ userId, onClose }: NFTProfileCardProps) {
                       backgroundRepeat: "no-repeat",
                       backgroundPosition: "center 38%",
                       backgroundSize: "120% auto",
-                      opacity: 0.85,
+                      opacity: 0.9,
                     }}
                   />
                   {/* Top inner highlight */}
@@ -413,7 +428,7 @@ export function NFTProfileCard({ userId, onClose }: NFTProfileCardProps) {
                     className="absolute inset-x-0 top-0 h-32 pointer-events-none"
                     style={{
                       background:
-                        "linear-gradient(180deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0) 100%)",
+                        "linear-gradient(180deg, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0) 100%)",
                     }}
                   />
                   {/* Woven kente border */}
