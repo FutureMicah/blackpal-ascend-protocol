@@ -280,11 +280,36 @@ const WorldMap = () => {
     };
     init();
 
+    // Heartbeat: every 45s, mark me online + bump last_seen_at so other viewers
+    // see me as live. On unmount or tab hidden, mark offline.
+    const heartbeat = setInterval(() => {
+      supabase.auth.getUser().then(({ data }) => {
+        const uid = data.user?.id;
+        if (!uid) return;
+        supabase
+          .from("user_locations")
+          .update({ is_online: true, last_seen_at: new Date().toISOString() })
+          .eq("user_id", uid);
+      });
+    }, 45_000);
+    const setOffline = () => {
+      supabase.auth.getUser().then(({ data }) => {
+        const uid = data.user?.id;
+        if (!uid) return;
+        supabase.from("user_locations").update({ is_online: false }).eq("user_id", uid);
+      });
+    };
+    const onVis = () => { if (document.hidden) setOffline(); };
+    document.addEventListener("visibilitychange", onVis);
+
     const ch = supabase
       .channel("locations-stream")
       .on("postgres_changes", { event: "*", schema: "public", table: "user_locations" }, () => init())
       .subscribe();
     return () => {
+      clearInterval(heartbeat);
+      document.removeEventListener("visibilitychange", onVis);
+      setOffline();
       supabase.removeChannel(ch);
       if (gpsTimer.current) clearTimeout(gpsTimer.current);
     };
