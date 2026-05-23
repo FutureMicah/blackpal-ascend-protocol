@@ -48,6 +48,7 @@ import ReferralLanding from "./pages/ReferralLanding";
 import { AnnouncementPopup } from "./components/AnnouncementPopup";
 import { NotificationsProvider } from "./components/NotificationsProvider";
 import { GlobalThemeProvider } from "./components/GlobalThemeProvider";
+import { PresenceProvider } from "./components/PresenceProvider";
 
 const queryClient = new QueryClient();
 
@@ -58,6 +59,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <GlobalThemeProvider />
+        <PresenceProvider />
         <NotificationsProvider />
         <AnnouncementPopup />
         <Routes>
