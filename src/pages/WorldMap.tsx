@@ -378,14 +378,33 @@ const WorldMap = () => {
     );
   }, [search, traders]);
 
-  const nearbyTop = useMemo(
-    () =>
-      [...traders]
-        .filter((t) => t.is_online)
-        .sort((a, b) => (b.xp ?? 0) - (a.xp ?? 0))
-        .slice(0, 8),
-    [traders]
-  );
+  // Haversine distance in km between two [lat, lng] points.
+  const distanceKm = (a: [number, number], b: [number, number]) => {
+    const R = 6371;
+    const toRad = (d: number) => (d * Math.PI) / 180;
+    const dLat = toRad(b[0] - a[0]);
+    const dLng = toRad(b[1] - a[1]);
+    const lat1 = toRad(a[0]);
+    const lat2 = toRad(b[0]);
+    const x =
+      Math.sin(dLat / 2) ** 2 +
+      Math.sin(dLng / 2) ** 2 * Math.cos(lat1) * Math.cos(lat2);
+    return 2 * R * Math.asin(Math.sqrt(x));
+  };
+
+  // Nearby = online traders sorted by actual distance from `myPos` (fallback: XP).
+  const nearbyTop = useMemo(() => {
+    const online = traders.filter((t) => t.is_online && t.user_id !== currentUserId);
+    if (myPos) {
+      return online
+        .filter((t) => t.latitude != null && t.longitude != null)
+        .map((t) => ({ t, d: distanceKm(myPos, [t.latitude!, t.longitude!]) }))
+        .sort((a, b) => a.d - b.d)
+        .slice(0, 8)
+        .map((x) => x.t);
+    }
+    return [...online].sort((a, b) => (b.xp ?? 0) - (a.xp ?? 0)).slice(0, 8);
+  }, [traders, myPos, currentUserId]);
 
   // Connection arcs from current user to each accepted friend with known coords.
   const connections = useMemo(() => {
