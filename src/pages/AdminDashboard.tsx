@@ -79,32 +79,24 @@ function AdminDashboardInner() {
   const checkAdminAndLoad = async () => {
     try {
       setLoading(true);
-      const { data: sessionData } = await supabase.auth.getSession();
-      const user = sessionData.session?.user;
+      const { data: userData, error: authError } = await supabase.auth.getUser();
+      if (authError) throw authError;
+      const user = userData.user;
       if (!user) { navigate("/admin-login", { replace: true }); return; }
 
       setAdminUserId(user.id);
 
-      const { data: roles } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", user.id);
+      const { data: role, error: roleError } = await (supabase as any).rpc("get_my_admin_role");
+      if (roleError) throw roleError;
 
-      const adminRoles = roles?.map(r => r.role as string).filter(r =>
-        ["super_admin", "admin", "editor", "customer_support", "finance"].includes(r)
-      );
-
-      if (!adminRoles || adminRoles.length === 0) {
-        toast.error("Access denied.");
-        navigate("/dashboard", { replace: true });
+      if (!role || !["super_admin", "admin", "editor", "customer_support", "finance"].includes(role)) {
+        await supabase.auth.signOut();
+        toast.error("Access denied. Please use an approved admin account.");
+        navigate("/admin-login", { replace: true });
         return;
       }
 
-      const highestRole = adminRoles.includes("super_admin") ? "super_admin" :
-        adminRoles.includes("admin") ? "admin" :
-        adminRoles[0] as AdminRole;
-
-      setAdminRole(highestRole);
+      setAdminRole(role as AdminRole);
       setLoading(false);
       void loadAllData().catch((error: any) => {
         toast.error(error?.message || "Some admin data failed to load.");
