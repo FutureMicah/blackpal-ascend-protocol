@@ -19,6 +19,7 @@ export default function AdminLogin() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    const normalizedEmail = email.trim().toLowerCase();
     if (attempts >= 5) {
       toast.error("Too many attempts. Please try again later.");
       return;
@@ -29,20 +30,17 @@ export default function AdminLogin() {
     }
     setLoading(true);
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password });
       if (error) throw error;
       if (!data.user) throw new Error("Login failed");
 
-      const { data: roles } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", data.user.id)
-        .in("role", ["admin", "super_admin", "editor", "customer_support", "finance"]);
+      const { data: adminRole, error: roleErr } = await (supabase as any).rpc("get_my_admin_role");
+      if (roleErr) throw roleErr;
 
-      if (!roles || roles.length === 0) {
+      if (!adminRole) {
         await supabase.auth.signOut();
         setAttempts((p) => p + 1);
-        toast.error("Access denied. No admin privileges.");
+        toast.error("Access denied. This email is not approved for admin access.");
         return;
       }
 
@@ -124,8 +122,12 @@ export default function AdminLogin() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                autoComplete="current-password"
                 className="border-destructive/20 focus:border-destructive"
               />
+              <Link to="/forgot-password" className="block text-[10px] text-muted-foreground hover:text-foreground underline-offset-2 hover:underline">
+                Forgot admin password?
+              </Link>
             </div>
             <div className="space-y-2">
               <Label htmlFor="admin-pin" className="flex items-center gap-1">
