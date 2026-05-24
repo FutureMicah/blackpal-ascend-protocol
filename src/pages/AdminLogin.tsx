@@ -125,7 +125,7 @@ export default function AdminLogin() {
                 autoComplete="current-password"
                 className="border-destructive/20 focus:border-destructive"
               />
-              <Link to="/forgot-password" className="block text-[10px] text-muted-foreground hover:text-foreground underline-offset-2 hover:underline">
+              <Link to="/forgot-password?from=admin" className="block text-[10px] text-muted-foreground hover:text-foreground underline-offset-2 hover:underline">
                 Forgot admin password?
               </Link>
             </div>
