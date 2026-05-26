@@ -49,6 +49,7 @@ import { AnnouncementPopup } from "./components/AnnouncementPopup";
 import { NotificationsProvider } from "./components/NotificationsProvider";
 import { GlobalThemeProvider } from "./components/GlobalThemeProvider";
 import { PresenceProvider } from "./components/PresenceProvider";
+import { ThemeResetToggle } from "./components/ThemeResetToggle";
 
 const queryClient = new QueryClient();
 
