@@ -201,7 +201,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background rebrand-dashboard">
       {/* Session Lock */}
       <SessionLockScreen timeoutMinutes={5} />
 
