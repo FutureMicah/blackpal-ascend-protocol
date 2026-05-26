@@ -95,7 +95,7 @@ export const StreakTracker = ({ userId }: StreakTrackerProps) => {
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.3 }}
     >
-      <Card className="p-6 bg-gradient-to-br from-card to-card/50 border-primary/20">
+      <Card className="p-6 bg-gradient-to-br from-card to-card/50 border-primary/20 rebrand-streaks">
         <div className="space-y-4">
           {/* Header */}
           <div className="flex items-center justify-between">
