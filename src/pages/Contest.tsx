@@ -33,7 +33,7 @@ export default function Contest() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background rebrand-contest">
       <FloatingNav />
       <div className="max-w-5xl mx-auto px-3 sm:px-6 pt-16 pb-20">
         <header className="mb-5">
