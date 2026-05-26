@@ -210,7 +210,7 @@ const Achievements = () => {
   const rarities = Array.from(new Set(achievements.map(a => a.rarity.toLowerCase())));
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background rebrand-achievements">
       <CinematicModal
         open={showCinematic}
         onOpenChange={setShowCinematic}
