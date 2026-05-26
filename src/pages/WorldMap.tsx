@@ -424,7 +424,7 @@ const WorldMap = () => {
   }, [traders, acceptedFriendIds, currentUserId, myPos]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background rebrand-atlas">
       <FloatingNav />
       <div className="max-w-6xl mx-auto px-3 sm:px-6 pt-16 pb-24">
         {/* Header */}
