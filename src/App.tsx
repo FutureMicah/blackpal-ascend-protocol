@@ -63,6 +63,8 @@ const App = () => (
         <PresenceProvider />
         <NotificationsProvider />
         <AnnouncementPopup />
+        <ThemeResetToggle />
+
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
