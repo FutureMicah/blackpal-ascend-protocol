@@ -192,7 +192,7 @@ export const PaymentGateway = ({ geoData, userId, onMethodSelect, onBack }: Paym
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-background p-4 overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-background p-4 overflow-y-auto rebrand-payment-success"
     >
       <div className="max-w-4xl w-full py-8">
         {/* Header */}
