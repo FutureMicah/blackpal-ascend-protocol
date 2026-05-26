@@ -82,7 +82,7 @@ export default function Referrals() {
   const nextTier = tiers.find(t => stats.total < t.min);
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-background text-foreground rebrand-portfolio">
       <FloatingNav />
       <div className="pt-16 pb-20 px-3 max-w-4xl mx-auto space-y-3">
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
