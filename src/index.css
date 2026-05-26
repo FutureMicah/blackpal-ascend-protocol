@@ -527,3 +527,122 @@ body { top: 0 !important; }
   background: hsl(var(--background));
   color: hsl(var(--foreground));
 }
+
+/* =========================================================
+   PAGE REBRANDS — scoped skins inspired by reference mockups.
+   Each class only overrides surface/accent feel; core purple
+   tokens and content remain intact.
+   ========================================================= */
+
+/* 1. Traders Atlas — neon green on liquid black (IMG_0332) */
+.rebrand-atlas {
+  --rb-accent: 142 90% 55%;
+  --rb-accent-2: 150 100% 45%;
+  background:
+    radial-gradient(circle at 20% 10%, hsl(142 80% 40% / 0.18), transparent 55%),
+    radial-gradient(circle at 80% 90%, hsl(150 100% 35% / 0.14), transparent 60%),
+    linear-gradient(180deg, #050807 0%, #000 100%);
+  min-height: 100vh;
+}
+.rebrand-atlas .glass,
+.rebrand-atlas .glass-strong,
+.rebrand-atlas [class*="card"] {
+  border-color: hsl(var(--rb-accent) / 0.35) !important;
+  box-shadow: 0 0 24px hsl(var(--rb-accent) / 0.12), inset 0 0 0 1px hsl(var(--rb-accent) / 0.08);
+}
+.rebrand-atlas button:not([disabled]):not(.no-rebrand) {
+  box-shadow: 0 0 18px hsl(var(--rb-accent) / 0.35);
+}
+
+/* 2. Contest — teal/dark battle progress (IMG_0331) */
+.rebrand-contest {
+  --rb-accent: 165 80% 50%;
+  --rb-accent-2: 95 75% 55%;
+  background:
+    radial-gradient(circle at 50% -10%, hsl(180 50% 25% / 0.45), transparent 60%),
+    linear-gradient(180deg, #0b1a1f 0%, #050a0d 100%);
+  min-height: 100vh;
+}
+.rebrand-contest [class*="card"],
+.rebrand-contest .glass,
+.rebrand-contest .glass-strong {
+  border-color: hsl(var(--rb-accent) / 0.25) !important;
+  background-image: linear-gradient(180deg, hsl(180 30% 12% / 0.6), hsl(180 30% 8% / 0.6));
+}
+
+/* 3. Portfolio (Referrals/Discover style) — violet + warm gold rewards (IMG_0333) */
+.rebrand-portfolio {
+  --rb-accent: 270 80% 65%;
+  --rb-accent-2: 28 95% 60%;
+  background:
+    radial-gradient(circle at 30% 20%, hsl(280 70% 35% / 0.4), transparent 55%),
+    radial-gradient(circle at 80% 80%, hsl(20 90% 45% / 0.18), transparent 60%),
+    linear-gradient(180deg, #16111f 0%, #0a0712 100%);
+  min-height: 100vh;
+}
+.rebrand-portfolio [class*="card"] {
+  border-color: hsl(var(--rb-accent) / 0.3) !important;
+}
+
+/* 4. Streaks — hot pink fire (IMG_0334) */
+.rebrand-streaks {
+  --rb-accent: 320 100% 60%;
+  background:
+    radial-gradient(circle at 50% 30%, hsl(320 90% 45% / 0.35), transparent 55%),
+    linear-gradient(180deg, #1a0613 0%, #0a0207 100%);
+  min-height: 100vh;
+}
+.rebrand-streaks [class*="card"] {
+  border-color: hsl(var(--rb-accent) / 0.4) !important;
+  box-shadow: 0 0 40px hsl(var(--rb-accent) / 0.18);
+}
+
+/* 5. Achievements — gold/amber gems (IMG_0325) */
+.rebrand-achievements {
+  --rb-accent: 48 100% 55%;
+  --rb-accent-2: 38 95% 50%;
+  background:
+    radial-gradient(circle at 50% 0%, hsl(45 80% 25% / 0.5), transparent 55%),
+    linear-gradient(180deg, #14110a 0%, #060503 100%);
+  min-height: 100vh;
+}
+.rebrand-achievements [class*="card"] {
+  border-color: hsl(var(--rb-accent) / 0.35) !important;
+}
+.rebrand-achievements h1,
+.rebrand-achievements h2 {
+  text-shadow: 0 0 24px hsl(var(--rb-accent) / 0.4);
+}
+
+/* 6. Payment success — mint→cyan→green gradient confetti (IMG_0324) */
+.rebrand-payment-success {
+  --rb-accent: 160 90% 55%;
+  --rb-accent-2: 180 95% 60%;
+  background:
+    radial-gradient(circle at 50% 80%, hsl(170 70% 25% / 0.5), transparent 60%),
+    linear-gradient(180deg, #0a0f0d 0%, #000 100%);
+  min-height: 100vh;
+}
+.rebrand-payment-success .gradient-cta,
+.rebrand-payment-success [data-cta="success"] {
+  background-image: linear-gradient(90deg, hsl(180 95% 70%), hsl(160 90% 55%), hsl(140 85% 50%)) !important;
+  color: #001008 !important;
+}
+
+/* 7. Dashboard — deep luxurious purple (IMG_0320) */
+.rebrand-dashboard {
+  --rb-accent: 258 90% 66%;
+  --rb-accent-2: 270 95% 70%;
+  background:
+    radial-gradient(circle at 50% 0%, hsl(258 70% 35% / 0.55), transparent 60%),
+    radial-gradient(circle at 100% 100%, hsl(280 70% 30% / 0.35), transparent 55%),
+    linear-gradient(180deg, #120a26 0%, #07041a 100%);
+  min-height: 100vh;
+}
+.rebrand-dashboard [class*="card"],
+.rebrand-dashboard .glass,
+.rebrand-dashboard .glass-strong {
+  border-color: hsl(var(--rb-accent) / 0.3) !important;
+  background-image: linear-gradient(180deg, hsl(258 50% 18% / 0.55), hsl(258 50% 10% / 0.55));
+  box-shadow: 0 8px 32px hsl(258 80% 20% / 0.4), inset 0 1px 0 hsl(var(--rb-accent) / 0.15);
+}
