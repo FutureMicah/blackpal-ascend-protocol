@@ -63,38 +63,19 @@ const BlackNotify = () => {
   const [unread, setUnread] = useState(0);
 
   useEffect(() => {
-    (async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      const { data } = await supabase
-        .from("notifications")
-        .select("id, type, title, message, created_at, read")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(30);
-      const mapped: Notif[] = (data ?? []).map((n: any) => ({
-        id: n.id,
-        type: (n.type as string) || "system",
-        title: n.title || "Update",
-        message: n.message || "",
-        time: relTime(n.created_at),
-        read: !!n.read,
-      }));
-      // demo seed if empty so the layout still looks alive
-      const seed: Notif[] = mapped.length ? mapped : [
-        { id: "s1", type: "trade",       title: "EUR/USD",       message: "Bullish setup · 1.0850", time: "5m", read: false },
-        { id: "s2", type: "achievement", title: "Streak ×7",     message: "7-day journal streak",   time: "1h", read: false },
-        { id: "s3", type: "social",      title: "New comment",   message: "Shadow Trader replied",  time: "2h", read: false },
-        { id: "s4", type: "market",      title: "BTC surge",     message: "+4.2% in last hour",     time: "3h", read: true  },
-        { id: "s5", type: "alert",       title: "Heart-rate",    message: "Elevated · session 2",   time: "4h", read: true  },
-        { id: "s6", type: "system",      title: "Backup ready",  message: "Cloud sync complete",    time: "6h", read: true  },
-      ];
-      setNotifs(seed);
-      setUnread(seed.filter((n) => !n.read).length);
-    })();
+    const seed: Notif[] = [
+      { id: "s1", type: "trade",       title: "EUR/USD",       message: "Bullish setup · 1.0850", time: "5m", read: false },
+      { id: "s2", type: "achievement", title: "Streak ×7",     message: "7-day journal streak",   time: "1h", read: false },
+      { id: "s3", type: "social",      title: "New comment",   message: "Shadow Trader replied",  time: "2h", read: false },
+      { id: "s4", type: "market",      title: "BTC surge",     message: "+4.2% in last hour",     time: "3h", read: true  },
+      { id: "s5", type: "alert",       title: "Heart-rate",    message: "Elevated · session 2",   time: "4h", read: true  },
+      { id: "s6", type: "system",      title: "Backup ready",  message: "Cloud sync complete",    time: "6h", read: true  },
+    ];
+    setNotifs(seed);
+    setUnread(seed.filter((n) => !n.read).length);
   }, []);
 
-  function relTime(iso: string) {
+  function _relTime(iso: string) {
     const diff = (Date.now() - new Date(iso).getTime()) / 1000;
     if (diff < 60) return `${Math.floor(diff)}s`;
     if (diff < 3600) return `${Math.floor(diff / 60)}m`;
