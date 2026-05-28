@@ -8,7 +8,6 @@ import {
   Heart, Zap, MapPin, Coffee, Timer, Filter,
 } from "lucide-react";
 import { FloatingNav } from "@/components/FloatingNav";
-import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
 
 type Notif = { id: string; type: string; title: string; message: string; time: string; read: boolean };
