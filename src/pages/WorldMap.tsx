@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { FloatingNav } from "@/components/FloatingNav";
 import { AtlasGlobe, type AtlasStyleId, type AtlasProjection } from "@/components/atlas/AtlasGlobe";
+import { LiveTraderRail } from "@/components/atlas/LiveTraderRail";
 import { RealtimeVerifier as RealtimeVerifierLazy } from "@/components/RealtimeVerifier";
 import { supabase } from "@/integrations/supabase/client";
 import { captureUserLocation } from "@/lib/location-tracker";
@@ -467,6 +468,9 @@ const WorldMap = () => {
             </div>
           </div>
         </div>
+
+        {/* Kick-style live trader rail (ref IMG_0332) */}
+        <LiveTraderRail />
 
         {/* Stats */}
         <div className="grid grid-cols-3 gap-2 mb-3">

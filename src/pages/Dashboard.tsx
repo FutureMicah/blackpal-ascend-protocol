@@ -12,6 +12,7 @@ import { XPReactor } from "@/components/dashboard/XPReactor";
 import { AchievementsCarousel } from "@/components/dashboard/AchievementsCarousel";
 import { WalletSnapshot } from "@/components/dashboard/WalletSnapshot";
 import { BtaxWalletOverview } from "@/components/dashboard/BtaxWalletOverview";
+import { WalletHero } from "@/components/dashboard/WalletHero";
 import { PaymentHistoryPanel } from "@/components/dashboard/PaymentHistoryPanel";
 import { KycStatusBanner } from "@/components/dashboard/KycStatusBanner";
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
@@ -275,6 +276,9 @@ export default function Dashboard() {
             <KycStatusBanner userId={user.id} />
           </div>
         )}
+
+        {/* Crypto-wallet hero (rebrand ref IMG_0320) */}
+        <WalletHero userId={profile.id} displayName={profile.display_name} avatarUrl={profile.avatar_url} />
 
         {/* Profile Comparison Modal */}
         {showComparison && profile && (
