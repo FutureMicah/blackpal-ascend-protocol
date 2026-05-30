@@ -16,15 +16,15 @@ interface Props {
 const ActionBtn = ({ icon: Icon, label, onClick }: { icon: any; label: string; onClick?: () => void }) => (
   <button
     onClick={onClick}
-    className="flex flex-col items-center gap-1.5 group"
+    className="flex flex-col items-center gap-1 group"
   >
-    <span className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-full grid place-items-center
+    <span className="relative w-10 h-10 rounded-full grid place-items-center
       bg-gradient-to-br from-white/15 to-white/[0.03] backdrop-blur-xl
-      border border-white/15 shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_8px_24px_rgba(80,40,180,0.35)]
+      border border-white/15 shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_6px_18px_rgba(80,40,180,0.35)]
       group-active:scale-95 transition">
-      <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+      <Icon className="w-3.5 h-3.5 text-white" />
     </span>
-    <span className="text-[9px] sm:text-[10px] text-white/70 font-medium">{label}</span>
+    <span className="text-[9px] text-white/70 font-medium">{label}</span>
   </button>
 );
 
@@ -61,60 +61,60 @@ export const WalletHero = ({ userId, displayName, avatarUrl }: Props) => {
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      className="relative overflow-hidden rounded-[28px] mb-4
+      className="relative overflow-hidden rounded-[22px] mb-3
         bg-[radial-gradient(140%_90%_at_50%_-10%,hsl(258_90%_55%/0.95)_0%,hsl(258_70%_30%/0.85)_35%,hsl(248_60%_12%)_70%,hsl(240_40%_6%)_100%)]
-        border border-white/10 shadow-[0_30px_80px_-20px_rgba(99,52,228,0.55)]"
+        border border-white/10 shadow-[0_20px_60px_-20px_rgba(99,52,228,0.55)]"
     >
       {/* moon-arc highlight */}
-      <div className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 w-[160%] h-64 rounded-full bg-white/10 blur-3xl" />
+      <div className="pointer-events-none absolute -top-20 left-1/2 -translate-x-1/2 w-[160%] h-52 rounded-full bg-white/10 blur-3xl" />
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_40%_at_50%_0%,rgba(255,255,255,0.18),transparent_60%)]" />
 
-      <div className="relative p-4 sm:p-6">
+      <div className="relative p-3 sm:p-4">
         {/* Top row: avatar + name + bell */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden ring-2 ring-white/40 bg-white/10">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full overflow-hidden ring-2 ring-white/40 bg-white/10">
               {avatarUrl ? (
                 <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full grid place-items-center text-white font-bold text-sm">
+                <div className="w-full h-full grid place-items-center text-white font-bold text-xs">
                   {firstName.slice(0, 1)}
                 </div>
               )}
             </div>
             <div className="leading-tight">
-              <p className="text-[13px] sm:text-sm font-semibold text-white">{firstName}</p>
-              <p className="text-[9px] sm:text-[10px] text-white/60 flex items-center gap-1">
+              <p className="text-[12px] font-semibold text-white">{firstName}</p>
+              <p className="text-[9px] text-white/60 flex items-center gap-1">
                 <Sparkles className="w-2.5 h-2.5" /> AI assist
               </p>
             </div>
           </div>
           <button
             onClick={() => navigate("/notifications")}
-            className="w-9 h-9 rounded-full bg-white/10 backdrop-blur-xl border border-white/15 grid place-items-center"
+            className="w-8 h-8 rounded-full bg-white/10 backdrop-blur-xl border border-white/15 grid place-items-center"
             aria-label="Notifications"
           >
-            <Bell className="w-4 h-4 text-white" />
+            <Bell className="w-3.5 h-3.5 text-white" />
           </button>
         </div>
 
         {/* Balance */}
-        <div className="mt-5 text-center">
-          <p className="text-[10px] uppercase tracking-[0.22em] text-white/55">Total Balance</p>
-          <div className="flex items-end justify-center gap-1 mt-1">
-            <span className="text-white/80 text-lg font-semibold">₿</span>
-            <span className="text-4xl sm:text-5xl font-bold text-white tabular-nums">
+        <div className="mt-3 text-center">
+          <p className="text-[9px] uppercase tracking-[0.22em] text-white/55">Total Balance</p>
+          <div className="flex items-end justify-center gap-1 mt-0.5">
+            <span className="text-white/80 text-sm font-semibold">₿</span>
+            <span className="text-2xl sm:text-3xl font-bold text-white tabular-nums">
               {btax.toLocaleString(undefined, { maximumFractionDigits: 2 })}
             </span>
-            <span className="text-white/70 text-sm font-medium mb-1">BTAX</span>
+            <span className="text-white/70 text-[11px] font-medium mb-0.5">BTAX</span>
           </div>
-          <p className="text-[10px] text-white/55 mt-1">
+          <p className="text-[9px] text-white/55 mt-0.5">
             ≈ ₦{naira.toLocaleString(undefined, { maximumFractionDigits: 0 })} NGN · invested
           </p>
         </div>
 
         {/* Actions */}
-        <div className="mt-5 grid grid-cols-4 gap-2 sm:gap-3 place-items-center">
+        <div className="mt-3 grid grid-cols-4 gap-2 place-items-center">
           <ActionBtn icon={ArrowDownToLine} label="Withdraw" onClick={() => navigate("/payment")} />
           <ActionBtn icon={ArrowUpFromLine} label="Send" onClick={() => navigate("/payment")} />
           <ActionBtn icon={Plus} label="Add Funds" onClick={() => navigate("/naira-topup")} />
