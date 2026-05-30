@@ -102,7 +102,7 @@ export const ProfileHeroCard = ({ profile, user, onProfileUpdate }: ProfileHeroC
 
   return (
     <motion.div
-      className="glass-card p-6 space-y-6"
+      className="glass-card p-3 sm:p-4 space-y-3"
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: 0.1 }}
@@ -112,23 +112,23 @@ export const ProfileHeroCard = ({ profile, user, onProfileUpdate }: ProfileHeroC
         <PremiumAvatar
           src={profile.avatar_url || undefined}
           alt={profile.display_name}
-          size={140}
+          size={84}
         />
       </div>
 
       {/* Name & Handle */}
-      <div className="text-center space-y-1">
-        <h1 className="text-2xl font-bold text-foreground">
+      <div className="text-center space-y-0.5">
+        <h1 className="text-base font-bold text-foreground truncate">
           {profile.display_name}
         </h1>
         {profile.username && (
-          <p className="text-sm text-muted-foreground">@{profile.username}</p>
+          <p className="text-[11px] text-muted-foreground truncate">@{profile.username}</p>
         )}
         <Button
           variant="link"
           size="sm"
           onClick={() => navigate(`/profile/${user.id}`)}
-          className="text-xs text-muted-foreground hover:text-primary"
+          className="text-[10px] h-auto py-0 text-muted-foreground hover:text-primary"
         >
           View Public Profile
         </Button>
@@ -137,17 +137,17 @@ export const ProfileHeroCard = ({ profile, user, onProfileUpdate }: ProfileHeroC
       {/* Citizenship Badge */}
       <div className="flex justify-center">
         <Badge
-          className={`bg-gradient-to-r ${getRankColor(profile.payment_tier)} text-white border-0 px-4 py-2`}
+          className={`bg-gradient-to-r ${getRankColor(profile.payment_tier)} text-white border-0 px-2.5 py-1 text-[10px]`}
         >
           <span className="font-semibold">
-            {profile.citizenship_rank || "Visitor"} • Rank {profile.rank_level || 1}
+            {profile.citizenship_rank || "Visitor"} • L{profile.rank_level || 1}
           </span>
         </Badge>
       </div>
 
       {/* Bio */}
       {profile.bio && (
-        <p className="text-sm text-muted-foreground text-center line-clamp-3">
+        <p className="text-[11px] text-muted-foreground text-center line-clamp-2">
           {profile.bio}
         </p>
       )}
@@ -157,98 +157,70 @@ export const ProfileHeroCard = ({ profile, user, onProfileUpdate }: ProfileHeroC
         <PremiumBadges achievements={featuredAchievements} />
       )}
 
-      {/* Edit Profile Button */}
-      <ProfileEdit 
-        profile={profile} 
-        onUpdate={() => onProfileUpdate?.()} 
-      />
-
-      {/* Share Profile Button */}
-      <Dialog open={showShareModal} onOpenChange={setShowShareModal}>
-        <DialogTrigger asChild>
-          <Button variant="outline" className="w-full">
-            <Share2 className="w-4 h-4 mr-2" />
-            Share Profile
-          </Button>
-        </DialogTrigger>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Share Your Profile</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            {/* QR Code */}
-            <div className="flex justify-center p-4 bg-background rounded-lg border">
-              <QRCodeSVG
-                value={profileUrl}
-                size={180}
-                level="H"
-                includeMargin
-                className="rounded-lg"
-              />
-            </div>
-            <p className="text-center text-sm text-muted-foreground">
-              Scan to view profile
-            </p>
-            
-            {/* Shareable Link */}
-            <div className="flex gap-2">
-              <Input
-                value={profileUrl}
-                readOnly
-                className="flex-1 text-sm"
-                onClick={(e) => e.currentTarget.select()}
-              />
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={handleCopyLink}
-              >
-                {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
-              </Button>
-            </div>
-            
-            {/* Native Share */}
-            <Button onClick={handleNativeShare} className="w-full">
-              <Share2 className="w-4 h-4 mr-2" />
+      {/* Action buttons — compact row */}
+      <div className="grid grid-cols-2 gap-2">
+        <ProfileEdit
+          profile={profile}
+          onUpdate={() => onProfileUpdate?.()}
+        />
+        <Dialog open={showShareModal} onOpenChange={setShowShareModal}>
+          <DialogTrigger asChild>
+            <Button variant="outline" size="sm" className="h-8 text-xs px-2">
+              <Share2 className="w-3.5 h-3.5 mr-1" />
               Share
             </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Share Your Profile</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="flex justify-center p-4 bg-background rounded-lg border">
+                <QRCodeSVG value={profileUrl} size={180} level="H" includeMargin className="rounded-lg" />
+              </div>
+              <p className="text-center text-sm text-muted-foreground">Scan to view profile</p>
+              <div className="flex gap-2">
+                <Input value={profileUrl} readOnly className="flex-1 text-sm" onClick={(e) => e.currentTarget.select()} />
+                <Button variant="outline" size="icon" onClick={handleCopyLink}>
+                  {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                </Button>
+              </div>
+              <Button onClick={handleNativeShare} className="w-full">
+                <Share2 className="w-4 h-4 mr-2" />
+                Share
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
 
       {/* Meta Info */}
-      <div className="space-y-2 text-sm">
+      <div className="space-y-1 text-[11px]">
         {profile.country && (
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <MapPin className="w-4 h-4" />
-            <span>{profile.country}</span>
+          <div className="flex items-center gap-1.5 text-muted-foreground">
+            <MapPin className="w-3 h-3" />
+            <span className="truncate">{profile.country}</span>
           </div>
         )}
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <Calendar className="w-4 h-4" />
-          <span>Joined {new Date(profile.created_at).toLocaleDateString()}</span>
+        <div className="flex items-center gap-1.5 text-muted-foreground">
+          <Calendar className="w-3 h-3" />
+          <span className="truncate">Joined {new Date(profile.created_at).toLocaleDateString()}</span>
         </div>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-3 gap-2 pt-4 border-t border-border">
+      <div className="grid grid-cols-3 gap-1.5 pt-2 border-t border-border">
         <div className="text-center">
-          <div className="text-lg font-bold text-foreground">
-            {profile.xp_points || 0}
-          </div>
-          <div className="text-xs text-muted-foreground">XP</div>
+          <div className="text-sm font-bold text-foreground">{profile.xp_points || 0}</div>
+          <div className="text-[9px] uppercase tracking-wider text-muted-foreground">XP</div>
         </div>
         <div className="text-center">
-          <div className="text-lg font-bold text-foreground">
-            {profile.rank_level || 1}
-          </div>
-          <div className="text-xs text-muted-foreground">Level</div>
+          <div className="text-sm font-bold text-foreground">{profile.rank_level || 1}</div>
+          <div className="text-[9px] uppercase tracking-wider text-muted-foreground">Level</div>
         </div>
         <div className="text-center">
-          <div className="text-lg font-bold text-foreground">
-            {profile.streak_days || 0}
-          </div>
-          <div className="text-xs text-muted-foreground">Streak</div>
+          <div className="text-sm font-bold text-foreground">{profile.streak_days || 0}</div>
+          <div className="text-[9px] uppercase tracking-wider text-muted-foreground">Streak</div>
         </div>
       </div>
 
