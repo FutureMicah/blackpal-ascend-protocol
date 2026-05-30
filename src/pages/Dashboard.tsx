@@ -230,14 +230,14 @@ export default function Dashboard() {
       <FloatingNav />
 
       {/* Main content */}
-      <div className="relative max-w-[1400px] mx-auto px-3 sm:px-6 lg:px-8 py-16 sm:py-24">
+      <div className="relative max-w-[1400px] mx-auto px-3 sm:px-6 lg:px-8 py-10 sm:py-16">
         {/* Editorial greeting + floating utility cluster */}
-        <div className="flex items-end justify-between gap-3 mb-5">
+        <div className="flex items-end justify-between gap-2 mb-3">
           <div className="min-w-0">
-            <p className="text-[10px] uppercase tracking-[0.22em] text-white/50">
+            <p className="text-[9px] uppercase tracking-[0.22em] text-white/50">
               {new Date().toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" })}
             </p>
-            <h1 className="text-2xl sm:text-4xl font-semibold tracking-tight text-white truncate">
+            <h1 className="text-lg sm:text-2xl font-semibold tracking-tight text-white truncate">
               {profile?.display_name ? `Hello, ${profile.display_name.split(" ")[0]}` : "Welcome back"}
             </h1>
           </div>
