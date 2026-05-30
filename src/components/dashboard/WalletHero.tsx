@@ -16,15 +16,15 @@ interface Props {
 const ActionBtn = ({ icon: Icon, label, onClick }: { icon: any; label: string; onClick?: () => void }) => (
   <button
     onClick={onClick}
-    className="flex flex-col items-center gap-1.5 group"
+    className="flex flex-col items-center gap-1 group"
   >
-    <span className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-full grid place-items-center
+    <span className="relative w-10 h-10 rounded-full grid place-items-center
       bg-gradient-to-br from-white/15 to-white/[0.03] backdrop-blur-xl
-      border border-white/15 shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_8px_24px_rgba(80,40,180,0.35)]
+      border border-white/15 shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_6px_18px_rgba(80,40,180,0.35)]
       group-active:scale-95 transition">
-      <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+      <Icon className="w-3.5 h-3.5 text-white" />
     </span>
-    <span className="text-[9px] sm:text-[10px] text-white/70 font-medium">{label}</span>
+    <span className="text-[9px] text-white/70 font-medium">{label}</span>
   </button>
 );
 
