@@ -101,7 +101,12 @@ function applyTheme(t: Theme | null) {
       html.style.removeProperty("--icon-color");
     }
 
-    html.classList.toggle("theme-afro", AFRO_BACKGROUNDS.has(t.background));
+    const isAfro = AFRO_BACKGROUNDS.has(t.background);
+    html.classList.toggle("theme-afro", isAfro);
+    // Remove any prior variant class, then add the one for this preset (if any)
+    html.classList.remove("theme-afro-adinkra", "theme-afro-kente", "theme-afro-petroglyph");
+    const variant = AFRO_VARIANT_CLASS[t.background];
+    if (variant) html.classList.add(variant);
   }
 
   // Expose current state for diagnostics + dispatch event
