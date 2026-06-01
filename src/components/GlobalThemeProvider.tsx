@@ -77,7 +77,7 @@ function applyTheme(t: Theme | null) {
     html.style.removeProperty("--primary");
     html.style.removeProperty("--ring");
     html.style.removeProperty("--accent");
-    html.classList.remove("theme-afro");
+    html.classList.remove("theme-afro", "theme-afro-adinkra", "theme-afro-kente", "theme-afro-petroglyph");
   } else {
     const bg = BG_GRADIENTS[t.background] ?? "";
     body.style.background = bg;
