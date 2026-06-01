@@ -79,6 +79,45 @@ export const ProfileThemeCustomizer = ({
   onClose,
 }: ProfileThemeCustomizerProps) => {
   const [theme, setTheme] = useState<ProfileTheme>(currentTheme);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const isAfroBg = theme.background?.startsWith("afro-");
+
+  const handlePatternUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 4 * 1024 * 1024) {
+      toast({ title: "File too large", description: "Pattern must be under 4MB.", variant: "destructive" });
+      return;
+    }
+    if (!/^image\/(png|jpe?g|webp|svg\+xml)$/.test(file.type)) {
+      toast({ title: "Unsupported file", description: "Use PNG, JPG, WEBP, or SVG.", variant: "destructive" });
+      return;
+    }
+    setUploading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not signed in");
+      const ext = file.name.split(".").pop() || "png";
+      const path = `${user.id}/pattern-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("theme-patterns").upload(path, file, {
+        cacheControl: "31536000",
+        upsert: true,
+      });
+      if (upErr) throw upErr;
+      const { data: pub } = supabase.storage.from("theme-patterns").getPublicUrl(path);
+      setTheme((t) => ({ ...t, customPatternUrl: pub.publicUrl }));
+      toast({ title: "Pattern uploaded", description: "Applied as overlay on African themes." });
+    } catch (err: any) {
+      toast({ title: "Upload failed", description: err.message ?? String(err), variant: "destructive" });
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const handlePatternRemove = () => setTheme((t) => ({ ...t, customPatternUrl: null }));
 
   // Live preview: throttle emissions through rAF so dragging colour swatches
   // doesn't queue dozens of state updates per frame on low-end phones.
