@@ -9,6 +9,7 @@ type Theme = {
   font?: string | null;
   layout?: string | null;
   accentColor?: string | null;
+  customPatternUrl?: string | null;
 };
 
 const FONT_STACK: Record<string, string> = {
