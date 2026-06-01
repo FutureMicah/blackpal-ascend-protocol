@@ -200,6 +200,60 @@ export const ProfileThemeCustomizer = ({
             </div>
           </div>
 
+          {/* Custom Adinkra / Tribal pattern upload — overlays on top of African themes */}
+          <div className="space-y-3">
+            <Label className="text-base font-semibold flex items-center gap-2">
+              <Upload className="w-4 h-4" />
+              Your Own Adinkra / Tribal Pattern
+            </Label>
+            <p className="text-xs text-muted-foreground">
+              Upload a PNG, JPG, WEBP, or SVG (under 4MB). It will tile as an overlay
+              on top of any African theme preset across every page.
+            </p>
+            <div className="flex items-center gap-3">
+              <div
+                className="w-20 h-20 rounded-lg border border-border bg-muted/40 bg-center bg-repeat"
+                style={{
+                  backgroundImage: theme.customPatternUrl ? `url("${theme.customPatternUrl}")` : undefined,
+                  backgroundSize: "60px 60px",
+                }}
+                aria-label="Pattern preview"
+              />
+              <div className="flex-1 flex flex-wrap gap-2">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                  className="hidden"
+                  onChange={handlePatternUpload}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={uploading}
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  {uploading ? (
+                    <><Loader2 className="w-4 h-4 mr-1 animate-spin" /> Uploading…</>
+                  ) : (
+                    <><Upload className="w-4 h-4 mr-1" /> {theme.customPatternUrl ? "Replace" : "Upload pattern"}</>
+                  )}
+                </Button>
+                {theme.customPatternUrl && (
+                  <Button type="button" variant="ghost" size="sm" onClick={handlePatternRemove}>
+                    <Trash2 className="w-4 h-4 mr-1" /> Remove
+                  </Button>
+                )}
+              </div>
+            </div>
+            {!isAfroBg && (
+              <p className="text-[11px] text-amber-500">
+                Pick an African background preset above for your pattern to show.
+              </p>
+            )}
+          </div>
+
           {/* Font */}
           <div className="space-y-3">
             <Label className="text-base font-semibold flex items-center gap-2">
