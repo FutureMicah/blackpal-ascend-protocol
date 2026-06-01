@@ -1,14 +1,17 @@
 import { motion } from "framer-motion";
-import { X, Palette, Type, Layout } from "lucide-react";
+import { X, Palette, Type, Layout, Upload, Trash2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 
 export type ProfileTheme = {
   background: string;
   font: string;
   layout: string;
   accentColor: string;
+  customPatternUrl?: string | null;
 };
 
 interface ProfileThemeCustomizerProps {
@@ -76,6 +79,45 @@ export const ProfileThemeCustomizer = ({
   onClose,
 }: ProfileThemeCustomizerProps) => {
   const [theme, setTheme] = useState<ProfileTheme>(currentTheme);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const isAfroBg = theme.background?.startsWith("afro-");
+
+  const handlePatternUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 4 * 1024 * 1024) {
+      toast({ title: "File too large", description: "Pattern must be under 4MB.", variant: "destructive" });
+      return;
+    }
+    if (!/^image\/(png|jpe?g|webp|svg\+xml)$/.test(file.type)) {
+      toast({ title: "Unsupported file", description: "Use PNG, JPG, WEBP, or SVG.", variant: "destructive" });
+      return;
+    }
+    setUploading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not signed in");
+      const ext = file.name.split(".").pop() || "png";
+      const path = `${user.id}/pattern-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("theme-patterns").upload(path, file, {
+        cacheControl: "31536000",
+        upsert: true,
+      });
+      if (upErr) throw upErr;
+      const { data: pub } = supabase.storage.from("theme-patterns").getPublicUrl(path);
+      setTheme((t) => ({ ...t, customPatternUrl: pub.publicUrl }));
+      toast({ title: "Pattern uploaded", description: "Applied as overlay on African themes." });
+    } catch (err: any) {
+      toast({ title: "Upload failed", description: err.message ?? String(err), variant: "destructive" });
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const handlePatternRemove = () => setTheme((t) => ({ ...t, customPatternUrl: null }));
 
   // Live preview: throttle emissions through rAF so dragging colour swatches
   // doesn't queue dozens of state updates per frame on low-end phones.
@@ -156,6 +198,60 @@ export const ProfileThemeCustomizer = ({
                 </button>
               ))}
             </div>
+          </div>
+
+          {/* Custom Adinkra / Tribal pattern upload — overlays on top of African themes */}
+          <div className="space-y-3">
+            <Label className="text-base font-semibold flex items-center gap-2">
+              <Upload className="w-4 h-4" />
+              Your Own Adinkra / Tribal Pattern
+            </Label>
+            <p className="text-xs text-muted-foreground">
+              Upload a PNG, JPG, WEBP, or SVG (under 4MB). It will tile as an overlay
+              on top of any African theme preset across every page.
+            </p>
+            <div className="flex items-center gap-3">
+              <div
+                className="w-20 h-20 rounded-lg border border-border bg-muted/40 bg-center bg-repeat"
+                style={{
+                  backgroundImage: theme.customPatternUrl ? `url("${theme.customPatternUrl}")` : undefined,
+                  backgroundSize: "60px 60px",
+                }}
+                aria-label="Pattern preview"
+              />
+              <div className="flex-1 flex flex-wrap gap-2">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                  className="hidden"
+                  onChange={handlePatternUpload}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={uploading}
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  {uploading ? (
+                    <><Loader2 className="w-4 h-4 mr-1 animate-spin" /> Uploading…</>
+                  ) : (
+                    <><Upload className="w-4 h-4 mr-1" /> {theme.customPatternUrl ? "Replace" : "Upload pattern"}</>
+                  )}
+                </Button>
+                {theme.customPatternUrl && (
+                  <Button type="button" variant="ghost" size="sm" onClick={handlePatternRemove}>
+                    <Trash2 className="w-4 h-4 mr-1" /> Remove
+                  </Button>
+                )}
+              </div>
+            </div>
+            {!isAfroBg && (
+              <p className="text-[11px] text-amber-500">
+                Pick an African background preset above for your pattern to show.
+              </p>
+            )}
           </div>
 
           {/* Font */}
