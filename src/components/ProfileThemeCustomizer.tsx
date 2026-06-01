@@ -1,14 +1,17 @@
 import { motion } from "framer-motion";
-import { X, Palette, Type, Layout } from "lucide-react";
+import { X, Palette, Type, Layout, Upload, Trash2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 
 export type ProfileTheme = {
   background: string;
   font: string;
   layout: string;
   accentColor: string;
+  customPatternUrl?: string | null;
 };
 
 interface ProfileThemeCustomizerProps {
