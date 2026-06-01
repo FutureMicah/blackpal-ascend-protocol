@@ -50,9 +50,18 @@ const BG_GRADIENTS: Record<string, string> = {
   "afro-tribal": "linear-gradient(160deg, #1a0f08 0%, #3a1f0c 50%, #5c2e10 100%)",
   "afro-clay": "linear-gradient(160deg, #f5e9d4 0%, #e8c79a 50%, #b97840 100%)",
   "afro-ankara": "linear-gradient(135deg, #0a2818 0%, #c47a2b 50%, #1a0a05 100%)",
+  "afro-adinkra": "radial-gradient(circle at 20% 0%, #2a1208 0%, transparent 60%), linear-gradient(160deg, #120804 0%, #2a1408 50%, #4a2410 100%)",
+  "afro-kente": "linear-gradient(135deg, #0a1f12 0%, #1a3c1f 40%, #3a1808 100%)",
+  "afro-petroglyph": "linear-gradient(160deg, #f3e6cf 0%, #e8c79a 55%, #b97840 100%)",
 };
 
-const AFRO_BACKGROUNDS = new Set(["afro-savanna", "afro-tribal", "afro-clay", "afro-ankara"]);
+const AFRO_BACKGROUNDS = new Set(["afro-savanna", "afro-tribal", "afro-clay", "afro-ankara", "afro-adinkra", "afro-kente", "afro-petroglyph"]);
+// Map each preset to its motif variant class
+const AFRO_VARIANT_CLASS: Record<string, string> = {
+  "afro-adinkra": "theme-afro-adinkra",
+  "afro-kente": "theme-afro-kente",
+  "afro-petroglyph": "theme-afro-petroglyph",
+};
 
 function applyTheme(t: Theme | null) {
   const html = document.documentElement;
