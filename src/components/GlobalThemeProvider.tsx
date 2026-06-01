@@ -78,7 +78,8 @@ function applyTheme(t: Theme | null) {
     html.style.removeProperty("--primary");
     html.style.removeProperty("--ring");
     html.style.removeProperty("--accent");
-    html.classList.remove("theme-afro", "theme-afro-adinkra", "theme-afro-kente", "theme-afro-petroglyph");
+    html.style.removeProperty("--theme-custom-pattern");
+    html.classList.remove("theme-afro", "theme-afro-adinkra", "theme-afro-kente", "theme-afro-petroglyph", "theme-afro-custom");
   } else {
     const bg = BG_GRADIENTS[t.background] ?? "";
     body.style.background = bg;
@@ -105,9 +106,17 @@ function applyTheme(t: Theme | null) {
     const isAfro = AFRO_BACKGROUNDS.has(t.background);
     html.classList.toggle("theme-afro", isAfro);
     // Remove any prior variant class, then add the one for this preset (if any)
-    html.classList.remove("theme-afro-adinkra", "theme-afro-kente", "theme-afro-petroglyph");
+    html.classList.remove("theme-afro-adinkra", "theme-afro-kente", "theme-afro-petroglyph", "theme-afro-custom");
     const variant = AFRO_VARIANT_CLASS[t.background];
     if (variant) html.classList.add(variant);
+
+    // Custom user-uploaded pattern overlay (takes priority when present on afro themes)
+    if (isAfro && t.customPatternUrl) {
+      html.style.setProperty("--theme-custom-pattern", `url("${t.customPatternUrl}")`);
+      html.classList.add("theme-afro-custom");
+    } else {
+      html.style.removeProperty("--theme-custom-pattern");
+    }
   }
 
   // Expose current state for diagnostics + dispatch event
