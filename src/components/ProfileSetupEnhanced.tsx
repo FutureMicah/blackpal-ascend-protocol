@@ -541,7 +541,8 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
           theme_font: theme.font,
           theme_layout: theme.layout,
           theme_accent_color: theme.accentColor,
-        })
+          theme_custom_pattern_url: theme.customPatternUrl ?? null,
+        } as any)
         .eq("id", userId);
 
       if (error) throw error;
