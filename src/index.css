@@ -403,6 +403,39 @@ All colors MUST be HSL.
     opacity: 0.8;
   }
 
+  /* User-uploaded custom Adinkra/tribal pattern overlay.
+     The URL is injected via --theme-custom-pattern from GlobalThemeProvider. */
+  .theme-afro-custom::before {
+    background-image:
+      radial-gradient(70% 50% at 50% 0%, hsla(38, 90%, 55%, 0.18), transparent 60%),
+      radial-gradient(60% 60% at 50% 100%, hsla(18, 80%, 18%, 0.42), transparent 65%),
+      var(--theme-custom-pattern, none);
+    background-size: auto, auto, 240px 240px;
+    background-repeat: no-repeat, no-repeat, repeat;
+    opacity: 0.7;
+  }
+
+  /* Mobile perf: lighten the heavy SVG-pattern overlays on small screens and
+     disable when the user prefers reduced motion. The fixed-position pseudo
+     elements remain on the GPU compositor layer via translateZ. */
+  .theme-afro::before,
+  .theme-afro::after {
+    transform: translateZ(0);
+    will-change: opacity;
+  }
+  @media (max-width: 640px) {
+    .theme-afro::before { opacity: 0.55; background-size: auto, auto, 120px 120px; }
+    .theme-afro-adinkra::before { opacity: 0.6; background-size: auto, auto, 140px 140px; }
+    .theme-afro-kente::before    { opacity: 0.55; }
+    .theme-afro-petroglyph::before { opacity: 0.6; background-size: auto, auto, 160px 160px; }
+    .theme-afro-custom::before   { opacity: 0.55; background-size: auto, auto, 180px 180px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .theme-afro::before, .theme-afro::after { animation: none !important; }
+  }
+
+
+
   
   .bg-gradient-radial {
     background: radial-gradient(circle, var(--tw-gradient-stops));
