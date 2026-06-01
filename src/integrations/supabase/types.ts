@@ -2968,6 +2968,7 @@ export type Database = {
           streak_days: number | null
           theme_accent_color: string | null
           theme_background: string | null
+          theme_custom_pattern_url: string | null
           theme_font: string | null
           theme_layout: string | null
           theme_preference: string | null
@@ -3024,6 +3025,7 @@ export type Database = {
           streak_days?: number | null
           theme_accent_color?: string | null
           theme_background?: string | null
+          theme_custom_pattern_url?: string | null
           theme_font?: string | null
           theme_layout?: string | null
           theme_preference?: string | null
@@ -3080,6 +3082,7 @@ export type Database = {
           streak_days?: number | null
           theme_accent_color?: string | null
           theme_background?: string | null
+          theme_custom_pattern_url?: string | null
           theme_font?: string | null
           theme_layout?: string | null
           theme_preference?: string | null
