@@ -140,7 +140,7 @@ export const GlobalThemeProvider = () => {
       if (!user) { applyTheme(null); return; }
       const { data } = await supabase
         .from("profiles")
-        .select("theme_background, theme_font, theme_layout, theme_accent_color")
+        .select("theme_background, theme_font, theme_layout, theme_accent_color, theme_custom_pattern_url")
         .eq("id", user.id)
         .maybeSingle();
       if (cancelled || !data) return;
@@ -149,6 +149,7 @@ export const GlobalThemeProvider = () => {
         font: data.theme_font,
         layout: data.theme_layout,
         accentColor: data.theme_accent_color,
+        customPatternUrl: (data as any).theme_custom_pattern_url ?? null,
       });
     };
 
