@@ -210,7 +210,7 @@ export type Database = {
           admin_notes?: string | null
           created_at?: string
           id?: string
-          requested_size_naira?: number
+          requested_size_naira: number
           requested_tier?: number
           reviewed_at?: string | null
           reviewed_by?: string | null
@@ -5004,10 +5004,13 @@ export type Database = {
           created_at: string
           daily_loss_limit_percent: number
           id: string
+          is_active: boolean
           max_accounts: number
           max_drawdown_percent: number
+          payout_naira: number
           profit_split_percent: number
           profit_target_percent: number
+          rules_description: string | null
           tier_level: number
           tier_name: string
           xp_required: number
@@ -5018,10 +5021,13 @@ export type Database = {
           created_at?: string
           daily_loss_limit_percent?: number
           id?: string
+          is_active?: boolean
           max_accounts?: number
           max_drawdown_percent?: number
+          payout_naira?: number
           profit_split_percent?: number
           profit_target_percent?: number
+          rules_description?: string | null
           tier_level: number
           tier_name: string
           xp_required: number
@@ -5032,10 +5038,13 @@ export type Database = {
           created_at?: string
           daily_loss_limit_percent?: number
           id?: string
+          is_active?: boolean
           max_accounts?: number
           max_drawdown_percent?: number
+          payout_naira?: number
           profit_split_percent?: number
           profit_target_percent?: number
+          rules_description?: string | null
           tier_level?: number
           tier_name?: string
           xp_required?: number
