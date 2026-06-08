@@ -920,6 +920,7 @@ function AdminDashboardInner() {
           )}
 
           {canManageUsers && <AdminPropManager adminUserId={adminUserId} users={users} />}
+          {canManageUsers && <AdminPackageManager />}
         </Tabs>
 
         {/* Proof Review Dialog */}
