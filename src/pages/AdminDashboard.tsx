@@ -13,12 +13,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   Loader2, Users, CreditCard, Trophy, TrendingUp, Search, Shield, Image, Check, X,
   Megaphone, Plus, Hash, Settings, UserCog, LogOut, BarChart3, Eye, Ban, Mail,
-  DollarSign, Activity, Globe, Bell, FileText, Lock, Crown, Pencil, Headphones, Wallet, Coins
+  DollarSign, Activity, Globe, Bell, FileText, Lock, Crown, Pencil, Headphones, Wallet, Coins, Package
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { AdminBroadcastChannel } from "@/components/AdminBroadcastChannel";
 import { AdminPropManager } from "@/components/AdminPropManager";
+import { AdminPackageManager } from "@/components/AdminPackageManager";
 import { GatePassSettings } from "@/components/admin/GatePassSettings";
 import { AdminCredentialsPanel } from "@/components/admin/AdminCredentialsPanel";
 import { AdminApprovalsPanel } from "@/components/admin/AdminApprovalsPanel";
