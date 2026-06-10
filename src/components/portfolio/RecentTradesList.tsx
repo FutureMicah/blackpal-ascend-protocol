@@ -13,6 +13,7 @@ interface Trade {
   closed_at: string | null;
   opened_at: string;
   source: string | null;
+  status?: string | null;
 }
 
 export function RecentTradesList({ accountId, limit = 6 }: { accountId: string; limit?: number }) {
