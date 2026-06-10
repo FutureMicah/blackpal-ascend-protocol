@@ -112,17 +112,25 @@ export default function MyAccounts() {
           <div className="mb-5">
             <h3 className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">My requests</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {requests.slice(0, 4).map(r => (
-                <Card key={r.id} className="border-border">
-                  <CardContent className="p-3 flex items-center justify-between">
-                    <div>
-                      <p className="text-xs font-semibold">Tier {r.requested_tier} • ₦{r.requested_size_naira.toLocaleString()}</p>
-                      <p className="text-[10px] text-muted-foreground">{new Date(r.created_at).toLocaleString()}</p>
-                    </div>
-                    <Badge variant={r.status === "approved" ? "default" : r.status === "rejected" ? "destructive" : "secondary"} className="text-[9px]">{r.status}</Badge>
-                  </CardContent>
-                </Card>
-              ))}
+              {requests.slice(0, 6).map(r => {
+                const variant = r.status === "approved" ? "default" : r.status === "rejected" ? "destructive" : r.status === "fulfilled" ? "outline" : "secondary";
+                return (
+                  <Card key={r.id} className="border-border">
+                    <CardContent className="p-3">
+                      <div className="flex items-center justify-between">
+                        <div className="min-w-0">
+                          <p className="text-xs font-semibold truncate">Tier {r.requested_tier} • ₦{Number(r.requested_size_naira).toLocaleString()}</p>
+                          <p className="text-[10px] text-muted-foreground">{new Date(r.created_at).toLocaleString()}</p>
+                        </div>
+                        <Badge variant={variant as any} className="text-[9px] capitalize">{r.status}</Badge>
+                      </div>
+                      {r.status === "rejected" && r.rejection_reason && (
+                        <p className="text-[10px] text-destructive mt-1.5">Reason: {r.rejection_reason}</p>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           </div>
         )}
