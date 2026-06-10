@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { Loader2, Package, Plus, Wallet, ChevronRight, ShieldCheck, Target, TrendingDown, Percent } from "lucide-react";
+import { AccountHealthCard } from "@/components/portfolio/AccountHealthCard";
 
 interface Package {
   id: string;
