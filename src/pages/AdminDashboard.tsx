@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   Loader2, Users, CreditCard, Trophy, TrendingUp, Search, Shield, Image, Check, X,
   Megaphone, Plus, Hash, Settings, UserCog, LogOut, BarChart3, Eye, Ban, Mail,
-  DollarSign, Activity, Globe, Bell, FileText, Lock, Crown, Pencil, Headphones, Wallet, Coins, Package
+  DollarSign, Activity, Globe, Bell, FileText, Lock, Crown, Pencil, Headphones, Wallet, Coins, Package, Inbox
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
