@@ -32,6 +32,8 @@ interface Req {
   requested_tier: number;
   requested_size_naira: number;
   status: string;
+  rejection_reason: string | null;
+  package_id: string | null;
   created_at: string;
 }
 
