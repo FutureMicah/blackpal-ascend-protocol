@@ -148,7 +148,11 @@ export function AccountHealthCard({ account: initial }: { account: Account }) {
         toast.success("Resync complete");
       }
     } catch (e: any) {
-      toast.error("Resync failed", { description: e?.message ?? "Unknown error" });
+      const lastSyncTxt = account.mt5_last_sync_at
+        ? `Last successful sync ${formatDistanceToNow(new Date(account.mt5_last_sync_at), { addSuffix: true })}`
+        : "No successful sync yet";
+      const reason = e?.message || account.mt5_last_error || "Unknown error";
+      toast.error("Resync failed", { description: `${reason} · ${lastSyncTxt}` });
     } finally {
       setResyncing(false);
     }
