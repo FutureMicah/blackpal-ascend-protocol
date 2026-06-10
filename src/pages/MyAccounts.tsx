@@ -32,6 +32,8 @@ interface Req {
   requested_tier: number;
   requested_size_naira: number;
   status: string;
+  rejection_reason: string | null;
+  package_id: string | null;
   created_at: string;
 }
 
@@ -44,6 +46,7 @@ export default function MyAccounts() {
   const [selected, setSelected] = useState<Package | null>(null);
   const [message, setMessage] = useState("");
   const [requesting, setRequesting] = useState(false);
+  const [agreed, setAgreed] = useState(false);
 
   useEffect(() => { init(); }, []);
 
@@ -53,22 +56,26 @@ export default function MyAccounts() {
     setUserId(user.id);
     const [pkgRes, reqRes] = await Promise.all([
       supabase.from("xp_tier_config").select("*").eq("is_active", true).order("tier_level"),
-      supabase.from("account_requests").select("id,requested_tier,requested_size_naira,status,created_at").eq("user_id", user.id).order("created_at", { ascending: false }),
+      supabase.from("account_requests").select("id,requested_tier,requested_size_naira,status,rejection_reason,package_id,created_at").eq("user_id", user.id).order("created_at", { ascending: false }),
     ]);
     setPackages((pkgRes.data || []) as any);
     setRequests((reqRes.data || []) as any);
     setLoading(false);
   };
 
+  const pendingForPackage = (pkgId: string) =>
+    requests.find(r => r.package_id === pkgId && (r.status === "pending" || r.status === "approved"));
+
   const submitRequest = async () => {
-    if (!userId || !selected) return;
+    if (!userId || !selected || !agreed) return;
     setRequesting(true);
     const { error } = await supabase.from("account_requests").insert({
       user_id: userId,
       requested_tier: selected.tier_level,
       requested_size_naira: selected.account_size_naira,
+      package_id: selected.id,
       user_xp: 0,
-    });
+    } as any);
     if (error) toast.error(error.message);
     else {
       if (message.trim()) {
@@ -81,7 +88,7 @@ export default function MyAccounts() {
         });
       }
       toast.success("Request sent — admin will review shortly");
-      setSelected(null); setMessage("");
+      setSelected(null); setMessage(""); setAgreed(false);
       init();
     }
     setRequesting(false);
@@ -105,17 +112,25 @@ export default function MyAccounts() {
           <div className="mb-5">
             <h3 className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">My requests</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {requests.slice(0, 4).map(r => (
-                <Card key={r.id} className="border-border">
-                  <CardContent className="p-3 flex items-center justify-between">
-                    <div>
-                      <p className="text-xs font-semibold">Tier {r.requested_tier} • ₦{r.requested_size_naira.toLocaleString()}</p>
-                      <p className="text-[10px] text-muted-foreground">{new Date(r.created_at).toLocaleString()}</p>
-                    </div>
-                    <Badge variant={r.status === "approved" ? "default" : r.status === "rejected" ? "destructive" : "secondary"} className="text-[9px]">{r.status}</Badge>
-                  </CardContent>
-                </Card>
-              ))}
+              {requests.slice(0, 6).map(r => {
+                const variant = r.status === "approved" ? "default" : r.status === "rejected" ? "destructive" : r.status === "fulfilled" ? "outline" : "secondary";
+                return (
+                  <Card key={r.id} className="border-border">
+                    <CardContent className="p-3">
+                      <div className="flex items-center justify-between">
+                        <div className="min-w-0">
+                          <p className="text-xs font-semibold truncate">Tier {r.requested_tier} • ₦{Number(r.requested_size_naira).toLocaleString()}</p>
+                          <p className="text-[10px] text-muted-foreground">{new Date(r.created_at).toLocaleString()}</p>
+                        </div>
+                        <Badge variant={variant as any} className="text-[9px] capitalize">{r.status}</Badge>
+                      </div>
+                      {r.status === "rejected" && r.rejection_reason && (
+                        <p className="text-[10px] text-destructive mt-1.5">Reason: {r.rejection_reason}</p>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           </div>
         )}
@@ -172,7 +187,7 @@ export default function MyAccounts() {
       </div>
 
       {/* Details + request dialog */}
-      <Dialog open={!!selected} onOpenChange={o => !o && setSelected(null)}>
+      <Dialog open={!!selected} onOpenChange={o => { if (!o) { setSelected(null); setAgreed(false); setMessage(""); } }}>
         <DialogContent className="max-w-[360px] sm:max-w-md max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-sm flex items-center gap-2">
@@ -212,14 +227,25 @@ export default function MyAccounts() {
                 className="text-xs"
               />
 
-              <p className="text-[10px] text-muted-foreground text-center">
-                Submitting sends a request — an admin will review before issuing your account.
-              </p>
+              {selected && pendingForPackage(selected.id) ? (
+                <div className="p-2 rounded-lg bg-muted/40 border border-border text-[10px] text-center text-muted-foreground">
+                  You already have a {pendingForPackage(selected.id)?.status} request for this package.
+                </div>
+              ) : (
+                <>
+                  <label className="flex items-start gap-2 p-2 rounded-lg border border-border bg-card/60 cursor-pointer">
+                    <input type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)} className="mt-0.5 accent-primary" />
+                    <span className="text-[10px] text-muted-foreground leading-snug">
+                      I have read the rules above and understand the profit target, drawdown and daily loss limits for this account.
+                    </span>
+                  </label>
 
-              <Button className="w-full h-9 text-xs" onClick={submitRequest} disabled={requesting}>
-                {requesting ? <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> : <Plus className="w-3.5 h-3.5 mr-1" />}
-                Request this account
-              </Button>
+                  <Button className="w-full h-9 text-xs" onClick={submitRequest} disabled={requesting || !agreed}>
+                    {requesting ? <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> : <Plus className="w-3.5 h-3.5 mr-1" />}
+                    Confirm & request this account
+                  </Button>
+                </>
+              )}
             </div>
           )}
         </DialogContent>

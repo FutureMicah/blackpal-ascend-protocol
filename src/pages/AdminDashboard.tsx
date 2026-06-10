@@ -13,13 +13,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   Loader2, Users, CreditCard, Trophy, TrendingUp, Search, Shield, Image, Check, X,
   Megaphone, Plus, Hash, Settings, UserCog, LogOut, BarChart3, Eye, Ban, Mail,
-  DollarSign, Activity, Globe, Bell, FileText, Lock, Crown, Pencil, Headphones, Wallet, Coins, Package
+  DollarSign, Activity, Globe, Bell, FileText, Lock, Crown, Pencil, Headphones, Wallet, Coins, Package, Inbox
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { AdminBroadcastChannel } from "@/components/AdminBroadcastChannel";
 import { AdminPropManager } from "@/components/AdminPropManager";
 import { AdminPackageManager } from "@/components/AdminPackageManager";
+import { AdminAccountRequests } from "@/components/AdminAccountRequests";
 import { GatePassSettings } from "@/components/admin/GatePassSettings";
 import { AdminCredentialsPanel } from "@/components/admin/AdminCredentialsPanel";
 import { AdminApprovalsPanel } from "@/components/admin/AdminApprovalsPanel";
@@ -421,6 +422,7 @@ function AdminDashboardInner() {
             {canManageSupport && <TabsTrigger value="support" className="gap-1"><Headphones className="w-3 h-3" /> Support</TabsTrigger>}
             {canManageUsers && <TabsTrigger value="props" className="gap-1"><Trophy className="w-3 h-3" /> Prop Firms</TabsTrigger>}
             {canManageUsers && <TabsTrigger value="packages" className="gap-1"><Package className="w-3 h-3" /> Packages</TabsTrigger>}
+            {canManageUsers && <TabsTrigger value="account-requests" className="gap-1"><Inbox className="w-3 h-3" /> Requests</TabsTrigger>}
             {isSuperAdmin && <TabsTrigger value="staff" className="gap-1"><UserCog className="w-3 h-3" /> Staff</TabsTrigger>}
             {isSuperAdmin && <TabsTrigger value="settings" className="gap-1"><Settings className="w-3 h-3" /> Settings</TabsTrigger>}
           </TabsList>
@@ -921,6 +923,7 @@ function AdminDashboardInner() {
 
           {canManageUsers && <AdminPropManager adminUserId={adminUserId} users={users} />}
           {canManageUsers && <AdminPackageManager />}
+          {canManageUsers && <AdminAccountRequests />}
         </Tabs>
 
         {/* Proof Review Dialog */}
