@@ -187,7 +187,7 @@ export default function MyAccounts() {
       </div>
 
       {/* Details + request dialog */}
-      <Dialog open={!!selected} onOpenChange={o => !o && setSelected(null)}>
+      <Dialog open={!!selected} onOpenChange={o => { if (!o) { setSelected(null); setAgreed(false); setMessage(""); } }}>
         <DialogContent className="max-w-[360px] sm:max-w-md max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-sm flex items-center gap-2">
