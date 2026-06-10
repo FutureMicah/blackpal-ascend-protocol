@@ -2,9 +2,11 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-
-import { Target, TrendingDown, Calendar, Activity, ShieldAlert, CheckCircle2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Target, TrendingDown, Calendar, Activity, ShieldAlert, CheckCircle2, Link2, Radio } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { MT5ConnectDialog } from "./MT5ConnectDialog";
+import { formatDistanceToNow } from "date-fns";
 
 interface Tier {
   tier_name: string; badge_icon: string | null;
@@ -34,6 +36,12 @@ interface Account {
   max_daily_loss_hit: boolean;
   tier_id: string;
   prop_tiers?: Tier | null;
+  mt5_sync_enabled?: boolean | null;
+  mt5_sync_status?: string | null;
+  mt5_last_sync_at?: string | null;
+  mt5_last_error?: string | null;
+  mt5_broker?: string | null;
+  mt5_open_positions?: number | null;
 }
 
 const colorFor = (used: number, danger = 80, warn = 60) =>
@@ -60,6 +68,13 @@ function HealthRow({ icon: Icon, label, used, hint, danger = false }: {
 export function AccountHealthCard({ account }: { account: Account }) {
   const t = account.prop_tiers;
   const [todayLoss, setTodayLoss] = useState(0);
+  const [connectOpen, setConnectOpen] = useState(false);
+
+  const syncStatus = account.mt5_sync_status ?? "disconnected";
+  const syncOn = !!account.mt5_sync_enabled && syncStatus === "connected";
+  const lastSync = account.mt5_last_sync_at
+    ? formatDistanceToNow(new Date(account.mt5_last_sync_at), { addSuffix: true })
+    : null;
 
   useEffect(() => {
     let mounted = true;
@@ -149,7 +164,45 @@ export function AccountHealthCard({ account }: { account: Account }) {
             {passed ? "Phase passed — payout unlocked" : "Account breached rules — contact admin"}
           </div>
         )}
+
+        {/* MT5 live-sync footer */}
+        <div className="flex items-center justify-between gap-2 pt-2 border-t border-border/60">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <span className={cn(
+              "w-1.5 h-1.5 rounded-full",
+              syncOn ? "bg-emerald-500 animate-pulse" :
+              syncStatus === "connecting" ? "bg-orange-500 animate-pulse" :
+              syncStatus === "error" ? "bg-destructive" : "bg-muted-foreground/40"
+            )} />
+            <span className="text-[10px] text-muted-foreground truncate">
+              {syncOn
+                ? <>MT5 live · {account.mt5_open_positions ?? 0} open{lastSync ? ` · ${lastSync}` : ""}</>
+                : syncStatus === "connecting" ? "Connecting to MT5…"
+                : syncStatus === "error" ? <span className="text-destructive">MT5 error</span>
+                : "MT5 not linked"}
+            </span>
+          </div>
+          <Button
+            size="sm"
+            variant={syncOn ? "ghost" : "outline"}
+            className="h-6 px-2 text-[10px]"
+            onClick={() => setConnectOpen(true)}
+          >
+            {syncOn ? <Radio className="w-3 h-3 mr-1" /> : <Link2 className="w-3 h-3 mr-1" />}
+            {syncOn ? "Manage" : "Link MT5"}
+          </Button>
+        </div>
+        {account.mt5_last_error && syncStatus === "error" && (
+          <p className="text-[9px] text-destructive/80 line-clamp-2">{account.mt5_last_error}</p>
+        )}
       </CardContent>
+
+      <MT5ConnectDialog
+        open={connectOpen}
+        onOpenChange={setConnectOpen}
+        accountId={account.id}
+        defaultBroker={account.mt5_broker ?? undefined}
+      />
     </Card>
   );
 }
