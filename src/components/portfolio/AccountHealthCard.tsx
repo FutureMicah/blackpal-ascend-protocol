@@ -43,13 +43,16 @@ function HealthRow({ icon: Icon, label, used, hint, danger = false }: {
   icon: any; label: string; used: number; hint: string; danger?: boolean;
 }) {
   const pct = Math.max(0, Math.min(100, used));
+  const bar = danger ? "bg-destructive" : colorFor(pct);
   return (
     <div>
       <div className="flex items-center justify-between text-[10px]">
         <span className="flex items-center gap-1 text-muted-foreground"><Icon className="w-3 h-3" /> {label}</span>
         <span className={cn("font-mono font-semibold", danger ? "text-destructive" : "text-foreground")}>{hint}</span>
       </div>
-      <Progress value={pct} className="h-1.5 mt-1" indicatorClassName={danger ? "bg-destructive" : colorFor(pct)} />
+      <div className="h-1.5 mt-1 w-full rounded-full bg-muted overflow-hidden">
+        <div className={cn("h-full transition-all", bar)} style={{ width: `${pct}%` }} />
+      </div>
     </div>
   );
 }
