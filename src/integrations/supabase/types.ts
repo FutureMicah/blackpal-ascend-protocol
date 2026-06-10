@@ -198,6 +198,8 @@ export type Database = {
           admin_notes: string | null
           created_at: string
           id: string
+          package_id: string | null
+          rejection_reason: string | null
           requested_size_naira: number
           requested_tier: number
           reviewed_at: string | null
@@ -210,6 +212,8 @@ export type Database = {
           admin_notes?: string | null
           created_at?: string
           id?: string
+          package_id?: string | null
+          rejection_reason?: string | null
           requested_size_naira: number
           requested_tier?: number
           reviewed_at?: string | null
@@ -222,6 +226,8 @@ export type Database = {
           admin_notes?: string | null
           created_at?: string
           id?: string
+          package_id?: string | null
+          rejection_reason?: string | null
           requested_size_naira?: number
           requested_tier?: number
           reviewed_at?: string | null
@@ -230,7 +236,15 @@ export type Database = {
           user_id?: string
           user_xp?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "account_requests_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "xp_tier_config"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       achievement_auctions: {
         Row: {
@@ -5094,6 +5108,15 @@ export type Database = {
       }
     }
     Functions: {
+      admin_update_account_request: {
+        Args: {
+          _admin_notes?: string
+          _reason?: string
+          _request_id: string
+          _status: string
+        }
+        Returns: undefined
+      }
       allocate_sponsor_btax: {
         Args: {
           p_btax_amount: number
