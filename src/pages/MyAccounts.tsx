@@ -43,6 +43,7 @@ export default function MyAccounts() {
   const [userId, setUserId] = useState<string | null>(null);
   const [packages, setPackages] = useState<Package[]>([]);
   const [requests, setRequests] = useState<Req[]>([]);
+  const [liveAccounts, setLiveAccounts] = useState<any[]>([]);
   const [selected, setSelected] = useState<Package | null>(null);
   const [message, setMessage] = useState("");
   const [requesting, setRequesting] = useState(false);
@@ -54,13 +55,24 @@ export default function MyAccounts() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { navigate("/"); return; }
     setUserId(user.id);
-    const [pkgRes, reqRes] = await Promise.all([
+    const [pkgRes, reqRes, acctRes] = await Promise.all([
       supabase.from("xp_tier_config").select("*").eq("is_active", true).order("tier_level"),
       supabase.from("account_requests").select("id,requested_tier,requested_size_naira,status,rejection_reason,package_id,created_at").eq("user_id", user.id).order("created_at", { ascending: false }),
+      supabase.from("user_prop_accounts").select("*, prop_tiers(*)").eq("user_id", user.id).order("created_at", { ascending: false }),
     ]);
     setPackages((pkgRes.data || []) as any);
     setRequests((reqRes.data || []) as any);
+    setLiveAccounts((acctRes.data || []) as any);
     setLoading(false);
+
+    const ch = supabase.channel(`my-accts-${user.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "user_prop_accounts", filter: `user_id=eq.${user.id}` },
+        async () => {
+          const { data } = await supabase.from("user_prop_accounts").select("*, prop_tiers(*)").eq("user_id", user.id).order("created_at", { ascending: false });
+          setLiveAccounts((data || []) as any);
+        })
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
   };
 
   const pendingForPackage = (pkgId: string) =>
