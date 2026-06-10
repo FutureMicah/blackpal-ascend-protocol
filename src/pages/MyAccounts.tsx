@@ -46,6 +46,7 @@ export default function MyAccounts() {
   const [selected, setSelected] = useState<Package | null>(null);
   const [message, setMessage] = useState("");
   const [requesting, setRequesting] = useState(false);
+  const [agreed, setAgreed] = useState(false);
 
   useEffect(() => { init(); }, []);
 
@@ -55,22 +56,26 @@ export default function MyAccounts() {
     setUserId(user.id);
     const [pkgRes, reqRes] = await Promise.all([
       supabase.from("xp_tier_config").select("*").eq("is_active", true).order("tier_level"),
-      supabase.from("account_requests").select("id,requested_tier,requested_size_naira,status,created_at").eq("user_id", user.id).order("created_at", { ascending: false }),
+      supabase.from("account_requests").select("id,requested_tier,requested_size_naira,status,rejection_reason,package_id,created_at").eq("user_id", user.id).order("created_at", { ascending: false }),
     ]);
     setPackages((pkgRes.data || []) as any);
     setRequests((reqRes.data || []) as any);
     setLoading(false);
   };
 
+  const pendingForPackage = (pkgId: string) =>
+    requests.find(r => r.package_id === pkgId && (r.status === "pending" || r.status === "approved"));
+
   const submitRequest = async () => {
-    if (!userId || !selected) return;
+    if (!userId || !selected || !agreed) return;
     setRequesting(true);
     const { error } = await supabase.from("account_requests").insert({
       user_id: userId,
       requested_tier: selected.tier_level,
       requested_size_naira: selected.account_size_naira,
+      package_id: selected.id,
       user_xp: 0,
-    });
+    } as any);
     if (error) toast.error(error.message);
     else {
       if (message.trim()) {
@@ -83,7 +88,7 @@ export default function MyAccounts() {
         });
       }
       toast.success("Request sent — admin will review shortly");
-      setSelected(null); setMessage("");
+      setSelected(null); setMessage(""); setAgreed(false);
       init();
     }
     setRequesting(false);
