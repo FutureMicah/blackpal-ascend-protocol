@@ -227,14 +227,25 @@ export default function MyAccounts() {
                 className="text-xs"
               />
 
-              <p className="text-[10px] text-muted-foreground text-center">
-                Submitting sends a request — an admin will review before issuing your account.
-              </p>
+              {selected && pendingForPackage(selected.id) ? (
+                <div className="p-2 rounded-lg bg-muted/40 border border-border text-[10px] text-center text-muted-foreground">
+                  You already have a {pendingForPackage(selected.id)?.status} request for this package.
+                </div>
+              ) : (
+                <>
+                  <label className="flex items-start gap-2 p-2 rounded-lg border border-border bg-card/60 cursor-pointer">
+                    <input type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)} className="mt-0.5 accent-primary" />
+                    <span className="text-[10px] text-muted-foreground leading-snug">
+                      I have read the rules above and understand the profit target, drawdown and daily loss limits for this account.
+                    </span>
+                  </label>
 
-              <Button className="w-full h-9 text-xs" onClick={submitRequest} disabled={requesting}>
-                {requesting ? <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> : <Plus className="w-3.5 h-3.5 mr-1" />}
-                Request this account
-              </Button>
+                  <Button className="w-full h-9 text-xs" onClick={submitRequest} disabled={requesting || !agreed}>
+                    {requesting ? <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> : <Plus className="w-3.5 h-3.5 mr-1" />}
+                    Confirm & request this account
+                  </Button>
+                </>
+              )}
             </div>
           )}
         </DialogContent>
