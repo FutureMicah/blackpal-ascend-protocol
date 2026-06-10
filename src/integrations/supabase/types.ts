@@ -3360,16 +3360,22 @@ export type Database = {
       prop_trades: {
         Row: {
           closed_at: string | null
+          comment: string | null
+          commission: number | null
           created_at: string
           entry_price: number
           exit_price: number | null
           id: string
           lot_size: number
+          magic_number: number | null
+          mt5_ticket: number | null
           opened_at: string
           profit_loss: number | null
           prop_account_id: string
+          source: string
           status: string
           stop_loss: number | null
+          swap: number | null
           symbol: string
           take_profit: number | null
           trade_type: string
@@ -3377,16 +3383,22 @@ export type Database = {
         }
         Insert: {
           closed_at?: string | null
+          comment?: string | null
+          commission?: number | null
           created_at?: string
           entry_price: number
           exit_price?: number | null
           id?: string
           lot_size?: number
+          magic_number?: number | null
+          mt5_ticket?: number | null
           opened_at?: string
           profit_loss?: number | null
           prop_account_id: string
+          source?: string
           status?: string
           stop_loss?: number | null
+          swap?: number | null
           symbol: string
           take_profit?: number | null
           trade_type: string
@@ -3394,16 +3406,22 @@ export type Database = {
         }
         Update: {
           closed_at?: string | null
+          comment?: string | null
+          commission?: number | null
           created_at?: string
           entry_price?: number
           exit_price?: number | null
           id?: string
           lot_size?: number
+          magic_number?: number | null
+          mt5_ticket?: number | null
           opened_at?: string
           profit_loss?: number | null
           prop_account_id?: string
+          source?: string
           status?: string
           stop_loss?: number | null
+          swap?: number | null
           symbol?: string
           take_profit?: number | null
           trade_type?: string
@@ -4603,6 +4621,19 @@ export type Database = {
           losing_trades: number
           max_daily_loss_hit: boolean | null
           max_drawdown_hit: boolean | null
+          metaapi_account_id: string | null
+          metaapi_region: string | null
+          mt5_broker: string | null
+          mt5_free_margin: number | null
+          mt5_investor_password: string | null
+          mt5_last_error: string | null
+          mt5_last_sync_at: string | null
+          mt5_login: string | null
+          mt5_margin: number | null
+          mt5_open_positions: number
+          mt5_server: string | null
+          mt5_sync_enabled: boolean
+          mt5_sync_status: string
           passed_at: string | null
           phase: string
           profit_target_hit: boolean | null
@@ -4628,6 +4659,19 @@ export type Database = {
           losing_trades?: number
           max_daily_loss_hit?: boolean | null
           max_drawdown_hit?: boolean | null
+          metaapi_account_id?: string | null
+          metaapi_region?: string | null
+          mt5_broker?: string | null
+          mt5_free_margin?: number | null
+          mt5_investor_password?: string | null
+          mt5_last_error?: string | null
+          mt5_last_sync_at?: string | null
+          mt5_login?: string | null
+          mt5_margin?: number | null
+          mt5_open_positions?: number
+          mt5_server?: string | null
+          mt5_sync_enabled?: boolean
+          mt5_sync_status?: string
           passed_at?: string | null
           phase?: string
           profit_target_hit?: boolean | null
@@ -4653,6 +4697,19 @@ export type Database = {
           losing_trades?: number
           max_daily_loss_hit?: boolean | null
           max_drawdown_hit?: boolean | null
+          metaapi_account_id?: string | null
+          metaapi_region?: string | null
+          mt5_broker?: string | null
+          mt5_free_margin?: number | null
+          mt5_investor_password?: string | null
+          mt5_last_error?: string | null
+          mt5_last_sync_at?: string | null
+          mt5_login?: string | null
+          mt5_margin?: number | null
+          mt5_open_positions?: number
+          mt5_server?: string | null
+          mt5_sync_enabled?: boolean
+          mt5_sync_status?: string
           passed_at?: string | null
           phase?: string
           profit_target_hit?: boolean | null
@@ -5125,6 +5182,10 @@ export type Database = {
         }
         Returns: string
       }
+      apply_mt5_snapshot: {
+        Args: { p_account_id: string; p_snapshot: Json }
+        Returns: undefined
+      }
       approve_admin_request: {
         Args: { _note?: string; _request_id: string }
         Returns: undefined
@@ -5153,6 +5214,36 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      mt5_accounts_to_sync: {
+        Args: never
+        Returns: {
+          id: string
+          metaapi_account_id: string
+          metaapi_region: string
+          mt5_investor_password: string
+          mt5_login: string
+          mt5_server: string
+          user_id: string
+        }[]
+      }
+      mt5_mark_provisioned: {
+        Args: { p_account_id: string; p_metaapi_id: string; p_region: string }
+        Returns: undefined
+      }
+      mt5_record_error: {
+        Args: { p_account_id: string; p_error: string }
+        Returns: undefined
+      }
+      mt5_set_credentials: {
+        Args: {
+          p_account_id: string
+          p_broker: string
+          p_investor_password: string
+          p_login: string
+          p_server: string
+        }
+        Returns: undefined
       }
       reject_admin_request: {
         Args: { _note?: string; _request_id: string }
