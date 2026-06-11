@@ -142,6 +142,22 @@ export function SnapchatMap({ admin = false, filters, onCountsChange, className 
   const [users, setUsers] = useState<AtlasUser[]>([]);
   const [selected, setSelected] = useState<AtlasUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [cameraRestored, setCameraRestored] = useState(false);
+  const hasSavedCamera = useRef(false);
+
+  useEffect(() => {
+    (async () => {
+      const { data: auth } = await supabase.auth.getUser();
+      if (!auth.user) return;
+      const { data } = await supabase
+        .from("profiles")
+        .select("atlas_camera")
+        .eq("id", auth.user.id)
+        .maybeSingle();
+      if ((data as any)?.atlas_camera) hasSavedCamera.current = true;
+    })();
+  }, []);
+
 
   const load = async () => {
     setLoading(true);
