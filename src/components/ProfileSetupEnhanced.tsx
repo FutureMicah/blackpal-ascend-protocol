@@ -1019,6 +1019,11 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
                             👤
                           </div>
                         )}
+                        {avatarPreview && avatarFile && (
+                          <div className="absolute -top-2 left-1/2 -translate-x-1/2 z-10 rounded-full border border-amber-400/60 bg-black/80 px-2 py-0.5 text-[9px] font-black tracking-[0.2em] text-amber-200 shadow-[0_0_12px_-2px_rgba(251,191,36,0.6)] animate-pulse">
+                            LIVE PREVIEW · UNSAVED
+                          </div>
+                        )}
                         {stylizing && (
                           <div className="absolute inset-0 rounded-full bg-background/80 backdrop-blur-sm flex flex-col items-center justify-center gap-1 text-[10px] text-primary">
                             <LoaderIcon className="w-6 h-6 animate-spin" />
