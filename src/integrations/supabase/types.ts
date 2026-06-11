@@ -2945,6 +2945,7 @@ export type Database = {
           achievement_streak: number | null
           activated_at: string | null
           active_title: string | null
+          atlas_camera: Json | null
           avatar_url: string | null
           best_achievement_streak: number | null
           bio: string | null
@@ -2955,6 +2956,7 @@ export type Database = {
           date_of_birth: string | null
           display_name: string
           email: string | null
+          energy_mode: string
           full_name: string | null
           github_handle: string | null
           google_id: string | null
@@ -3002,6 +3004,7 @@ export type Database = {
           achievement_streak?: number | null
           activated_at?: string | null
           active_title?: string | null
+          atlas_camera?: Json | null
           avatar_url?: string | null
           best_achievement_streak?: number | null
           bio?: string | null
@@ -3012,6 +3015,7 @@ export type Database = {
           date_of_birth?: string | null
           display_name: string
           email?: string | null
+          energy_mode?: string
           full_name?: string | null
           github_handle?: string | null
           google_id?: string | null
@@ -3059,6 +3063,7 @@ export type Database = {
           achievement_streak?: number | null
           activated_at?: string | null
           active_title?: string | null
+          atlas_camera?: Json | null
           avatar_url?: string | null
           best_achievement_streak?: number | null
           bio?: string | null
@@ -3069,6 +3074,7 @@ export type Database = {
           date_of_birth?: string | null
           display_name?: string
           email?: string | null
+          energy_mode?: string
           full_name?: string | null
           github_handle?: string | null
           google_id?: string | null
