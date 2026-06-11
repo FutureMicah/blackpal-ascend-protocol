@@ -50,6 +50,8 @@ import { AnnouncementPopup } from "./components/AnnouncementPopup";
 import { NotificationsProvider } from "./components/NotificationsProvider";
 import { GlobalThemeProvider } from "./components/GlobalThemeProvider";
 import { PresenceProvider } from "./components/PresenceProvider";
+import { EnergyModeProvider } from "./contexts/EnergyModeContext";
+import { AccessGrantedSeal } from "./components/AccessGrantedSeal";
 
 
 const queryClient = new QueryClient();
