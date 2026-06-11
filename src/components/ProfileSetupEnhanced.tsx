@@ -611,8 +611,13 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
       }
 
       let avatarUrl: string | null = existingProfile?.avatar_url ?? null;
+      const { toast: sonner } = await import("sonner");
+      let syncToastId: string | number | undefined;
 
       if (avatarFile) {
+        syncToastId = sonner.loading("Syncing 3D avatar across BLACKPAL…", {
+          description: "Uploading and propagating to Atlas pins, profile cards, chat & friends.",
+        });
         const fileExt = avatarFile.name.split('.').pop();
         const filePath = `${userId}/avatar.${fileExt}`;
 
@@ -620,7 +625,10 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
           .from('avatars')
           .upload(filePath, avatarFile, { upsert: true, cacheControl: '0' });
 
-        if (uploadError) throw uploadError;
+        if (uploadError) {
+          if (syncToastId) sonner.dismiss(syncToastId);
+          throw uploadError;
+        }
 
         const { data: { publicUrl } } = supabase.storage
           .from('avatars')
@@ -653,7 +661,10 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
           onConflict: 'id'
         });
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        if (syncToastId) sonner.dismiss(syncToastId);
+        throw profileError;
+      }
 
       // Mirror new avatar to user_locations so Atlas 3D pins refresh everywhere
       if (avatarFile && avatarUrl) {
@@ -661,6 +672,13 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
           .from('user_locations')
           .update({ avatar_url: avatarUrl, updated_at: new Date().toISOString() })
           .eq('user_id', userId);
+      }
+
+      if (syncToastId) {
+        sonner.success("3D avatar synced everywhere", {
+          id: syncToastId,
+          description: "Visible across your profile, friends, chat & Atlas pins.",
+        });
       }
 
       await checkAndAwardAchievements({
