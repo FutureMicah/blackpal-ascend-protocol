@@ -520,7 +520,12 @@ function AdminDashboardInner() {
             </div>
           </TabsContent>
 
-          {/* Users Tab */}
+          {/* Atlas Tab */}
+          <TabsContent value="atlas">
+            <AdminAtlasPanel />
+          </TabsContent>
+
+
           <TabsContent value="users">
             <Card className="border-border bg-card/80">
               <CardHeader>
