@@ -65,7 +65,10 @@ export default function Atlas() {
             <h1 className="text-base sm:text-lg font-bold tracking-tight">Trader Atlas</h1>
             <p className="text-[10px] sm:text-xs text-white/55">Live map of every BLACKPAL trader.</p>
           </div>
-          <PrivacyDropdown value={precision} saving={savingPriv} onChange={updatePrivacy} />
+          <div className="flex items-center gap-2">
+            <EnergyModeToggle compact />
+            <PrivacyDropdown value={precision} saving={savingPriv} onChange={updatePrivacy} />
+          </div>
         </div>
 
         {/* KPI strip */}
