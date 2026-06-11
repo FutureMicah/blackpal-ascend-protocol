@@ -653,6 +653,8 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
           onConflict: 'id'
         });
 
+      if (profileError) throw profileError;
+
       // Mirror new avatar to user_locations so Atlas 3D pins refresh everywhere
       if (avatarFile && avatarUrl) {
         await supabase
@@ -660,8 +662,6 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
           .update({ avatar_url: avatarUrl, updated_at: new Date().toISOString() })
           .eq('user_id', userId);
       }
-
-      if (profileError) throw profileError;
 
       await checkAndAwardAchievements({
         user_id: userId,
