@@ -36,6 +36,7 @@ import MarketHub from "./pages/MarketHub";
 import Referrals from "./pages/Referrals";
 import TradeAnalytics from "./pages/TradeAnalytics";
 import WorldMap from "./pages/WorldMap";
+import Atlas from "./pages/Atlas";
 import ForexTools from "./pages/ForexTools";
 import VerifyIdentity from "./pages/VerifyIdentity";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -105,6 +106,7 @@ const App = () => (
           {/* Removed: /copy-trading */}
           <Route path="/trade-analytics" element={<TradeAnalytics />} />
           <Route path="/world-map" element={<WorldMap />} />
+          <Route path="/atlas" element={<Atlas />} />
           <Route path="/forex-tools" element={<ForexTools />} />
           <Route path="/verify-identity" element={<VerifyIdentity />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
