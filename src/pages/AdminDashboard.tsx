@@ -32,6 +32,7 @@ import { AdminErrorBoundary } from "@/components/admin/AdminErrorBoundary";
 import { AdminDiagnosticsPanel } from "@/components/admin/AdminDiagnosticsPanel";
 import { AdminSettingsPanelShell } from "@/components/admin/AdminSettingsPanelShell";
 import { CurrencyConverter } from "@/components/CurrencyConverter";
+import { AdminAtlasPanel } from "@/components/atlas/AdminAtlasPanel";
 import logo from "@/assets/blackpal-logo.jpg";
 
 type AdminRole = "super_admin" | "admin" | "editor" | "customer_support" | "finance";
@@ -401,6 +402,7 @@ function AdminDashboardInner() {
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="flex-wrap mb-4 h-auto gap-1">
             <TabsTrigger value="overview" className="gap-1"><BarChart3 className="w-3 h-3" /> Overview</TabsTrigger>
+            <TabsTrigger value="atlas" className="gap-1"><Globe className="w-3 h-3" /> Atlas</TabsTrigger>
             {canManageUsers && <TabsTrigger value="users" className="gap-1"><Users className="w-3 h-3" /> Users</TabsTrigger>}
             {canManageFinance && (
               <>
