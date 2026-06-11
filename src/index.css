@@ -653,3 +653,16 @@ body.theme-reset-purple [class*="rebrand-"] {
   --rb-bg-2: #07041a;
 }
 
+
+/* ===== Energy Mode (Silent) — globally tone down motion/glow ===== */
+html[data-energy="silent"] *,
+html[data-energy="silent"] *::before,
+html[data-energy="silent"] *::after {
+  animation-duration: 0ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 80ms !important;
+}
+html[data-energy="silent"] .animate-pulse,
+html[data-energy="silent"] [class*="animate-"] {
+  animation: none !important;
+}

@@ -1,4 +1,5 @@
 // Public Trader Atlas — Snapchat-map experience for every signed-in user.
+import { EnergyModeToggle } from "@/components/EnergyModeToggle";
 // Header counts (Online / Trading today / In trade now), filter chips,
 // privacy quick-toggle, and a fit-to-screen live map.
 import { useEffect, useState } from "react";
@@ -65,7 +66,10 @@ export default function Atlas() {
             <h1 className="text-base sm:text-lg font-bold tracking-tight">Trader Atlas</h1>
             <p className="text-[10px] sm:text-xs text-white/55">Live map of every BLACKPAL trader.</p>
           </div>
-          <PrivacyDropdown value={precision} saving={savingPriv} onChange={updatePrivacy} />
+          <div className="flex items-center gap-2">
+            <EnergyModeToggle compact />
+            <PrivacyDropdown value={precision} saving={savingPriv} onChange={updatePrivacy} />
+          </div>
         </div>
 
         {/* KPI strip */}

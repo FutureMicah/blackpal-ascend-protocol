@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Shield, Lock, AlertTriangle, KeyRound } from "lucide-react";
 import { toast } from "sonner";
 import logo from "@/assets/blackpal-logo.jpg";
+import { triggerAccessGranted } from "@/components/AccessGrantedSeal";
 
 export default function AdminLogin() {
   const navigate = useNavigate();
@@ -54,7 +55,8 @@ export default function AdminLogin() {
       }
 
       toast.success("Admin access granted!");
-      navigate("/admin");
+      triggerAccessGranted({ label: "ADMIN ACCESS", sublabel: "Clearance verified" });
+      setTimeout(() => navigate("/admin"), 1400);
     } catch (error: any) {
       setAttempts((p) => p + 1);
       toast.error(error.message || "Authentication failed");
