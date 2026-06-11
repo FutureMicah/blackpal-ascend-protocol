@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-import { ArrowDownRight, ArrowUpRight, Activity, Loader2, Inbox } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, Activity, Loader2, Inbox, Copy, ExternalLink, Image as ImageIcon, Check } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
 import {
   Sheet,
@@ -13,6 +13,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 export interface Trade {
   id: string;
@@ -32,6 +33,7 @@ export interface Trade {
   swap?: number | null;
   mt5_ticket?: number | null;
   comment?: string | null;
+  seen_at?: string | null;
 }
 
 const PAGE = 8;
@@ -51,19 +53,10 @@ function ruleHit(t: Trade): { label: string; tone: "sl" | "tp" | "manual" | "ope
   return { label: (t.profit_loss ?? 0) >= 0 ? "Closed manually (win)" : "Closed manually (loss)", tone: "manual" };
 }
 
-const seenKey = (accountId: string) => `bp.trades.seen.${accountId}`;
-function loadSeen(accountId: string): Set<string> {
-  try {
-    const raw = localStorage.getItem(seenKey(accountId));
-    return new Set(raw ? (JSON.parse(raw) as string[]) : []);
-  } catch { return new Set(); }
-}
-function persistSeen(accountId: string, set: Set<string>) {
-  try {
-    // cap to last 500 to avoid unbounded growth
-    const arr = Array.from(set).slice(-500);
-    localStorage.setItem(seenKey(accountId), JSON.stringify(arr));
-  } catch { /* ignore */ }
+function extractScreenshotUrl(t: Trade): string | null {
+  const c = t.comment ?? "";
+  const match = c.match(/https?:\/\/\S+\.(?:png|jpe?g|gif|webp|svg)(?:\?\S*)?/i);
+  return match ? match[0] : null;
 }
 
 function readUrlTradeId(): string | null {
@@ -80,8 +73,6 @@ function writeUrlTradeId(id: string | null) {
 
 export function RecentTradesList({ accountId }: { accountId: string }) {
   const [trades, setTrades] = useState<Trade[]>([]);
-  const [unseenIds, setUnseenIds] = useState<Set<string>>(new Set()); // arrived via realtime, not yet acknowledged
-  const seenRef = useRef<Set<string>>(new Set());
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -92,17 +83,15 @@ export function RecentTradesList({ accountId }: { accountId: string }) {
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const pendingUrlTradeRef = useRef<string | null>(readUrlTradeId());
 
-  const markSeen = useCallback((id: string) => {
-    if (seenRef.current.has(id)) return;
-    seenRef.current.add(id);
-    persistSeen(accountId, seenRef.current);
-    setUnseenIds((prev) => {
-      if (!prev.has(id)) return prev;
-      const next = new Set(prev);
-      next.delete(id);
-      return next;
-    });
-  }, [accountId]);
+  const markSeen = useCallback(async (id: string) => {
+    setTrades((prev) => prev.map((t) => (t.id === id ? { ...t, seen_at: t.seen_at ?? new Date().toISOString() } : t)));
+    setSelected((cur) => (cur && cur.id === id ? { ...cur, seen_at: cur.seen_at ?? new Date().toISOString() } : cur));
+    await supabase
+      .from("prop_trades")
+      .update({ seen_at: new Date().toISOString() })
+      .eq("id", id)
+      .is("seen_at", null);
+  }, []);
 
   const loadMore = useCallback(async () => {
     if (loading || !hasMore) return;
@@ -111,7 +100,7 @@ export function RecentTradesList({ accountId }: { accountId: string }) {
     const to = from + PAGE - 1;
     const { data } = await supabase
       .from("prop_trades")
-      .select("id,symbol,trade_type,lot_size,profit_loss,closed_at,opened_at,source,status,entry_price,exit_price,stop_loss,take_profit,commission,swap,mt5_ticket,comment")
+      .select("id,symbol,trade_type,lot_size,profit_loss,closed_at,opened_at,source,status,entry_price,exit_price,stop_loss,take_profit,commission,swap,mt5_ticket,comment,seen_at")
       .eq("prop_account_id", accountId)
       .eq("status", "closed")
       .order("closed_at", { ascending: false, nullsFirst: false })
@@ -127,51 +116,50 @@ export function RecentTradesList({ accountId }: { accountId: string }) {
     setInitialLoading(false);
   }, [accountId, page, loading, hasMore]);
 
-  // reset on account switch + load seen set
   useEffect(() => {
     setTrades([]);
     setPage(0);
     setHasMore(true);
     setInitialLoading(true);
-    setUnseenIds(new Set());
-    seenRef.current = loadSeen(accountId);
   }, [accountId]);
 
   useEffect(() => {
     if (page === 0 && hasMore && !loading) loadMore();
   }, [page, hasMore, loading, loadMore]);
 
-  // Try to open the URL-pinned trade once it appears in the list
+  // Open URL-pinned trade — fetch directly if not in current pages (works across refreshes/shares)
   useEffect(() => {
     const pinned = pendingUrlTradeRef.current;
     if (!pinned || selected) return;
     const found = trades.find((t) => t.id === pinned);
     if (found) {
       setSelected(found);
+      markSeen(found.id);
       pendingUrlTradeRef.current = null;
+      return;
     }
-  }, [trades, selected]);
-
-  // If the pinned trade isn't in the loaded pages, fetch it directly
-  useEffect(() => {
-    const pinned = pendingUrlTradeRef.current;
-    if (!pinned || initialLoading) return;
-    if (trades.some((t) => t.id === pinned)) return;
+    if (initialLoading) return;
     (async () => {
       const { data } = await supabase
         .from("prop_trades")
-        .select("id,symbol,trade_type,lot_size,profit_loss,closed_at,opened_at,source,status,entry_price,exit_price,stop_loss,take_profit,commission,swap,mt5_ticket,comment")
+        .select("id,symbol,trade_type,lot_size,profit_loss,closed_at,opened_at,source,status,entry_price,exit_price,stop_loss,take_profit,commission,swap,mt5_ticket,comment,seen_at")
         .eq("id", pinned)
         .eq("prop_account_id", accountId)
         .maybeSingle();
       if (data) {
-        setSelected(data as Trade);
-        pendingUrlTradeRef.current = null;
+        const t = data as Trade;
+        setSelected(t);
+        // splice into list if missing so user sees context
+        setTrades((prev) => (prev.some((p) => p.id === t.id) ? prev : [t, ...prev]));
+        markSeen(t.id);
+      } else {
+        toast.error("Trade not found", { description: "It may have been removed or belongs to another account." });
       }
+      pendingUrlTradeRef.current = null;
     })();
-  }, [initialLoading, trades, accountId]);
+  }, [trades, selected, initialLoading, accountId, markSeen]);
 
-  // realtime inserts
+  // realtime inserts + updates (seen_at sync across devices)
   useEffect(() => {
     const ch = supabase
       .channel(`trades-${accountId}`)
@@ -182,16 +170,20 @@ export function RecentTradesList({ accountId }: { accountId: string }) {
           const t = payload.new as Trade;
           if (t.status && t.status !== "closed") return;
           setTrades((prev) => (prev.some((p) => p.id === t.id) ? prev : [t, ...prev]));
-          if (!seenRef.current.has(t.id)) {
-            setUnseenIds((prev) => new Set(prev).add(t.id));
-          }
+        },
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "prop_trades", filter: `prop_account_id=eq.${accountId}` },
+        (payload) => {
+          const t = payload.new as Trade;
+          setTrades((prev) => prev.map((p) => (p.id === t.id ? { ...p, ...t } : p)));
         },
       )
       .subscribe();
     return () => { supabase.removeChannel(ch); };
   }, [accountId]);
 
-  // infinite scroll observer
   useEffect(() => {
     const el = sentinelRef.current;
     if (!el) return;
@@ -202,11 +194,10 @@ export function RecentTradesList({ accountId }: { accountId: string }) {
     return () => io.disconnect();
   }, [loadMore]);
 
-  // Sync drawer state ↔ URL
   const openTrade = useCallback((t: Trade) => {
     setSelected(t);
     writeUrlTradeId(t.id);
-    markSeen(t.id);
+    if (!t.seen_at) markSeen(t.id);
   }, [markSeen]);
 
   const closeDrawer = useCallback(() => {
@@ -214,11 +205,17 @@ export function RecentTradesList({ accountId }: { accountId: string }) {
     writeUrlTradeId(null);
   }, []);
 
+  const filterCounts = useMemo(() => {
+    const counts = { all: trades.length, tp: 0, sl: 0, manual: 0 };
+    for (const t of trades) {
+      const tone = ruleHit(t).tone;
+      if (tone === "tp" || tone === "sl" || tone === "manual") counts[tone]++;
+    }
+    return counts;
+  }, [trades]);
+
   const visibleTrades = useMemo(() => {
-    const filtered = trades.filter((t) => {
-      if (filter === "all") return true;
-      return ruleHit(t).tone === filter;
-    });
+    const filtered = trades.filter((t) => filter === "all" ? true : ruleHit(t).tone === filter);
     const sorted = [...filtered];
     if (sort === "profit") sorted.sort((a, b) => Number(b.profit_loss ?? 0) - Number(a.profit_loss ?? 0));
     else if (sort === "loss") sorted.sort((a, b) => Number(a.profit_loss ?? 0) - Number(b.profit_loss ?? 0));
@@ -230,11 +227,13 @@ export function RecentTradesList({ accountId }: { accountId: string }) {
     return sorted;
   }, [trades, sort, filter]);
 
-  const unseenCount = unseenIds.size;
-  const markAllSeen = () => {
-    unseenIds.forEach((id) => seenRef.current.add(id));
-    persistSeen(accountId, seenRef.current);
-    setUnseenIds(new Set());
+  const unseenCount = trades.filter((t) => !t.seen_at).length;
+  const markAllSeen = async () => {
+    const ids = trades.filter((t) => !t.seen_at).map((t) => t.id);
+    if (ids.length === 0) return;
+    const now = new Date().toISOString();
+    setTrades((prev) => prev.map((t) => (t.seen_at ? t : { ...t, seen_at: now })));
+    await supabase.from("prop_trades").update({ seen_at: now }).in("id", ids).is("seen_at", null);
   };
 
   return (
@@ -249,25 +248,22 @@ export function RecentTradesList({ accountId }: { accountId: string }) {
           )}
         </p>
         {unseenCount > 0 && (
-          <button
-            type="button"
-            onClick={markAllSeen}
-            className="text-[9px] text-primary hover:underline"
-          >
+          <button type="button" onClick={markAllSeen} className="text-[9px] text-primary hover:underline">
             Mark all seen
           </button>
         )}
       </div>
 
-      {/* Filters + sort */}
       <div className="flex items-center gap-1 flex-wrap">
         {([
-          ["all", "All"],
-          ["tp", "TP hit"],
-          ["sl", "SL hit"],
-          ["manual", "Manual"],
-        ] as [FilterKey, string][]).map(([k, l]) => (
-          <Chip key={k} active={filter === k} onClick={() => setFilter(k)}>{l}</Chip>
+          ["all", "All", filterCounts.all],
+          ["tp", "TP", filterCounts.tp],
+          ["sl", "SL", filterCounts.sl],
+          ["manual", "Manual", filterCounts.manual],
+        ] as [FilterKey, string, number][]).map(([k, l, c]) => (
+          <Chip key={k} active={filter === k} onClick={() => setFilter(k)}>
+            {l} <span className="opacity-70 ml-0.5">{c}</span>
+          </Chip>
         ))}
         <div className="w-px h-3 bg-border mx-0.5" />
         {([
@@ -300,7 +296,7 @@ export function RecentTradesList({ accountId }: { accountId: string }) {
             {visibleTrades.map((t) => {
               const pnl = Number(t.profit_loss ?? 0);
               const positive = pnl >= 0;
-              const isNew = unseenIds.has(t.id);
+              const isNew = !t.seen_at;
               return (
                 <li key={t.id}>
                   <button
@@ -404,10 +400,38 @@ function TradeDetails({ trade }: { trade: Trade }) {
   const rule = ruleHit(trade);
   const fmt = (n?: number | null) => (n == null || isNaN(Number(n)) ? "—" : Number(n).toFixed(5));
   const dt = (s?: string | null) => (s ? format(new Date(s), "MMM d, HH:mm:ss") : "—");
+  const screenshot = extractScreenshotUrl(trade);
+  const tvSymbol = trade.symbol.replace(/[^A-Z0-9]/gi, "").toUpperCase();
+  const tvUrl = `https://www.tradingview.com/chart/?symbol=${tvSymbol}`;
+  const [copied, setCopied] = useState(false);
 
-  const copyLink = () => {
+  const copyDetails = async () => {
+    const text = [
+      `${trade.symbol} ${trade.trade_type.toUpperCase()} ${Number(trade.lot_size).toFixed(2)} lots`,
+      `Entry: ${fmt(trade.entry_price)}`,
+      `Exit:  ${fmt(trade.exit_price)}`,
+      `SL:    ${fmt(trade.stop_loss)}`,
+      `TP:    ${fmt(trade.take_profit)}`,
+      `P&L:   ${positive ? "+" : ""}${pnl.toFixed(2)}`,
+      `Opened: ${dt(trade.opened_at)}`,
+      `Closed: ${dt(trade.closed_at)}`,
+      trade.mt5_ticket ? `Ticket: #${trade.mt5_ticket}` : "",
+      `Rule: ${rule.label}`,
+    ].filter(Boolean).join("\n");
     try {
-      navigator.clipboard?.writeText(window.location.href);
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      toast.success("Trade details copied");
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error("Couldn't copy");
+    }
+  };
+
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      toast.success("Link copied");
     } catch { /* ignore */ }
   };
 
@@ -434,16 +458,40 @@ function TradeDetails({ trade }: { trade: Trade }) {
             {rule.label}
           </Badge>
         </SheetTitle>
-        <SheetDescription className="text-xs flex items-center gap-2 flex-wrap">
-          <span>
-            {trade.mt5_ticket ? `Ticket #${trade.mt5_ticket} · ` : ""}
-            {trade.source ?? "manual"} · {trade.closed_at ? formatDistanceToNow(new Date(trade.closed_at), { addSuffix: true }) : "open"}
-          </span>
-          <Button size="sm" variant="ghost" className="h-6 text-[10px] px-2" onClick={copyLink}>
-            Copy link
-          </Button>
+        <SheetDescription className="text-xs">
+          {trade.mt5_ticket ? `Ticket #${trade.mt5_ticket} · ` : ""}
+          {trade.source ?? "manual"} · {trade.closed_at ? formatDistanceToNow(new Date(trade.closed_at), { addSuffix: true }) : "open"}
         </SheetDescription>
       </SheetHeader>
+
+      {/* Quick actions */}
+      <div className="mt-3 flex items-center gap-1.5 flex-wrap">
+        <Button size="sm" variant="outline" className="h-7 text-[10px] gap-1.5" onClick={copyDetails}>
+          {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+          Copy details
+        </Button>
+        <Button size="sm" variant="outline" className="h-7 text-[10px] gap-1.5" onClick={copyLink}>
+          <Copy className="w-3 h-3" /> Copy link
+        </Button>
+        {screenshot && (
+          <Button asChild size="sm" variant="outline" className="h-7 text-[10px] gap-1.5">
+            <a href={screenshot} target="_blank" rel="noreferrer">
+              <ImageIcon className="w-3 h-3" /> Screenshot
+            </a>
+          </Button>
+        )}
+        <Button asChild size="sm" variant="outline" className="h-7 text-[10px] gap-1.5">
+          <a href={tvUrl} target="_blank" rel="noreferrer">
+            <ExternalLink className="w-3 h-3" /> Open chart
+          </a>
+        </Button>
+      </div>
+
+      {screenshot && (
+        <a href={screenshot} target="_blank" rel="noreferrer" className="block mt-3 rounded-md overflow-hidden border border-border/50">
+          <img src={screenshot} alt={`${trade.symbol} chart screenshot`} className="w-full max-h-60 object-cover" loading="lazy" />
+        </a>
+      )}
 
       <div className="mt-4 grid grid-cols-2 gap-3 text-xs">
         <Stat label="Entry price" value={fmt(trade.entry_price)} />
