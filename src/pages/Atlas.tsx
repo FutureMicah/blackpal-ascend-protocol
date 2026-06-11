@@ -1,4 +1,5 @@
 // Public Trader Atlas — Snapchat-map experience for every signed-in user.
+import { EnergyModeToggle } from "@/components/EnergyModeToggle";
 // Header counts (Online / Trading today / In trade now), filter chips,
 // privacy quick-toggle, and a fit-to-screen live map.
 import { useEffect, useState } from "react";
