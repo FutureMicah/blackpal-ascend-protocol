@@ -4505,46 +4505,61 @@ export type Database = {
       user_locations: {
         Row: {
           accuracy_source: string
+          avatar_url: string | null
           city: string | null
           country: string | null
           country_code: string | null
           created_at: string
+          display_name: string | null
           id: string
           is_online: boolean | null
+          is_trading: boolean
           last_seen_at: string
+          last_trade_at: string | null
           latitude: number | null
           longitude: number | null
           region: string | null
+          share_precision: string
           updated_at: string
           user_id: string
         }
         Insert: {
           accuracy_source?: string
+          avatar_url?: string | null
           city?: string | null
           country?: string | null
           country_code?: string | null
           created_at?: string
+          display_name?: string | null
           id?: string
           is_online?: boolean | null
+          is_trading?: boolean
           last_seen_at?: string
+          last_trade_at?: string | null
           latitude?: number | null
           longitude?: number | null
           region?: string | null
+          share_precision?: string
           updated_at?: string
           user_id: string
         }
         Update: {
           accuracy_source?: string
+          avatar_url?: string | null
           city?: string | null
           country?: string | null
           country_code?: string | null
           created_at?: string
+          display_name?: string | null
           id?: string
           is_online?: boolean | null
+          is_trading?: boolean
           last_seen_at?: string
+          last_trade_at?: string | null
           latitude?: number | null
           longitude?: number | null
           region?: string | null
+          share_precision?: string
           updated_at?: string
           user_id?: string
         }
@@ -5201,6 +5216,68 @@ export type Database = {
         Args: { p_note?: string; p_request_id: string }
         Returns: string
       }
+      atlas_admin_users: {
+        Args: {
+          p_country?: string
+          p_filter?: string
+          p_limit?: number
+          p_offset?: number
+          p_search?: string
+        }
+        Returns: {
+          accuracy_source: string
+          avatar_url: string
+          city: string
+          country: string
+          country_code: string
+          created_at: string
+          display_name: string
+          email: string
+          is_online: boolean
+          is_trading: boolean
+          last_seen_at: string
+          last_trade_at: string
+          latitude: number
+          longitude: number
+          open_positions: number
+          region: string
+          share_precision: string
+          total_payments: number
+          user_id: string
+        }[]
+      }
+      atlas_country_breakdown: {
+        Args: never
+        Returns: {
+          country: string
+          country_code: string
+          online_now: number
+          revenue: number
+          total_users: number
+          trading_now: number
+        }[]
+      }
+      atlas_public_users: {
+        Args: {
+          p_limit?: number
+          p_only_online?: boolean
+          p_only_trading?: boolean
+        }
+        Returns: {
+          avatar_url: string
+          country: string
+          country_code: string
+          display_name: string
+          is_online: boolean
+          is_trading: boolean
+          last_seen_at: string
+          latitude: number
+          longitude: number
+          precision_level: string
+          user_id: string
+        }[]
+      }
+      atlas_stats: { Args: never; Returns: Json }
       fund_wallet: {
         Args: {
           p_description?: string
@@ -5271,6 +5348,10 @@ export type Database = {
         Returns: string
       }
       set_admin_pin: { Args: { _pin: string }; Returns: undefined }
+      set_my_location_privacy: {
+        Args: { p_precision: string }
+        Returns: undefined
+      }
       spend_wallet: {
         Args: {
           p_btax_amount: number

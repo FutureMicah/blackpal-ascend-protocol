@@ -38,7 +38,7 @@
         "@supabase/supabase-js": "^2.76.1",
         "@tanstack/react-query": "^5.83.0",
         "@types/dompurify": "^3.2.0",
-        "@types/leaflet": "1.9.12",
+        "@types/leaflet": "^1.9.21",
         "canvas-confetti": "^1.9.4",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
@@ -49,6 +49,8 @@
         "framer-motion": "^12.23.24",
         "html2canvas": "^1.4.1",
         "input-otp": "^1.4.2",
+        "leaflet": "^1.9.4",
+        "leaflet.markercluster": "^1.5.3",
         "lucide-react": "^0.462.0",
         "maplibre-gl": "^4.7.1",
         "next-themes": "^0.3.0",
@@ -58,6 +60,8 @@
         "react-dom": "^18.3.1",
         "react-easy-crop": "^5.5.5",
         "react-hook-form": "^7.61.1",
+        "react-leaflet": "4",
+        "react-leaflet-cluster": "^4.1.3",
         "react-resizable-panels": "^2.1.9",
         "react-router-dom": "^6.30.1",
         "recharts": "^2.15.4",
@@ -73,6 +77,7 @@
         "@tailwindcss/typography": "^0.5.16",
         "@testing-library/jest-dom": "^6.6.0",
         "@testing-library/react": "^16.0.0",
+        "@types/leaflet.markercluster": "^1.5.6",
         "@types/node": "^22.16.5",
         "@types/react": "^18.3.23",
         "@types/react-dom": "^18.3.7",
@@ -348,6 +353,8 @@
 
     "@radix-ui/rect": ["@radix-ui/rect@1.1.1", "", {}, "sha512-HPwpGIzkl28mWyZqG52jiqDJ12waP11Pa1lGoiyUkIEuMLBP0oeK/C89esbXrxsky5we7dfd8U58nm0SgAWpVw=="],
 
+    "@react-leaflet/core": ["@react-leaflet/core@2.1.0", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@react-leaflet/core/-/core-2.1.0.tgz", { "peerDependencies": { "leaflet": "^1.9.0", "react": "^18.0.0", "react-dom": "^18.0.0" } }, "sha512-Qk7Pfu8BSarKGqILj4x7bCSZ1pjuAPZ+qmRwH5S7mDS91VSbVVsJSrW4qA+GPrro8t69gFYVMWb1Zc4yFmPiVg=="],
+
     "@react-spring/animated": ["@react-spring/animated@9.7.5", "", { "dependencies": { "@react-spring/shared": "~9.7.5", "@react-spring/types": "~9.7.5" }, "peerDependencies": { "react": "^16.8.0 || ^17.0.0 || ^18.0.0" } }, "sha512-Tqrwz7pIlsSDITzxoLS3n/v/YCUHQdOIKtOJf4yL6kYVSDTSmVK1LI1Q3M/uu2Sx4X3pIWF3xLUhlsA6SPNTNg=="],
 
     "@react-spring/core": ["@react-spring/core@9.7.5", "", { "dependencies": { "@react-spring/animated": "~9.7.5", "@react-spring/shared": "~9.7.5", "@react-spring/types": "~9.7.5" }, "peerDependencies": { "react": "^16.8.0 || ^17.0.0 || ^18.0.0" } }, "sha512-rmEqcxRcu7dWh7MnCcMXLvrf6/SDlSokLaLTxiPlAYi11nN3B5oiCUAblO72o+9z/87j2uzxa2Inm8UbLjXA+w=="],
@@ -492,7 +499,9 @@
 
     "@types/json-schema": ["@types/json-schema@7.0.15", "", {}, "sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA=="],
 
-    "@types/leaflet": ["@types/leaflet@1.9.12", "https://europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@types/leaflet/-/leaflet-1.9.12.tgz", { "dependencies": { "@types/geojson": "*" } }, "sha512-BK7XS+NyRI291HIo0HCfE18Lp8oA30H1gpi1tf0mF3TgiCEzanQjOqNZ4x126SXzzi2oNSZhZ5axJp1k0iM6jg=="],
+    "@types/leaflet": ["@types/leaflet@1.9.21", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@types/leaflet/-/leaflet-1.9.21.tgz", { "dependencies": { "@types/geojson": "*" } }, "sha512-TbAd9DaPGSnzp6QvtYngntMZgcRk+igFELwR2N99XZn7RXUdKgsXMR+28bUO0rPsWp8MIu/f47luLIQuSLYv/w=="],
+
+    "@types/leaflet.markercluster": ["@types/leaflet.markercluster@1.5.6", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@types/leaflet.markercluster/-/leaflet.markercluster-1.5.6.tgz", { "dependencies": { "@types/leaflet": "^1.9" } }, "sha512-I7hZjO2+isVXGYWzKxBp8PsCzAYCJBc29qBdFpquOCkS7zFDqUsUvkEOyQHedsk/Cy5tocQzf+Ndorm5W9YKTQ=="],
 
     "@types/mapbox__point-geometry": ["@types/mapbox__point-geometry@0.1.4", "https://europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@types/mapbox__point-geometry/-/mapbox__point-geometry-0.1.4.tgz", {}, "sha512-mUWlSxAmYLfwnRBmgYV86tgYmMIICX4kza8YnE/eIlywGe2XoOxlpVnXWwir92xRLjwyarqwpu2EJKD2pk0IUA=="],
 
@@ -944,6 +953,10 @@
 
     "kind-of": ["kind-of@6.0.3", "https://europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/kind-of/-/kind-of-6.0.3.tgz", {}, "sha512-dcS1ul+9tmeD95T+x28/ehLgd9mENa3LsvDTtzm3vyBEO7RPptvAD+t44WVXaUjTBRcrpFeFlC8WCruUR456hw=="],
 
+    "leaflet": ["leaflet@1.9.4", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/leaflet/-/leaflet-1.9.4.tgz", {}, "sha512-nxS1ynzJOmOlHp+iL3FyWqK89GtNL8U8rvlMOsQdTTssxZwCXh8N2NB3GDQOL+YR3XnWyZAxwQixURb+FA74PA=="],
+
+    "leaflet.markercluster": ["leaflet.markercluster@1.5.3", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/leaflet.markercluster/-/leaflet.markercluster-1.5.3.tgz", { "peerDependencies": { "leaflet": "^1.3.1" } }, "sha512-vPTw/Bndq7eQHjLBVlWpnGeLa3t+3zGiuM7fJwCkiMFq+nmRuG3RI3f7f4N4TDX7T4NpbAXpR2+NTRSEGfCSeA=="],
+
     "levn": ["levn@0.4.1", "", { "dependencies": { "prelude-ls": "^1.2.1", "type-check": "~0.4.0" } }, "sha512-+bT2uH4E5LGE7h/n3evcS/sQlJXCpIp6ym8OWJ5eV6+67Dsql/LaaT7qJBAt2rzfoa/5QBGBhxDix1dMt2kQKQ=="],
 
     "lie": ["lie@3.3.0", "", { "dependencies": { "immediate": "~3.0.5" } }, "sha512-UaiMJzeWRlEujzAuw5LokY1L5ecNQYZKfmyZ9L7wDHb/p5etKaxXhohBcrw0EYby+G/NA52vRSN4N39dxHAIwQ=="],
@@ -1117,6 +1130,10 @@
     "react-hook-form": ["react-hook-form@7.61.1", "", { "peerDependencies": { "react": "^16.8.0 || ^17 || ^18 || ^19" } }, "sha512-2vbXUFDYgqEgM2RcXcAT2PwDW/80QARi+PKmHy5q2KhuKvOlG8iIYgf7eIlIANR5trW9fJbP4r5aub3a4egsew=="],
 
     "react-is": ["react-is@18.3.1", "", {}, "sha512-/LLMVyas0ljjAtoYiPqYiL8VWXzUUdThrmU5+n20DZv+a+ClRoevUzw5JxU+Ieh5/c87ytoTBV9G1FiKfNJdmg=="],
+
+    "react-leaflet": ["react-leaflet@4.2.1", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/react-leaflet/-/react-leaflet-4.2.1.tgz", { "dependencies": { "@react-leaflet/core": "^2.1.0" }, "peerDependencies": { "leaflet": "^1.9.0", "react": "^18.0.0", "react-dom": "^18.0.0" } }, "sha512-p9chkvhcKrWn/H/1FFeVSqLdReGwn2qmiobOQGO3BifX+/vV/39qhY8dGqbdcPh1e6jxh/QHriLXr7a4eLFK4Q=="],
+
+    "react-leaflet-cluster": ["react-leaflet-cluster@4.1.3", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/react-leaflet-cluster/-/react-leaflet-cluster-4.1.3.tgz", { "dependencies": { "leaflet.markercluster": "^1.5.3" }, "peerDependencies": { "@react-leaflet/core": "^3.0.0", "leaflet": "^1.9.0", "react": "^19.0.0", "react-dom": "^19.0.0", "react-leaflet": "^5.0.0" } }, "sha512-b3ICS7r9Fs5hBWrFPMVnmkCuDewyG3m1GaGzamXY0eryyAXDfQ+ikSkiR/mVethueIIA5MSyLok2/KsZVotspQ=="],
 
     "react-reconciler": ["react-reconciler@0.27.0", "", { "dependencies": { "loose-envify": "^1.1.0", "scheduler": "^0.21.0" }, "peerDependencies": { "react": "^18.0.0" } }, "sha512-HmMDKciQjYmBRGuuhIaKA1ba/7a+UsM5FzOZsMO2JYHt9Jh8reCb7j1eDC95NOyUlKM9KRyvdx0flBuDvYSBoA=="],
 
