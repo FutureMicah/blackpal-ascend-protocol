@@ -610,7 +610,7 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
         return;
       }
 
-      let avatarUrl = null;
+      let avatarUrl: string | null = existingProfile?.avatar_url ?? null;
 
       if (avatarFile) {
         const fileExt = avatarFile.name.split('.').pop();
@@ -618,7 +618,7 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
 
         const { error: uploadError } = await supabase.storage
           .from('avatars')
-          .upload(filePath, avatarFile, { upsert: true });
+          .upload(filePath, avatarFile, { upsert: true, cacheControl: '0' });
 
         if (uploadError) throw uploadError;
 
@@ -626,7 +626,8 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
           .from('avatars')
           .getPublicUrl(filePath);
 
-        avatarUrl = publicUrl;
+        // Cache-bust so every consumer (including the 3D NFT avatar) re-fetches the new image
+        avatarUrl = `${publicUrl}?v=${Date.now()}`;
       }
 
       const finalGeoData = country && geoData 
@@ -651,6 +652,14 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
         }, {
           onConflict: 'id'
         });
+
+      // Mirror new avatar to user_locations so Atlas 3D pins refresh everywhere
+      if (avatarFile && avatarUrl) {
+        await supabase
+          .from('user_locations')
+          .update({ avatar_url: avatarUrl, updated_at: new Date().toISOString() })
+          .eq('user_id', userId);
+      }
 
       if (profileError) throw profileError;
 
