@@ -62,10 +62,14 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <GlobalThemeProvider />
-        <PresenceProvider />
-        <NotificationsProvider />
-        <AnnouncementPopup />
+        <EnergyModeProvider>
+          <GlobalThemeProvider />
+          <PresenceProvider />
+          <NotificationsProvider />
+          <AnnouncementPopup />
+          <AccessGrantedSeal />
+        </EnergyModeProvider>
+        
         
 
         <Routes>
