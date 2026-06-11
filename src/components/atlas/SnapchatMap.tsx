@@ -192,37 +192,28 @@ export function SnapchatMap({ admin = false, filters, onCountsChange, className 
     <div className={"relative w-full h-full rounded-xl overflow-hidden border border-white/10 " + (className ?? "")}>
       <style>{`@keyframes atlas-ping{0%{transform:scale(1);opacity:.6}80%{transform:scale(1.8);opacity:0}100%{transform:scale(1.8);opacity:0}}
         .leaflet-container{background:#05060a}
-        .marker-cluster div{background:rgba(251,191,36,0.85)!important;color:#000!important;font-weight:800}
-        .marker-cluster{background:rgba(251,191,36,0.25)!important}`}</style>
-      <MapContainer
-        center={[15, 10]}
-        zoom={2}
-        minZoom={2}
-        worldCopyJump
-        scrollWheelZoom
-        style={{ width: "100%", height: "100%" }}
-        attributionControl={false}
-      >
-        <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-          subdomains={["a", "b", "c", "d"]}
-        />
-        <FitOnce users={markers} />
-        <MarkerClusterGroup chunkedLoading maxClusterRadius={45} showCoverageOnHover={false}>
-          {markers.map((u) => (
-            <Marker
-              key={u.user_id}
-              position={[u.latitude!, u.longitude!]}
-              icon={avatarDivIcon(u)}
-              eventHandlers={{ click: () => setSelected(u) }}
-            />
-          ))}
-        </MarkerClusterGroup>
-      </MapContainer>
+export function SnapchatMap({ admin = false, filters, onCountsChange, className }: Props) {
+  const [users, setUsers] = useState<AtlasUser[]>([]);
+  const [selected, setSelected] = useState<AtlasUser | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [cameraRestored, setCameraRestored] = useState(false);
+  const hasSavedCamera = useRef(false);
 
-      {loading && (
-        <div className="absolute top-2 right-2 z-[1000] rounded-full bg-black/70 border border-white/15 px-2.5 py-1 text-[10px] text-white/80 backdrop-blur">
-          Syncing…
+  useEffect(() => {
+    (async () => {
+      const { data: auth } = await supabase.auth.getUser();
+      if (!auth.user) return;
+      const { data } = await supabase
+        .from("profiles")
+        .select("atlas_camera")
+        .eq("id", auth.user.id)
+        .maybeSingle();
+      if ((data as any)?.atlas_camera) hasSavedCamera.current = true;
+    })();
+  }, []);
+
+  // (the existing load/realtime/effects further down still apply)
+
         </div>
       )}
 
