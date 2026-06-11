@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Shield, Lock, AlertTriangle, KeyRound } from "lucide-react";
 import { toast } from "sonner";
 import logo from "@/assets/blackpal-logo.jpg";
+import { triggerAccessGranted } from "@/components/AccessGrantedSeal";
 
 export default function AdminLogin() {
   const navigate = useNavigate();
