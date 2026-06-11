@@ -68,60 +68,54 @@ const App = () => (
           <NotificationsProvider />
           <AnnouncementPopup />
           <AccessGrantedSeal />
-        </EnergyModeProvider>
-        
-        
 
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/discover" element={<Discover />} />
-          <Route path="/friends" element={<Friends />} />
-          <Route path="/achievements" element={<Achievements />} />
-          <Route path="/achievements/hub" element={<AchievementHub />} />
-          {/* Removed: /achievements/stats and /achievements/paths (mock pages) */}
-          <Route path="/leaderboard" element={<Leaderboard />} />
-          <Route path="/blackboard" element={<BlackBoard />} />
-          <Route path="/blackvault" element={<BlackVault />} />
-          <Route path="/blackverse" element={<BlackVerse />} />
-          <Route path="/blackpass" element={<BlackPass />} />
-          <Route path="/blackforge" element={<BlackForge />} />
-          <Route path="/btax" element={<BlackCoin />} />
-          <Route path="/blackcoin" element={<Navigate to="/btax" replace />} />
-          <Route path="/blacknotify" element={<BlackNotify />} />
-          <Route path="/blackarena" element={<BlackArena />} />
-          <Route path="/blackarena/pro" element={<BlackArenaPlus />} />
-          <Route path="/globe" element={<GlobeEmbed />} />
-          <Route path="/profile/:userId" element={<PublicProfile />} />
-          <Route path="/profile/edit" element={<ProfileEdit />} />
-          {/* Admin entry: hidden /admin-login route only — no in-app /admin link */}
-          <Route path="/admin-login" element={<AdminLogin />} />
-          <Route path="/admin-signup" element={<AdminSignup />} />
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/community" element={<Community />} />
-          <Route path="/cinematic-core" element={<CinematicCore />} />
-          <Route path="/cinematic-access" element={<CinematicAccess />} />
-          <Route path="/prop-dashboard" element={<PropDashboard />} />
-          <Route path="/my-accounts" element={<MyAccounts />} />
-          <Route path="/terms" element={<Terms />} />
-          <Route path="/market-hub" element={<MarketHub />} />
-          <Route path="/referrals" element={<Referrals />} />
-          <Route path="/r/:code" element={<ReferralLanding />} />
-          <Route path="/contest" element={<Contest />} />
-          {/* Removed: /copy-trading */}
-          <Route path="/trade-analytics" element={<TradeAnalytics />} />
-          <Route path="/world-map" element={<WorldMap />} />
-          <Route path="/atlas" element={<Atlas />} />
-          <Route path="/forex-tools" element={<ForexTools />} />
-          <Route path="/verify-identity" element={<VerifyIdentity />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/wallet/topup" element={<NairaTopUp />} />
-          <Route path="/a11y-checklist" element={<A11yChecklist />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/discover" element={<Discover />} />
+            <Route path="/friends" element={<Friends />} />
+            <Route path="/achievements" element={<Achievements />} />
+            <Route path="/achievements/hub" element={<AchievementHub />} />
+            <Route path="/leaderboard" element={<Leaderboard />} />
+            <Route path="/blackboard" element={<BlackBoard />} />
+            <Route path="/blackvault" element={<BlackVault />} />
+            <Route path="/blackverse" element={<BlackVerse />} />
+            <Route path="/blackpass" element={<BlackPass />} />
+            <Route path="/blackforge" element={<BlackForge />} />
+            <Route path="/btax" element={<BlackCoin />} />
+            <Route path="/blackcoin" element={<Navigate to="/btax" replace />} />
+            <Route path="/blacknotify" element={<BlackNotify />} />
+            <Route path="/blackarena" element={<BlackArena />} />
+            <Route path="/blackarena/pro" element={<BlackArenaPlus />} />
+            <Route path="/globe" element={<GlobeEmbed />} />
+            <Route path="/profile/:userId" element={<PublicProfile />} />
+            <Route path="/profile/edit" element={<ProfileEdit />} />
+            <Route path="/admin-login" element={<AdminLogin />} />
+            <Route path="/admin-signup" element={<AdminSignup />} />
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/community" element={<Community />} />
+            <Route path="/cinematic-core" element={<CinematicCore />} />
+            <Route path="/cinematic-access" element={<CinematicAccess />} />
+            <Route path="/prop-dashboard" element={<PropDashboard />} />
+            <Route path="/my-accounts" element={<MyAccounts />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/market-hub" element={<MarketHub />} />
+            <Route path="/referrals" element={<Referrals />} />
+            <Route path="/r/:code" element={<ReferralLanding />} />
+            <Route path="/contest" element={<Contest />} />
+            <Route path="/trade-analytics" element={<TradeAnalytics />} />
+            <Route path="/world-map" element={<WorldMap />} />
+            <Route path="/atlas" element={<Atlas />} />
+            <Route path="/forex-tools" element={<ForexTools />} />
+            <Route path="/verify-identity" element={<VerifyIdentity />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/wallet/topup" element={<NairaTopUp />} />
+            <Route path="/a11y-checklist" element={<A11yChecklist />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </EnergyModeProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
