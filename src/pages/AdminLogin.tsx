@@ -55,7 +55,8 @@ export default function AdminLogin() {
       }
 
       toast.success("Admin access granted!");
-      navigate("/admin");
+      triggerAccessGranted({ label: "ADMIN ACCESS", sublabel: "Clearance verified" });
+      setTimeout(() => navigate("/admin"), 1400);
     } catch (error: any) {
       setAttempts((p) => p + 1);
       toast.error(error.message || "Authentication failed");
