@@ -196,6 +196,11 @@ export const BiometricAuth = ({
           ? "Biometric verification successful. Proceeding..." 
           : "Biometric authentication successful.",
       });
+      const { triggerAccessGranted } = await import("@/components/AccessGrantedSeal");
+      triggerAccessGranted({
+        label: mode === "verify" ? "BIOMETRIC VERIFIED" : "WELCOME BACK",
+        sublabel: "Identity confirmed",
+      });
       onSuccess?.();
     } catch (err: any) {
       if (err.name === 'NotAllowedError') {
