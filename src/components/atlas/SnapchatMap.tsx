@@ -59,17 +59,72 @@ function avatarDivIcon(u: AtlasUser, size = 44) {
   });
 }
 
-function FitOnce({ users }: { users: AtlasUser[] }) {
+function FitOnce({ users, skip }: { users: AtlasUser[]; skip?: boolean }) {
   const map = useMap();
   const done = useRef(false);
   useEffect(() => {
+    if (skip) { done.current = true; return; }
     if (done.current || !users.length) return;
     const pts = users.filter(u => u.latitude && u.longitude).map(u => [u.latitude!, u.longitude!] as [number, number]);
     if (pts.length) {
       map.fitBounds(L.latLngBounds(pts), { padding: [40, 40], maxZoom: 4 });
       done.current = true;
     }
-  }, [users, map]);
+  }, [users, map, skip]);
+  return null;
+}
+
+/** Restores the user's last Atlas camera position once, then persists changes. */
+function CameraMemory({ onRestored }: { onRestored?: () => void }) {
+  const map = useMap();
+  const restored = useRef(false);
+  const saveTimer = useRef<any>(null);
+
+  useEffect(() => {
+    if (restored.current) return;
+    let cancelled = false;
+    (async () => {
+      const { data: auth } = await supabase.auth.getUser();
+      if (cancelled) return;
+      if (auth.user) {
+        const { data } = await supabase
+          .from("profiles")
+          .select("atlas_camera")
+          .eq("id", auth.user.id)
+          .maybeSingle();
+        const cam = (data as any)?.atlas_camera;
+        if (cam && typeof cam.lat === "number" && typeof cam.lng === "number" && typeof cam.zoom === "number") {
+          map.setView([cam.lat, cam.lng], cam.zoom, { animate: false });
+        }
+      }
+      restored.current = true;
+      onRestored?.();
+    })();
+
+    const onMove = async () => {
+      if (!restored.current) return;
+      clearTimeout(saveTimer.current);
+      saveTimer.current = setTimeout(async () => {
+        const c = map.getCenter();
+        const z = map.getZoom();
+        const { data: auth } = await supabase.auth.getUser();
+        if (!auth.user) return;
+        await supabase
+          .from("profiles")
+          .update({ atlas_camera: { lat: c.lat, lng: c.lng, zoom: z } } as any)
+          .eq("id", auth.user.id);
+      }, 800);
+    };
+    map.on("moveend", onMove);
+    map.on("zoomend", onMove);
+    return () => {
+      cancelled = true;
+      clearTimeout(saveTimer.current);
+      map.off("moveend", onMove);
+      map.off("zoomend", onMove);
+    };
+  }, [map, onRestored]);
+
   return null;
 }
 
