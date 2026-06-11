@@ -3372,6 +3372,7 @@ export type Database = {
           opened_at: string
           profit_loss: number | null
           prop_account_id: string
+          seen_at: string | null
           source: string
           status: string
           stop_loss: number | null
@@ -3395,6 +3396,7 @@ export type Database = {
           opened_at?: string
           profit_loss?: number | null
           prop_account_id: string
+          seen_at?: string | null
           source?: string
           status?: string
           stop_loss?: number | null
@@ -3418,6 +3420,7 @@ export type Database = {
           opened_at?: string
           profit_loss?: number | null
           prop_account_id?: string
+          seen_at?: string | null
           source?: string
           status?: string
           stop_loss?: number | null
