@@ -235,6 +235,16 @@ export function AccountHealthCard({ account: initial }: { account: Account }) {
         {/* Recent trades */}
         <RecentTradesList accountId={account.id} />
 
+        {/* Prop-firm performance metrics (collapsible) */}
+        <PropFirmMetrics
+          accountId={account.id}
+          startingBalance={account.starting_balance || t.account_size}
+          maxTradingDays={t.max_trading_days ?? 0}
+          tradingDays={account.trading_days}
+          passedAt={account.passed_at ?? null}
+          createdAt={account.created_at ?? null}
+        />
+
         {/* MT5 live-sync footer */}
         <div className="flex items-center justify-between gap-2 pt-2 border-t border-border/60">
           <div className="flex items-center gap-1.5 min-w-0 flex-1">
