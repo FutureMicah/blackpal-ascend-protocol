@@ -45,6 +45,8 @@ interface Account {
   mt5_last_error?: string | null;
   mt5_broker?: string | null;
   mt5_open_positions?: number | null;
+  passed_at?: string | null;
+  created_at?: string | null;
 }
 
 const colorFor = (used: number, danger = 80, warn = 60) =>
