@@ -47,7 +47,9 @@ interface Account {
   mt5_open_positions?: number | null;
   passed_at?: string | null;
   created_at?: string | null;
+  consistency_threshold_percent?: number | null;
 }
+
 
 const colorFor = (used: number, danger = 80, warn = 60) =>
   used >= danger ? "bg-destructive" : used >= warn ? "bg-orange-500" : "bg-emerald-500";
@@ -185,6 +187,26 @@ export function AccountHealthCard({ account: initial }: { account: Account }) {
   const passed = account.status === "passed" || account.profit_target_hit;
   const failed = account.status === "failed" || account.max_drawdown_hit || account.max_daily_loss_hit;
 
+  // Health status: Green / Amber / Red
+  const usedScores = [ddUsedPct, dailyUsedPct];
+  const peakUsed = Math.max(...usedScores);
+  let health: { label: string; tone: "green" | "amber" | "red"; reason: string };
+  if (failed) {
+    health = { label: "Red", tone: "red", reason: "Rule breach — trading halted" };
+  } else if (passed) {
+    health = { label: "Green", tone: "green", reason: "Phase passed — payout unlocked" };
+  } else if (peakUsed >= 80) {
+    health = { label: "Red", tone: "red", reason: `Risk limit ${peakUsed.toFixed(0)}% used` };
+  } else if (peakUsed >= 60) {
+    health = { label: "Amber", tone: "amber", reason: `Caution — ${peakUsed.toFixed(0)}% of risk used` };
+  } else {
+    health = { label: "Green", tone: "green", reason: "Within safe limits" };
+  }
+  const healthCls =
+    health.tone === "green" ? "bg-emerald-500/15 text-emerald-500 border-emerald-500/40" :
+    health.tone === "amber" ? "bg-orange-500/15 text-orange-500 border-orange-500/40" :
+                              "bg-destructive/15 text-destructive border-destructive/40";
+
   return (
     <Card className={cn(
       "border-border overflow-hidden w-full max-w-full transition-shadow duration-500",
@@ -197,6 +219,17 @@ export function AccountHealthCard({ account: initial }: { account: Account }) {
               <span>{t.badge_icon || "🏆"}</span>
               <span className="truncate">{t.tier_name}</span>
               <Badge variant="outline" className="text-[9px] capitalize">{account.phase}</Badge>
+              <span
+                className={cn("inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full border text-[9px] font-semibold uppercase tracking-wider", healthCls)}
+                title={health.reason}
+              >
+                <span className={cn(
+                  "w-1.5 h-1.5 rounded-full",
+                  health.tone === "green" ? "bg-emerald-500 animate-pulse" :
+                  health.tone === "amber" ? "bg-orange-500 animate-pulse" : "bg-destructive",
+                )} />
+                {health.label}
+              </span>
             </p>
             <p className="text-[10px] text-muted-foreground truncate">
               Start ₦{Number(starting).toLocaleString()} → Now ₦{Number(account.current_equity).toLocaleString()}
@@ -243,7 +276,10 @@ export function AccountHealthCard({ account: initial }: { account: Account }) {
           tradingDays={account.trading_days}
           passedAt={account.passed_at ?? null}
           createdAt={account.created_at ?? null}
+          consistencyThreshold={Number(account.consistency_threshold_percent ?? 40)}
+          onThresholdChange={(v) => setAccount(prev => ({ ...prev, consistency_threshold_percent: v }))}
         />
+
 
         {/* MT5 live-sync footer */}
         <div className="flex items-center justify-between gap-2 pt-2 border-t border-border/60">
