@@ -5534,6 +5534,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      refresh_quest_progress: { Args: never; Returns: undefined }
       reject_admin_request: {
         Args: { _note?: string; _request_id: string }
         Returns: undefined
