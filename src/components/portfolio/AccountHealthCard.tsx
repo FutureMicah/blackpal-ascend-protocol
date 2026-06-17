@@ -7,6 +7,7 @@ import { Target, TrendingDown, Calendar, Activity, ShieldAlert, CheckCircle2, Li
 import { cn } from "@/lib/utils";
 import { MT5ConnectDialog } from "./MT5ConnectDialog";
 import { RecentTradesList } from "./RecentTradesList";
+import { PropFirmMetrics } from "./PropFirmMetrics";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 
