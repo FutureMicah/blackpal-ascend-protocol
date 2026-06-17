@@ -7,6 +7,7 @@ import { Target, TrendingDown, Calendar, Activity, ShieldAlert, CheckCircle2, Li
 import { cn } from "@/lib/utils";
 import { MT5ConnectDialog } from "./MT5ConnectDialog";
 import { RecentTradesList } from "./RecentTradesList";
+import { PropFirmMetrics } from "./PropFirmMetrics";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 
@@ -44,6 +45,8 @@ interface Account {
   mt5_last_error?: string | null;
   mt5_broker?: string | null;
   mt5_open_positions?: number | null;
+  passed_at?: string | null;
+  created_at?: string | null;
 }
 
 const colorFor = (used: number, danger = 80, warn = 60) =>
@@ -231,6 +234,16 @@ export function AccountHealthCard({ account: initial }: { account: Account }) {
 
         {/* Recent trades */}
         <RecentTradesList accountId={account.id} />
+
+        {/* Prop-firm performance metrics (collapsible) */}
+        <PropFirmMetrics
+          accountId={account.id}
+          startingBalance={account.starting_balance || t.account_size}
+          maxTradingDays={t.max_trading_days ?? 0}
+          tradingDays={account.trading_days}
+          passedAt={account.passed_at ?? null}
+          createdAt={account.created_at ?? null}
+        />
 
         {/* MT5 live-sync footer */}
         <div className="flex items-center justify-between gap-2 pt-2 border-t border-border/60">
