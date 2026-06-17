@@ -1,8 +1,9 @@
 import {
   Home, Trophy, BarChart3, BookOpen, Vault, Users, Megaphone as MegaIcon,
   CreditCard, Hammer, Coins, Bell, Menu, Search, Megaphone, Wallet, Globe,
-  Gift, Activity, Map, Wrench, User as UserIcon, LogOut, Sparkles, ArrowDownToLine,
+  Gift, Activity, Map, Wrench, User as UserIcon, LogOut, Sparkles, ArrowDownToLine, ShoppingBag,
 } from "lucide-react";
+
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -67,7 +68,9 @@ const drawerGroups: { label: string; items: { name: string; path: string; icon: 
       { name: "Academy Tools", path: "/blackpass", icon: MegaIcon },
       { name: "BlackForge", path: "/blackforge", icon: Hammer },
       { name: "BTAX", path: "/btax", icon: Coins },
+      { name: "Marketplace", path: "/marketplace", icon: ShoppingBag },
     ],
+
   },
   {
     label: "Account",
