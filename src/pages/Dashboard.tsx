@@ -29,6 +29,9 @@ import { SecurityPanel } from "@/components/security/SecurityPanel";
 import { SupportChat } from "@/components/SupportChat";
 import { CurrencyConverter } from "@/components/CurrencyConverter";
 import { PropAccountLadder } from "@/components/PropAccountLadder";
+import { QuestsPanel } from "@/components/xp/QuestsPanel";
+import { XpTimeline } from "@/components/xp/XpTimeline";
+
 
 export default function Dashboard() {
   const [user, setUser] = useState<any>(null);
@@ -306,11 +309,10 @@ export default function Dashboard() {
           {/* Middle Column - Main Content */}
           <div className="lg:col-span-6 space-y-3 sm:space-y-6 order-3 lg:order-2">
             <XPReactor profile={profile} />
-            {/* Achievements moved to /achievements page — slot intentionally left empty */}
-            <Card className="p-6 text-center bg-card/30 border-dashed">
-              <p className="text-xs text-muted-foreground">More tools coming to this space soon.</p>
-            </Card>
+            <QuestsPanel userId={profile.id} />
+            <XpTimeline userId={profile.id} />
             <ActivityFeed userId={profile.id} />
+
           </div>
 
           {/* Right Column - Sidebar */}

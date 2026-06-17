@@ -52,6 +52,9 @@ import { GlobalThemeProvider } from "./components/GlobalThemeProvider";
 import { PresenceProvider } from "./components/PresenceProvider";
 import { EnergyModeProvider } from "./contexts/EnergyModeContext";
 import { AccessGrantedSeal } from "./components/AccessGrantedSeal";
+import { LevelUpCelebration } from "./components/xp/LevelUpCelebration";
+import Marketplace from "./pages/Marketplace";
+
 
 
 const queryClient = new QueryClient();
@@ -68,6 +71,9 @@ const App = () => (
           <NotificationsProvider />
           <AnnouncementPopup />
           <AccessGrantedSeal />
+          <LevelUpCelebration />
+
+
 
           <Routes>
             <Route path="/" element={<Index />} />
@@ -113,7 +119,9 @@ const App = () => (
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/wallet/topup" element={<NairaTopUp />} />
             <Route path="/a11y-checklist" element={<A11yChecklist />} />
+            <Route path="/marketplace" element={<Marketplace />} />
             <Route path="*" element={<NotFound />} />
+
           </Routes>
         </EnergyModeProvider>
       </BrowserRouter>

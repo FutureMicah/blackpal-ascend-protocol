@@ -162,9 +162,12 @@ export type Database = {
       }
       academy_settings: {
         Row: {
+          btax_daily_transfer_cap: number
           btax_to_naira_rate: number
+          btax_transfer_fee_percent: number
           gate_pass_usd: number
           operations_pool_balance: number
+          p2p_min_transfer: number
           reward_pool_balance: number
           scholarship_pool_balance: number
           singleton: boolean
@@ -172,9 +175,12 @@ export type Database = {
           usd_to_ngn_rate: number
         }
         Insert: {
+          btax_daily_transfer_cap?: number
           btax_to_naira_rate?: number
+          btax_transfer_fee_percent?: number
           gate_pass_usd?: number
           operations_pool_balance?: number
+          p2p_min_transfer?: number
           reward_pool_balance?: number
           scholarship_pool_balance?: number
           singleton?: boolean
@@ -182,9 +188,12 @@ export type Database = {
           usd_to_ngn_rate?: number
         }
         Update: {
+          btax_daily_transfer_cap?: number
           btax_to_naira_rate?: number
+          btax_transfer_fee_percent?: number
           gate_pass_usd?: number
           operations_pool_balance?: number
+          p2p_min_transfer?: number
           reward_pool_balance?: number
           scholarship_pool_balance?: number
           singleton?: boolean
@@ -2240,6 +2249,57 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      marketplace_items: {
+        Row: {
+          btax_price: number
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          name: string
+          payload: Json
+          per_user_limit: number | null
+          slug: string
+          sort_order: number
+          stock: number | null
+          updated_at: string
+        }
+        Insert: {
+          btax_price: number
+          category: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name: string
+          payload?: Json
+          per_user_limit?: number | null
+          slug: string
+          sort_order?: number
+          stock?: number | null
+          updated_at?: string
+        }
+        Update: {
+          btax_price?: number
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name?: string
+          payload?: Json
+          per_user_limit?: number | null
+          slug?: string
+          sort_order?: number
+          stock?: number | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       mentors: {
         Row: {
@@ -5095,10 +5155,131 @@ export type Database = {
         }
         Relationships: []
       }
+      xp_ledger: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          metadata: Json
+          source: string
+          source_id: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          metadata?: Json
+          source: string
+          source_id?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          metadata?: Json
+          source?: string
+          source_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      xp_quest_progress: {
+        Row: {
+          claimed_at: string | null
+          completed_at: string | null
+          id: string
+          period_start: string
+          progress: number
+          quest_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          claimed_at?: string | null
+          completed_at?: string | null
+          id?: string
+          period_start: string
+          progress?: number
+          quest_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          claimed_at?: string | null
+          completed_at?: string | null
+          id?: string
+          period_start?: string
+          progress?: number
+          quest_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "xp_quest_progress_quest_id_fkey"
+            columns: ["quest_id"]
+            isOneToOne: false
+            referencedRelation: "xp_quests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      xp_quests: {
+        Row: {
+          btax_reward: number
+          category: string | null
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          is_active: boolean
+          period: string
+          quest_key: string
+          sort_order: number
+          target: number
+          title: string
+          xp_reward: number
+        }
+        Insert: {
+          btax_reward?: number
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          period: string
+          quest_key: string
+          sort_order?: number
+          target: number
+          title: string
+          xp_reward?: number
+        }
+        Update: {
+          btax_reward?: number
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          period?: string
+          quest_key?: string
+          sort_order?: number
+          target?: number
+          title?: string
+          xp_reward?: number
+        }
+        Relationships: []
+      }
       xp_tier_config: {
         Row: {
           account_size_naira: number
           badge_icon: string | null
+          btax_reward: number
+          cosmetic_reward: Json
           created_at: string
           daily_loss_limit_percent: number
           id: string
@@ -5111,11 +5292,14 @@ export type Database = {
           rules_description: string | null
           tier_level: number
           tier_name: string
+          unlock_feature: string | null
           xp_required: number
         }
         Insert: {
           account_size_naira: number
           badge_icon?: string | null
+          btax_reward?: number
+          cosmetic_reward?: Json
           created_at?: string
           daily_loss_limit_percent?: number
           id?: string
@@ -5128,11 +5312,14 @@ export type Database = {
           rules_description?: string | null
           tier_level: number
           tier_name: string
+          unlock_feature?: string | null
           xp_required: number
         }
         Update: {
           account_size_naira?: number
           badge_icon?: string | null
+          btax_reward?: number
+          cosmetic_reward?: Json
           created_at?: string
           daily_loss_limit_percent?: number
           id?: string
@@ -5145,6 +5332,7 @@ export type Database = {
           rules_description?: string | null
           tier_level?: number
           tier_name?: string
+          unlock_feature?: string | null
           xp_required?: number
         }
         Relationships: []
@@ -5287,6 +5475,17 @@ export type Database = {
         }[]
       }
       atlas_stats: { Args: never; Returns: Json }
+      award_xp: {
+        Args: {
+          p_amount: number
+          p_metadata?: Json
+          p_source: string
+          p_source_id?: string
+          p_user_id: string
+        }
+        Returns: string
+      }
+      claim_quest: { Args: { p_progress_id: string }; Returns: undefined }
       fund_wallet: {
         Args: {
           p_description?: string
@@ -5304,6 +5503,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      marketplace_purchase: { Args: { p_item_id: string }; Returns: string }
       mt5_accounts_to_sync: {
         Args: never
         Returns: {
@@ -5334,6 +5534,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      refresh_quest_progress: { Args: never; Returns: undefined }
       reject_admin_request: {
         Args: { _note?: string; _request_id: string }
         Returns: undefined
@@ -5381,6 +5582,10 @@ export type Database = {
       }
       system_approve_wallet_topup: {
         Args: { p_reference: string; p_request_id: string }
+        Returns: string
+      }
+      transfer_btax: {
+        Args: { p_amount: number; p_note?: string; p_recipient: string }
         Returns: string
       }
       update_achievement_streak: {

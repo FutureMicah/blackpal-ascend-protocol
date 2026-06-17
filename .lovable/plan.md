@@ -1,59 +1,75 @@
-# Trader Atlas v2 — Snapchat Map + Admin Command Center
+Portfolio enhancements (firm filter, health badge, configurable consistency threshold, extra risk metrics) are already live. This plan covers the next two pillars you picked:
 
-Turns the existing Atlas into a live Snapchat-style map and gives admins a full real-time view of every user, where they are, and what they're doing.
+## 1. BTAX — company token mechanics
 
-## 1. Database (one migration)
+### A. BTAX Marketplace & Spend Hubs
+New page `/marketplace` with category tabs:
+- **Boosts** — XP multipliers (2x for 24h), Account theme unlocks, Streak insurance
+- **Cosmetics** — Sticker packs, profile themes, NFT frame upgrades, animated avatars
+- **Services** — Mentor sessions, sponsor allocations, account fee credits
+- **Cards** — Lottery spins, mystery boxes
 
-Extend `user_locations` with privacy + trading status:
-- `share_precision text default 'country'` — `'country' | 'precise' | 'ghost'`
-- `is_trading boolean default false` — true when user has an open prop/paper position
-- `last_trade_at timestamptz` — last time they opened or closed a trade
-- `avatar_url text` — denormalised for fast map rendering
-- `display_name text` — denormalised
+Tech:
+- New table `marketplace_items` (slug, name, description, category, btax_price, image_url, payload jsonb, stock, is_active)
+- Reuse `spend_wallet()` RPC for purchases, add `marketplace_purchase(item_id)` RPC that validates stock, calls spend_wallet, inserts into `purchases`, applies the item payload (grant sticker pack / boost row / etc.)
+- "Spend hubs" entry tile from Dashboard + BlackCoin pages
 
-Add Realtime publication for `user_locations` and `prop_trades` so the map and admin feed stream live.
+### B. P2P Transfers & Tipping
+- New RPC `transfer_btax(recipient_user_id, amount, note)` — atomic debit/credit using wallet_transactions
+- Sender pays small platform fee (configurable in academy_settings, default 1%)
+- New UI: `BtaxSendDialog` (user search by display_name/username, amount, note) — accessible from wallet header
+- Inline **Tip** button in chat messages and profile pages → opens dialog prefilled with recipient
+- Realtime toast on recipient + in_app_notification ("You received X BTAX from Y")
+- Daily transfer cap per user (configurable) to prevent abuse
 
-RLS:
-- Authenticated users can see other users' rows but **only country + country_code + region + avatar + display_name + is_online + is_trading** — exact lat/lng/city hidden unless `share_precision = 'precise'` AND not in ghost mode. Implemented via a `public.user_locations_public` view (security_invoker, base table SELECT denied except own row + admin).
-- Admins (`has_role(uid,'admin')` or `'super_admin'`) bypass and see everything.
+## 2. XP — full progression system
 
-Trigger: when a row is inserted into `prop_trades` or `paper_trades` with `status='open'`, set `user_locations.is_trading=true, last_trade_at=now()`; on close, recompute `is_trading = exists(open positions)`.
+### A. XP from trading activity
+- New RPC `award_trading_xp(prop_account_id, trade_id)` triggered on `prop_trades` close via trigger
+- Awards:
+  - +10 XP per closed trade
+  - +25 XP per winning trade
+  - +50 XP win streak (3+)
+  - +100 XP first profitable day
+  - +500 XP phase passed
+- Each award writes to new `xp_ledger` table (user_id, amount, source, source_id, created_at) for auditable history
 
-## 2. RPCs / Edge function
+### B. Daily / weekly XP quests
+- New table `xp_quests` (key, title, description, type day/week, target int, xp_reward, btax_reward, icon)
+- New table `xp_quest_progress` (user_id, quest_id, period_start, progress, completed_at)
+- Seed quests: "Take 1 trade today", "Journal 1 entry", "Visit Atlas", "Win 3 trades this week", "Maintain 50%+ win rate weekly"
+- `QuestsPanel` component on Dashboard showing today + this-week with progress bars and Claim button
+- Reset rules: day = UTC midnight, week = Monday
 
-- `atlas_stats()` — returns `{ total_users, online_5m, trading_today, in_trade_now, by_country: [...] }`. Cached 15s.
-- `atlas_admin_users(filter, limit, offset)` — admin-only paginated user list with location + trading + KYC + wallet snapshot.
-- Edge function `atlas-broadcast` — admin posts notification or force-logout to a specific user_id.
+### C. Level-up rewards & unlocks
+- Extend `xp_tier_config` with `btax_reward`, `unlock_feature` (text), `cosmetic_reward` (jsonb)
+- Trigger on `profiles.xp_points` update → recompute rank_level; on increment, call `apply_level_rewards()` to:
+  - Credit BTAX
+  - Insert into user_collectibles for cosmetic
+  - Fire in_app_notification + AccessGrantedSeal event
+- New `LevelUpCelebration` modal with animation
 
-## 3. Public Atlas page (`/atlas` / WorldMap rewrite)
+### D. Public XP profile & history
+- `XpTimeline` component on PublicProfile showing recent XP gains from `xp_ledger` (grouped by day, with source badges)
+- Stats: total XP, daily avg XP, current level, % to next level, longest XP streak
+- Friend comparison: `/compare/:userId` extends existing comparison with XP delta + per-source breakdown
 
-Snapchat-style map using **react-leaflet + leaflet.markercluster + leaflet.heat** (free, no API key) with a dark Carto basemap.
+## Migrations needed
+1. `marketplace_items` table + RLS (public read active items, admin write)
+2. `xp_ledger` table + RLS (own read, system insert via SECURITY DEFINER)
+3. `xp_quests` + `xp_quest_progress` tables + RLS
+4. Extend `xp_tier_config` (btax_reward, unlock_feature, cosmetic_reward)
+5. Extend `academy_settings` (btax_transfer_fee_percent, btax_daily_transfer_cap)
+6. RPCs: `transfer_btax`, `marketplace_purchase`, `award_trading_xp`, `claim_quest`, `apply_level_rewards`
+7. Trigger on `prop_trades` (AFTER UPDATE → closed) calling award_trading_xp
+8. Trigger on `profiles.xp_points` (AFTER UPDATE) calling apply_level_rewards
 
-- Avatar pins (circular, glowing ring when `is_trading`, green ring when online).
-- Cluster when zoomed out; pop into avatars when zoomed in.
-- Heatmap toggle = trading-activity density (weight = recent trades count).
-- Tap pin → mini profile drawer (avatar, name, country, online/trading status, last trade, "view profile" link).
-- Top filter bar: **Online · Trading today · In a trade now** (three independent toggles) + live counts.
-- Privacy: non-friends see only **country-level** pin (jittered to country centroid). Friends see precise if user opted-in. Ghost mode hides them entirely.
-- Settings shortcut: "Ghost mode" + precision toggle.
+## Build order (proposed)
+1. Migrations + RPCs (all in one approval batch)
+2. P2P transfers UI (BtaxSendDialog, wallet integration, chat/profile tip buttons)
+3. Marketplace page + buy flow
+4. XP ledger + trading triggers + QuestsPanel on dashboard
+5. Level-up celebration modal + reward delivery
+6. XpTimeline on PublicProfile
 
-## 4. Admin Atlas dashboard (`/admin/atlas`, gated by `has_role admin`)
-
-Tab inside AdminDashboard:
-- **KPIs**: Total users, Online now, Trading today, In a trade now, New today.
-- **Per-country table**: country flag, total, online, trading, revenue (sum payments), sortable, CSV export.
-- **Full map**: admin sees precise pins for everyone regardless of ghost mode, with filters mirroring the public map plus "show ghosted".
-- **Live activity feed** (right rail): realtime stream of signups, logins, opened/closed trades, payments — with country + avatar.
-- **User drill-down drawer**: click pin or row → profile, KYC status, payment history, last 20 trades, devices, IP/location history, wallet balance. Action buttons: **Send notification**, **Force logout**, **Open profile**.
-
-## 5. Privacy + ghost mode UI
-
-Small panel in Profile settings: precision selector (Country only / Precise / Ghost) — writes to `user_locations.share_precision`. Default = Country only (matches your answer).
-
-## Technical notes
-- New deps: `react-leaflet`, `leaflet`, `leaflet.markercluster`, `leaflet.heat`.
-- `PresenceProvider` already heartbeats — extended to also push `is_trading` recompute every minute.
-- Country centroids: ship a small static JSON (~200 countries) to jitter public pins.
-- Force-logout: edge function deletes the user's `auth.refresh_tokens` row via service role and inserts an `in_app_notifications` row.
-
-Approve and I'll build it end to end.
+Confirm and I'll start with step 1 (database) immediately.
