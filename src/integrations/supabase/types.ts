@@ -4637,6 +4637,7 @@ export type Database = {
           access_code: string
           account_balance: number
           assigned_by: string | null
+          consistency_threshold_percent: number
           created_at: string
           current_equity: number
           failed_at: string | null
@@ -4675,6 +4676,7 @@ export type Database = {
           access_code: string
           account_balance?: number
           assigned_by?: string | null
+          consistency_threshold_percent?: number
           created_at?: string
           current_equity?: number
           failed_at?: string | null
@@ -4713,6 +4715,7 @@ export type Database = {
           access_code?: string
           account_balance?: number
           assigned_by?: string | null
+          consistency_threshold_percent?: number
           created_at?: string
           current_equity?: number
           failed_at?: string | null
