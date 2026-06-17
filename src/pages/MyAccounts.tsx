@@ -49,6 +49,8 @@ export default function MyAccounts() {
   const [message, setMessage] = useState("");
   const [requesting, setRequesting] = useState(false);
   const [agreed, setAgreed] = useState(false);
+  const [firmFilter, setFirmFilter] = useState<string>("all");
+
 
   useEffect(() => { init(); }, []);
 
@@ -121,14 +123,64 @@ export default function MyAccounts() {
         </motion.div>
 
         {/* Live accounts */}
-        {liveAccounts.length > 0 && (
-          <div className="mb-5">
-            <h3 className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">My active accounts</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {liveAccounts.map(a => <AccountHealthCard key={a.id} account={a} />)}
+        {liveAccounts.length > 0 && (() => {
+          const firms = Array.from(new Set(liveAccounts.map(a => (a.mt5_broker?.trim() || "Unassigned"))));
+          const filtered = firmFilter === "all"
+            ? liveAccounts
+            : liveAccounts.filter(a => (a.mt5_broker?.trim() || "Unassigned") === firmFilter);
+          const firmStats = (firm: string) => {
+            const list = firm === "all" ? liveAccounts : liveAccounts.filter(a => (a.mt5_broker?.trim() || "Unassigned") === firm);
+            const total = list.length;
+            const passed = list.filter(a => a.status === "passed" || a.profit_target_hit).length;
+            const failed = list.filter(a => a.status === "failed" || a.max_drawdown_hit || a.max_daily_loss_hit).length;
+            const active = total - passed - failed;
+            return { total, passed, failed, active };
+          };
+          const stats = firmStats(firmFilter);
+          return (
+            <div className="mb-5">
+              <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
+                <h3 className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">My active accounts</h3>
+                <div className="flex items-center gap-1 text-[9px] text-muted-foreground">
+                  <span className="px-1.5 py-0.5 rounded bg-muted/40">{stats.total} total</span>
+                  <span className="px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-500">{stats.active} active</span>
+                  <span className="px-1.5 py-0.5 rounded bg-primary/15 text-primary">{stats.passed} passed</span>
+                  <span className="px-1.5 py-0.5 rounded bg-destructive/15 text-destructive">{stats.failed} failed</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-1.5 mb-3 overflow-x-auto pb-1 -mx-1 px-1">
+                <button
+                  onClick={() => setFirmFilter("all")}
+                  className={`shrink-0 h-7 px-2.5 rounded-full text-[10px] font-semibold border transition-colors ${firmFilter === "all" ? "bg-primary text-primary-foreground border-primary" : "bg-card/60 border-border text-muted-foreground hover:text-foreground"}`}
+                >
+                  All firms <span className="ml-1 opacity-70">{liveAccounts.length}</span>
+                </button>
+                {firms.map(f => {
+                  const s = firmStats(f);
+                  const active = firmFilter === f;
+                  return (
+                    <button
+                      key={f}
+                      onClick={() => setFirmFilter(f)}
+                      className={`shrink-0 h-7 px-2.5 rounded-full text-[10px] font-semibold border transition-colors ${active ? "bg-primary text-primary-foreground border-primary" : "bg-card/60 border-border text-muted-foreground hover:text-foreground"}`}
+                      title={`${s.total} account${s.total === 1 ? "" : "s"} · ${s.active} active`}
+                    >
+                      {f} <span className="ml-1 opacity-70">{s.total}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              {filtered.length === 0 ? (
+                <p className="text-[10px] text-muted-foreground text-center py-4">No accounts under this firm.</p>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {filtered.map(a => <AccountHealthCard key={a.id} account={a} />)}
+                </div>
+              )}
             </div>
-          </div>
-        )}
+          );
+        })()}
+
 
         {/* My requests */}
         {requests.length > 0 && (
