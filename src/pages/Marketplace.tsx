@@ -53,10 +53,20 @@ export default function Marketplace() {
   const buy = async (item: Item) => {
     if (balance < item.btax_price) { toast.error("Not enough BTAX"); return; }
     setBusy(item.id);
-    const { error } = await (supabase as any).rpc("marketplace_purchase", { p_item_id: item.id });
+    const before = balance;
+    const { data, error } = await (supabase as any).rpc("marketplace_purchase", { p_item_id: item.id });
     setBusy(null);
     if (error) { toast.error(error.message); return; }
     toast.success(`Purchased ${item.name}`);
+    setReceipt({
+      item: item.name,
+      category: item.category,
+      cost: item.btax_price,
+      timestamp: new Date().toISOString(),
+      balanceBefore: before,
+      balanceAfter: before - item.btax_price,
+      txRef: typeof data === "string" ? data : undefined,
+    });
     load();
   };
 
