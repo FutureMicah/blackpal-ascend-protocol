@@ -312,6 +312,7 @@ export default function Dashboard() {
             <XPReactor profile={profile} />
             <QuestsPanel userId={profile.id} />
             <XpTimeline userId={profile.id} />
+            <QuestClaimHistory userId={profile.id} />
             <ActivityFeed userId={profile.id} />
 
           </div>
