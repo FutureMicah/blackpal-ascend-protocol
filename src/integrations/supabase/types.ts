@@ -1313,6 +1313,8 @@ export type Database = {
           id: string
           new_value: string | null
           old_value: string | null
+          reason: string | null
+          rolled_back_from: string | null
           scope: string
         }
         Insert: {
@@ -1324,6 +1326,8 @@ export type Database = {
           id?: string
           new_value?: string | null
           old_value?: string | null
+          reason?: string | null
+          rolled_back_from?: string | null
           scope: string
         }
         Update: {
@@ -1335,9 +1339,19 @@ export type Database = {
           id?: string
           new_value?: string | null
           old_value?: string | null
+          reason?: string | null
+          rolled_back_from?: string | null
           scope?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "btax_rules_audit_rolled_back_from_fkey"
+            columns: ["rolled_back_from"]
+            isOneToOne: false
+            referencedRelation: "btax_rules_audit"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       certificates: {
         Row: {
@@ -5593,6 +5607,10 @@ export type Database = {
         }
         Returns: string
       }
+      rollback_btax_audit: {
+        Args: { p_audit_id: string; p_reason?: string }
+        Returns: undefined
+      }
       set_admin_pin: { Args: { _pin: string }; Returns: undefined }
       set_my_location_privacy: {
         Args: { p_precision: string }
@@ -5627,6 +5645,26 @@ export type Database = {
       update_achievement_streak: {
         Args: { user_id_param: string }
         Returns: number
+      }
+      update_btax_rules: {
+        Args: {
+          p_daily_cap: number
+          p_fee_pct: number
+          p_min_transfer: number
+          p_rate: number
+          p_reason?: string
+        }
+        Returns: undefined
+      }
+      update_marketplace_item: {
+        Args: {
+          p_id: string
+          p_is_active: boolean
+          p_price: number
+          p_reason?: string
+          p_stock: number
+        }
+        Returns: undefined
       }
       validate_referral_code: {
         Args: { p_code: string }
