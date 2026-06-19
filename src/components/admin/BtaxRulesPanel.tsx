@@ -142,6 +142,8 @@ export function BtaxRulesPanel() {
           {items.length === 0 && <p className="text-[10px] text-muted-foreground text-center py-4">No marketplace items.</p>}
         </div>
       </Card>
+
+      <BtaxRulesHistory />
     </div>
   );
 }
