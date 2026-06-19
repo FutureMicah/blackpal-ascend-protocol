@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Loader2, ShoppingBag, Zap, Sparkles, Wrench, Ticket, Wallet, Send } from "lucide-react";
 import { BtaxSendDialog } from "@/components/btax/BtaxSendDialog";
+import { BtaxTokenomicsPanel } from "@/components/btax/BtaxTokenomicsPanel";
+import { PurchaseReceiptDialog, type ReceiptData } from "@/components/btax/PurchaseReceiptDialog";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
