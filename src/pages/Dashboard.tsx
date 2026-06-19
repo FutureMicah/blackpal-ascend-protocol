@@ -31,6 +31,7 @@ import { CurrencyConverter } from "@/components/CurrencyConverter";
 import { PropAccountLadder } from "@/components/PropAccountLadder";
 import { QuestsPanel } from "@/components/xp/QuestsPanel";
 import { XpTimeline } from "@/components/xp/XpTimeline";
+import { QuestClaimHistory } from "@/components/xp/QuestClaimHistory";
 
 
 export default function Dashboard() {
