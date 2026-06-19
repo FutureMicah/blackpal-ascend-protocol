@@ -33,9 +33,12 @@ export default function Marketplace() {
   const [cat, setCat] = useState<string>("all");
   const [busy, setBusy] = useState<string | null>(null);
   const [sendOpen, setSendOpen] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [receipt, setReceipt] = useState<ReceiptData | null>(null);
 
   const load = async () => {
     const { data: { user } } = await supabase.auth.getUser();
+    setUserId(user?.id || null);
     const [iRes, wRes] = await Promise.all([
       (supabase as any).from("marketplace_items").select("*").eq("is_active", true).order("category").order("sort_order"),
       user ? supabase.from("wallets").select("btax_balance").eq("user_id", user.id).maybeSingle() : Promise.resolve({ data: null }),
