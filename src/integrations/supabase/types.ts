@@ -1303,6 +1303,42 @@ export type Database = {
         }
         Relationships: []
       }
+      btax_rules_audit: {
+        Row: {
+          changed_at: string
+          changed_by: string | null
+          entity_id: string | null
+          entity_label: string | null
+          field: string
+          id: string
+          new_value: string | null
+          old_value: string | null
+          scope: string
+        }
+        Insert: {
+          changed_at?: string
+          changed_by?: string | null
+          entity_id?: string | null
+          entity_label?: string | null
+          field: string
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          scope: string
+        }
+        Update: {
+          changed_at?: string
+          changed_by?: string | null
+          entity_id?: string | null
+          entity_label?: string | null
+          field?: string
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          scope?: string
+        }
+        Relationships: []
+      }
       certificates: {
         Row: {
           certificate_hash: string | null
