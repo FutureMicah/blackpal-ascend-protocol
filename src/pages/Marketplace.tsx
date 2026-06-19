@@ -169,6 +169,7 @@ export default function Marketplace() {
         )}
       </div>
       <BtaxSendDialog open={sendOpen} onOpenChange={setSendOpen} onSent={load} />
+      <PurchaseReceiptDialog open={!!receipt} onOpenChange={(v) => !v && setReceipt(null)} receipt={receipt} />
     </div>
   );
 }
