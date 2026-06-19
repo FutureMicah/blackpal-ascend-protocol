@@ -33,6 +33,8 @@ export function BtaxRulesPanel() {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<string | null>(null);
   const [draft, setDraft] = useState<Partial<Item>>({});
+  const [reason, setReason] = useState("");
+  const [itemReason, setItemReason] = useState("");
 
   const load = async () => {
     setLoading(true);
@@ -59,24 +61,37 @@ export function BtaxRulesPanel() {
   const saveSettings = async () => {
     if (!s?.id) return;
     setSaving(true);
-    const { error } = await (supabase as any).from("academy_settings").update({
-      btax_to_naira_rate: s.btax_to_naira_rate,
-      btax_transfer_fee_percent: s.btax_transfer_fee_percent,
-      btax_daily_transfer_cap: s.btax_daily_transfer_cap,
-      p2p_min_transfer: s.p2p_min_transfer,
-    }).eq("id", s.id);
+    const { error } = await (supabase as any).rpc("update_btax_rules", {
+      p_rate: s.btax_to_naira_rate,
+      p_fee_pct: s.btax_transfer_fee_percent,
+      p_daily_cap: s.btax_daily_transfer_cap,
+      p_min_transfer: s.p2p_min_transfer,
+      p_reason: reason || null,
+    });
     setSaving(false);
     if (error) { toast.error(error.message); return; }
     clearBtaxRateCache();
+    setReason("");
     toast.success("BTAX rules updated");
   };
 
-  const startEdit = (it: Item) => { setEditing(it.id); setDraft({ btax_price: it.btax_price, stock: it.stock, is_active: it.is_active }); };
+  const startEdit = (it: Item) => {
+    setEditing(it.id);
+    setDraft({ btax_price: it.btax_price, stock: it.stock, is_active: it.is_active });
+    setItemReason("");
+  };
   const saveItem = async (id: string) => {
-    const { error } = await (supabase as any).from("marketplace_items").update(draft).eq("id", id);
+    const { error } = await (supabase as any).rpc("update_marketplace_item", {
+      p_id: id,
+      p_price: draft.btax_price ?? 0,
+      p_stock: draft.stock ?? null,
+      p_is_active: draft.is_active ?? true,
+      p_reason: itemReason || null,
+    });
     if (error) { toast.error(error.message); return; }
     toast.success("Item updated");
     setEditing(null);
+    setItemReason("");
     load();
   };
 
