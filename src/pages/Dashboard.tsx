@@ -31,6 +31,7 @@ import { CurrencyConverter } from "@/components/CurrencyConverter";
 import { PropAccountLadder } from "@/components/PropAccountLadder";
 import { QuestsPanel } from "@/components/xp/QuestsPanel";
 import { XpTimeline } from "@/components/xp/XpTimeline";
+import { QuestClaimHistory } from "@/components/xp/QuestClaimHistory";
 
 
 export default function Dashboard() {
@@ -311,6 +312,7 @@ export default function Dashboard() {
             <XPReactor profile={profile} />
             <QuestsPanel userId={profile.id} />
             <XpTimeline userId={profile.id} />
+            <QuestClaimHistory userId={profile.id} />
             <ActivityFeed userId={profile.id} />
 
           </div>

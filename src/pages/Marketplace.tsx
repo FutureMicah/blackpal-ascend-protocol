@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Loader2, ShoppingBag, Zap, Sparkles, Wrench, Ticket, Wallet, Send } from "lucide-react";
 import { BtaxSendDialog } from "@/components/btax/BtaxSendDialog";
+import { BtaxTokenomicsPanel } from "@/components/btax/BtaxTokenomicsPanel";
+import { PurchaseReceiptDialog, type ReceiptData } from "@/components/btax/PurchaseReceiptDialog";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
@@ -31,9 +33,12 @@ export default function Marketplace() {
   const [cat, setCat] = useState<string>("all");
   const [busy, setBusy] = useState<string | null>(null);
   const [sendOpen, setSendOpen] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [receipt, setReceipt] = useState<ReceiptData | null>(null);
 
   const load = async () => {
     const { data: { user } } = await supabase.auth.getUser();
+    setUserId(user?.id || null);
     const [iRes, wRes] = await Promise.all([
       (supabase as any).from("marketplace_items").select("*").eq("is_active", true).order("category").order("sort_order"),
       user ? supabase.from("wallets").select("btax_balance").eq("user_id", user.id).maybeSingle() : Promise.resolve({ data: null }),
@@ -48,10 +53,20 @@ export default function Marketplace() {
   const buy = async (item: Item) => {
     if (balance < item.btax_price) { toast.error("Not enough BTAX"); return; }
     setBusy(item.id);
-    const { error } = await (supabase as any).rpc("marketplace_purchase", { p_item_id: item.id });
+    const before = balance;
+    const { data, error } = await (supabase as any).rpc("marketplace_purchase", { p_item_id: item.id });
     setBusy(null);
     if (error) { toast.error(error.message); return; }
     toast.success(`Purchased ${item.name}`);
+    setReceipt({
+      item: item.name,
+      category: item.category,
+      cost: item.btax_price,
+      timestamp: new Date().toISOString(),
+      balanceBefore: before,
+      balanceAfter: before - item.btax_price,
+      txRef: typeof data === "string" ? data : undefined,
+    });
     load();
   };
 
@@ -79,6 +94,8 @@ export default function Marketplace() {
             </Button>
           </div>
         </div>
+
+        {userId && <div className="mb-4"><BtaxTokenomicsPanel userId={userId} /></div>}
 
         <div className="flex items-center gap-1.5 mb-4 overflow-x-auto pb-1 -mx-1 px-1">
           <button
@@ -152,6 +169,7 @@ export default function Marketplace() {
         )}
       </div>
       <BtaxSendDialog open={sendOpen} onOpenChange={setSendOpen} onSent={load} />
+      <PurchaseReceiptDialog open={!!receipt} onOpenChange={(v) => !v && setReceipt(null)} receipt={receipt} />
     </div>
   );
 }
