@@ -31,6 +31,7 @@ import { AdminAnnouncements } from "@/components/admin/AdminAnnouncements";
 import { AdminErrorBoundary } from "@/components/admin/AdminErrorBoundary";
 import { AdminDiagnosticsPanel } from "@/components/admin/AdminDiagnosticsPanel";
 import { AdminSettingsPanelShell } from "@/components/admin/AdminSettingsPanelShell";
+import { BtaxRulesPanel } from "@/components/admin/BtaxRulesPanel";
 import { CurrencyConverter } from "@/components/CurrencyConverter";
 import { AdminAtlasPanel } from "@/components/atlas/AdminAtlasPanel";
 import logo from "@/assets/blackpal-logo.jpg";
