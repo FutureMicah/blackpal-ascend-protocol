@@ -58,7 +58,7 @@ export function BtaxRulesPanel() {
   const saveSettings = async () => {
     if (!s?.id) return;
     setSaving(true);
-    const { error } = await supabase.from("academy_settings").update({
+    const { error } = await (supabase as any).from("academy_settings").update({
       btax_to_naira_rate: s.btax_to_naira_rate,
       btax_transfer_fee_percent: s.btax_transfer_fee_percent,
       btax_daily_transfer_cap: s.btax_daily_transfer_cap,
