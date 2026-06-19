@@ -817,6 +817,9 @@ function AdminDashboardInner() {
                 <AdminSettingsPanelShell title="Gate Pass Settings" icon={Lock}>
                   <GatePassSettings />
                 </AdminSettingsPanelShell>
+                <AdminSettingsPanelShell title="BTAX Rules & Marketplace" icon={Coins}>
+                  <BtaxRulesPanel />
+                </AdminSettingsPanelShell>
                 <AdminSettingsPanelShell title="Admin Credentials" icon={UserCog}>
                   <AdminCredentialsPanel />
                 </AdminSettingsPanelShell>
