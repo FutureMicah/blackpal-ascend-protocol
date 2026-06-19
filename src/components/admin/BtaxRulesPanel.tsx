@@ -121,7 +121,9 @@ export function BtaxRulesPanel() {
               onChange={e => setS({ ...s, p2p_min_transfer: Number(e.target.value) })} className="h-8 text-xs" />
           </Field>
         </div>
-        <Button size="sm" className="mt-3 h-8 text-xs w-full" disabled={saving} onClick={saveSettings}>
+        <Input value={reason} onChange={e => setReason(e.target.value)} placeholder="Reason for change (optional)"
+          className="h-8 text-xs mt-3" maxLength={200} />
+        <Button size="sm" className="mt-2 h-8 text-xs w-full" disabled={saving} onClick={saveSettings}>
           {saving ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Save className="w-3 h-3 mr-1" />} Save rules
         </Button>
       </Card>
