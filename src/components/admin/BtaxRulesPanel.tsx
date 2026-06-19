@@ -141,10 +141,15 @@ export function BtaxRulesPanel() {
                 </div>
                 {isEdit ? (
                   <>
-                    <Input type="number" value={draft.btax_price ?? 0} onChange={e => setDraft({ ...draft, btax_price: Number(e.target.value) })} className="h-7 text-[10px] w-20" placeholder="BTAX" />
-                    <Input type="number" value={draft.stock ?? ""} onChange={e => setDraft({ ...draft, stock: e.target.value === "" ? null : Number(e.target.value) })} className="h-7 text-[10px] w-16" placeholder="Stock" />
-                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => saveItem(it.id)}><Check className="w-3 h-3 text-emerald-500" /></Button>
-                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setEditing(null)}><X className="w-3 h-3" /></Button>
+                    <div className="flex flex-col gap-1 flex-1 min-w-0">
+                      <div className="flex items-center gap-1">
+                        <Input type="number" value={draft.btax_price ?? 0} onChange={e => setDraft({ ...draft, btax_price: Number(e.target.value) })} className="h-7 text-[10px] w-20" placeholder="BTAX" />
+                        <Input type="number" value={draft.stock ?? ""} onChange={e => setDraft({ ...draft, stock: e.target.value === "" ? null : Number(e.target.value) })} className="h-7 text-[10px] w-16" placeholder="Stock" />
+                        <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => saveItem(it.id)}><Check className="w-3 h-3 text-emerald-500" /></Button>
+                        <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setEditing(null)}><X className="w-3 h-3" /></Button>
+                      </div>
+                      <Input value={itemReason} onChange={e => setItemReason(e.target.value)} placeholder="Reason (optional)" className="h-6 text-[10px]" maxLength={200} />
+                    </div>
                   </>
                 ) : (
                   <>
