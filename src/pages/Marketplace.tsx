@@ -95,6 +95,8 @@ export default function Marketplace() {
           </div>
         </div>
 
+        {userId && <div className="mb-4"><BtaxTokenomicsPanel userId={userId} /></div>}
+
         <div className="flex items-center gap-1.5 mb-4 overflow-x-auto pb-1 -mx-1 px-1">
           <button
             onClick={() => setCat("all")}
