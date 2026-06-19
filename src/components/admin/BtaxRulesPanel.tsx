@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, Save, Coins, Package, Pencil, Check, X } from "lucide-react";
 import { toast } from "sonner";
 import { clearBtaxRateCache } from "@/lib/btax";
+import { BtaxRulesHistory } from "@/components/admin/BtaxRulesHistory";
 
 interface Settings {
   id?: string;
@@ -141,6 +142,8 @@ export function BtaxRulesPanel() {
           {items.length === 0 && <p className="text-[10px] text-muted-foreground text-center py-4">No marketplace items.</p>}
         </div>
       </Card>
+
+      <BtaxRulesHistory />
     </div>
   );
 }
