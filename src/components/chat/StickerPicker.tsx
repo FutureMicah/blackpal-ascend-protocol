@@ -46,20 +46,43 @@ const STICKER_SETS: Record<string, { id: string; url: string; name: string }[]> 
     { id: "memoji-potion", url: stickerPotion, name: "Potion" },
     { id: "memoji-inspiring", url: stickerInspiring, name: "Inspiring" },
     { id: "memoji-finger-heart", url: stickerFingerHeart, name: "Love" },
+    { id: "memoji-headphones", url: stickerHeadphones, name: "Gold Beats" },
+    { id: "memoji-wink", url: stickerWink, name: "Royal Wink" },
   ],
   "Trader Vibes": [
     { id: "memoji-headphones", url: stickerHeadphones, name: "Focus" },
     { id: "memoji-wink", url: stickerWink, name: "Hype" },
     { id: "memoji-ghost", url: stickerGhost, name: "Spirit" },
     { id: "memoji-cat", url: stickerCat, name: "Chill" },
+    { id: "memoji-verified", url: stickerVerified, name: "Confirmed" },
+    { id: "memoji-inspiring", url: stickerInspiring, name: "Visionary" },
   ],
   "Crypto Pack": [
     { id: "memoji-potion", url: stickerPotion, name: "Alchemy" },
     { id: "memoji-verified", url: stickerVerified, name: "Verified" },
     { id: "memoji-inspiring", url: stickerInspiring, name: "Inspiring" },
     { id: "memoji-finger-heart", url: stickerFingerHeart, name: "Love" },
-  ]
+    { id: "memoji-ghost", url: stickerGhost, name: "Anon" },
+    { id: "memoji-cat", url: stickerCat, name: "Degen Cat" },
+  ],
+  "Reactions": [
+    { id: "memoji-finger-heart", url: stickerFingerHeart, name: "Heart" },
+    { id: "memoji-wink", url: stickerWink, name: "Wink" },
+    { id: "memoji-cat", url: stickerCat, name: "Cool" },
+    { id: "memoji-ghost", url: stickerGhost, name: "Spooky" },
+    { id: "memoji-headphones", url: stickerHeadphones, name: "Vibes" },
+    { id: "memoji-verified", url: stickerVerified, name: "Approved" },
+  ],
+  "Hype": [
+    { id: "memoji-inspiring", url: stickerInspiring, name: "Power Up" },
+    { id: "memoji-headphones", url: stickerHeadphones, name: "Loud" },
+    { id: "memoji-potion", url: stickerPotion, name: "Magic" },
+    { id: "memoji-verified", url: stickerVerified, name: "Legit" },
+    { id: "memoji-wink", url: stickerWink, name: "Smooth" },
+    { id: "memoji-finger-heart", url: stickerFingerHeart, name: "Love It" },
+  ],
 };
+
 
 export const StickerPicker = ({ onSelect, onClose }: StickerPickerProps) => {
   const [packs, setPacks] = useState<StickerPack[]>([]);

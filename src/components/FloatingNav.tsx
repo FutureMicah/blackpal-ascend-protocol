@@ -65,6 +65,7 @@ const drawerGroups: { label: string; items: { name: string; path: string; icon: 
       { name: "Achievements", path: "/achievements", icon: Trophy },
       { name: "Leaderboard", path: "/leaderboard", icon: BarChart3 },
       { name: "BlackBoard", path: "/blackboard", icon: BookOpen },
+      { name: "Classes", path: "/classes", icon: BookOpen },
       { name: "Academy Tools", path: "/blackpass", icon: MegaIcon },
       { name: "BlackForge", path: "/blackforge", icon: Hammer },
       { name: "BTAX", path: "/btax", icon: Coins },
