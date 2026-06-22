@@ -192,7 +192,12 @@ export default function Classes() {
     await supabase.from("class_session_attendance").upsert({
       session_id: s.id, user_id: user.id,
     } as any, { onConflict: "session_id,user_id" });
-    if (s.stream_url) window.open(s.stream_url, "_blank");
+    // External link → open in new tab. Jitsi/Daily → open in-app room.
+    if ((s.provider === "external") || (!s.provider && s.stream_url && !s.room_name)) {
+      if (s.stream_url) window.open(s.stream_url, "_blank");
+      return;
+    }
+    setLiveRoom(s);
   };
 
   const now = new Date();
