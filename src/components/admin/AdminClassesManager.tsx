@@ -162,7 +162,7 @@ export const AdminClassesManager = () => {
         <TabsContent value="live" className="space-y-3 mt-3">
           <div className="flex justify-between items-center">
             <h3 className="font-semibold">Live Sessions</h3>
-            <Button size="sm" onClick={() => setOpenSession({ starts_at: new Date().toISOString().slice(0, 16) })}>
+            <Button size="sm" onClick={() => setOpenSession({ starts_at: new Date().toISOString().slice(0, 16), provider: "jitsi" })}>
               <Plus className="w-4 h-4 mr-1" />New Session
             </Button>
           </div>
