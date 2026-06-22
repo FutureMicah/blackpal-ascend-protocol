@@ -84,11 +84,15 @@ export const AdminClassesManager = () => {
   };
 
   const saveSession = async (s: Live) => {
+    const provider = s.provider || "jitsi";
+    const slugify = (t: string) => (t || "session").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40);
+    const room_name = s.room_name?.trim() || `blackpal-${slugify(s.title)}-${Math.random().toString(36).slice(2, 6)}`;
     const payload = {
       course_id: s.course_id || null, title: s.title, description: s.description,
       starts_at: s.starts_at, ends_at: s.ends_at || null,
       stream_url: s.stream_url, replay_url: s.replay_url,
       host_name: s.host_name, is_live: !!s.is_live,
+      provider, room_name,
     };
     const op = s.id
       ? supabase.from("class_live_sessions").update(payload).eq("id", s.id)
