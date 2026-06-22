@@ -32,7 +32,8 @@ Deno.serve(async (req) => {
     const isHost = !!body.is_host
     const userName = String(body.user_name || 'Trader').slice(0, 60)
 
-    // Ensure room exists (idempotent)
+    // Ensure room exists (idempotent) and capture its real URL
+    let roomUrl: string | null = null
     const getRoom = await fetch(`${DAILY_API}/rooms/${rawRoom}`, {
       headers: { Authorization: `Bearer ${DAILY_API_KEY}` },
     })
@@ -59,9 +60,14 @@ Deno.serve(async (req) => {
         const t = await create.text()
         return json({ error: 'create_failed', detail: t }, 500)
       }
+      const created = await create.json()
+      roomUrl = created.url
     } else if (!getRoom.ok) {
       const t = await getRoom.text()
       return json({ error: 'lookup_failed', detail: t }, 500)
+    } else {
+      const existing = await getRoom.json()
+      roomUrl = existing.url
     }
 
     // Mint meeting token (90 min)
