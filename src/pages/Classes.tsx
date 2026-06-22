@@ -63,6 +63,8 @@ type LiveSession = {
   host_name: string | null;
   is_live: boolean;
   attendees_count: number;
+  provider?: "jitsi" | "daily" | "external" | null;
+  room_name?: string | null;
 };
 
 const LEVELS = ["all", "beginner", "intermediate", "advanced"];
