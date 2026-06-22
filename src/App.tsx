@@ -54,6 +54,7 @@ import { EnergyModeProvider } from "./contexts/EnergyModeContext";
 import { AccessGrantedSeal } from "./components/AccessGrantedSeal";
 import { LevelUpCelebration } from "./components/xp/LevelUpCelebration";
 import Marketplace from "./pages/Marketplace";
+import Classes from "./pages/Classes";
 
 
 
@@ -120,6 +121,7 @@ const App = () => (
             <Route path="/wallet/topup" element={<NairaTopUp />} />
             <Route path="/a11y-checklist" element={<A11yChecklist />} />
             <Route path="/marketplace" element={<Marketplace />} />
+            <Route path="/classes" element={<Classes />} />
             <Route path="*" element={<NotFound />} />
 
           </Routes>

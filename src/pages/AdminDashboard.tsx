@@ -32,6 +32,7 @@ import { AdminErrorBoundary } from "@/components/admin/AdminErrorBoundary";
 import { AdminDiagnosticsPanel } from "@/components/admin/AdminDiagnosticsPanel";
 import { AdminSettingsPanelShell } from "@/components/admin/AdminSettingsPanelShell";
 import { BtaxRulesPanel } from "@/components/admin/BtaxRulesPanel";
+import { AdminClassesManager } from "@/components/admin/AdminClassesManager";
 import { CurrencyConverter } from "@/components/CurrencyConverter";
 import { AdminAtlasPanel } from "@/components/atlas/AdminAtlasPanel";
 import logo from "@/assets/blackpal-logo.jpg";
@@ -819,6 +820,9 @@ function AdminDashboardInner() {
                 </AdminSettingsPanelShell>
                 <AdminSettingsPanelShell title="BTAX Rules & Marketplace" icon={Coins}>
                   <BtaxRulesPanel />
+                </AdminSettingsPanelShell>
+                <AdminSettingsPanelShell title="Classes & Live Sessions" icon={Package}>
+                  <AdminClassesManager />
                 </AdminSettingsPanelShell>
                 <AdminSettingsPanelShell title="Admin Credentials" icon={UserCog}>
                   <AdminCredentialsPanel />
