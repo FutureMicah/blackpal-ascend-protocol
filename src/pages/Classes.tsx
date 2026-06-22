@@ -16,6 +16,7 @@ import {
   CheckCircle2, Lock, Radio, Award, BookOpen, ChevronRight,
 } from "lucide-react";
 import { format, isAfter, isBefore } from "date-fns";
+import { LiveSessionRoom } from "@/components/classes/LiveSessionRoom";
 
 type Course = {
   id: string;
