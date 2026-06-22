@@ -170,7 +170,7 @@ export const AdminClassesManager = () => {
             <div key={s.id} className="p-3 border border-border rounded-lg flex items-center justify-between gap-2">
               <div>
                 <p className="font-semibold text-sm">{s.title} {s.is_live && <span className="text-[10px] text-red-400">• LIVE</span>}</p>
-                <p className="text-[10px] text-muted-foreground">{format(new Date(s.starts_at), "MMM d, h:mm a")} • {s.host_name} • {s.attendees_count} attendees</p>
+                <p className="text-[10px] text-muted-foreground">{format(new Date(s.starts_at), "MMM d, h:mm a")} • {s.host_name} • {s.attendees_count} attendees • <span className="uppercase">{s.provider || "jitsi"}</span></p>
               </div>
               <div className="flex gap-1">
                 <Button size="icon" variant="ghost" onClick={() => setOpenSession(s)}><Pencil className="w-4 h-4" /></Button>
