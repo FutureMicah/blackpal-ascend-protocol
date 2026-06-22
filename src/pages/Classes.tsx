@@ -15,7 +15,7 @@ import {
   GraduationCap, Search, Play, Clock, Coins, Sparkles, Users, Calendar,
   CheckCircle2, Lock, Radio, Award, BookOpen, ChevronRight,
 } from "lucide-react";
-import { format, isAfter, isBefore, addHours } from "date-fns";
+import { format, isAfter, isBefore } from "date-fns";
 
 type Course = {
   id: string;
