@@ -88,8 +88,7 @@ Deno.serve(async (req) => {
       return json({ error: 'token_failed', detail: t }, 500)
     }
     const { token } = await tok.json()
-
-    const url = `https://lovable.daily.co/${rawRoom}?t=${token}`
+    const url = `${roomUrl}?t=${token}`
     return json({ url, room: rawRoom })
   } catch (e) {
     return json({ error: String(e?.message || e) }, 500)
