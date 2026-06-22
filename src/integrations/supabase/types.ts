@@ -52,37 +52,61 @@ export type Database = {
       }
       academy_courses: {
         Row: {
+          category: string | null
           cover_url: string | null
           created_at: string
           created_by: string | null
           description: string | null
           display_order: number
+          duration_minutes: number | null
           id: string
+          instructor_id: string | null
+          instructor_name: string | null
           is_published: boolean
+          level: string | null
+          price_btax: number
+          tags: string[] | null
           title: string
           updated_at: string
+          xp_reward: number
         }
         Insert: {
+          category?: string | null
           cover_url?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
           display_order?: number
+          duration_minutes?: number | null
           id?: string
+          instructor_id?: string | null
+          instructor_name?: string | null
           is_published?: boolean
+          level?: string | null
+          price_btax?: number
+          tags?: string[] | null
           title: string
           updated_at?: string
+          xp_reward?: number
         }
         Update: {
+          category?: string | null
           cover_url?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
           display_order?: number
+          duration_minutes?: number | null
           id?: string
+          instructor_id?: string | null
+          instructor_name?: string | null
           is_published?: boolean
+          level?: string | null
+          price_btax?: number
+          tags?: string[] | null
           title?: string
           updated_at?: string
+          xp_reward?: number
         }
         Relationships: []
       }
@@ -92,30 +116,39 @@ export type Database = {
           course_id: string | null
           created_at: string
           display_order: number
+          duration_minutes: number | null
           id: string
           media_type: string | null
           media_url: string | null
+          resource_url: string | null
           title: string
+          video_url: string | null
         }
         Insert: {
           body?: string | null
           course_id?: string | null
           created_at?: string
           display_order?: number
+          duration_minutes?: number | null
           id?: string
           media_type?: string | null
           media_url?: string | null
+          resource_url?: string | null
           title: string
+          video_url?: string | null
         }
         Update: {
           body?: string | null
           course_id?: string | null
           created_at?: string
           display_order?: number
+          duration_minutes?: number | null
           id?: string
           media_type?: string | null
           media_url?: string | null
+          resource_url?: string | null
           title?: string
+          video_url?: string | null
         }
         Relationships: [
           {
@@ -1388,6 +1421,177 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      class_enrollments: {
+        Row: {
+          completed_at: string | null
+          course_id: string
+          enrolled_at: string
+          id: string
+          paid_btax: number
+          progress_percent: number
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          course_id: string
+          enrolled_at?: string
+          id?: string
+          paid_btax?: number
+          progress_percent?: number
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          course_id?: string
+          enrolled_at?: string
+          id?: string
+          paid_btax?: number
+          progress_percent?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_enrollments_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "academy_courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      class_lesson_progress: {
+        Row: {
+          completed: boolean
+          completed_at: string | null
+          course_id: string
+          id: string
+          lesson_id: string
+          user_id: string
+          watch_seconds: number
+        }
+        Insert: {
+          completed?: boolean
+          completed_at?: string | null
+          course_id: string
+          id?: string
+          lesson_id: string
+          user_id: string
+          watch_seconds?: number
+        }
+        Update: {
+          completed?: boolean
+          completed_at?: string | null
+          course_id?: string
+          id?: string
+          lesson_id?: string
+          user_id?: string
+          watch_seconds?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_lesson_progress_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "academy_courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_lesson_progress_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "academy_lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      class_live_sessions: {
+        Row: {
+          attendees_count: number
+          course_id: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          ends_at: string | null
+          host_name: string | null
+          id: string
+          is_live: boolean
+          replay_url: string | null
+          starts_at: string
+          stream_url: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          attendees_count?: number
+          course_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          ends_at?: string | null
+          host_name?: string | null
+          id?: string
+          is_live?: boolean
+          replay_url?: string | null
+          starts_at: string
+          stream_url?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          attendees_count?: number
+          course_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          ends_at?: string | null
+          host_name?: string | null
+          id?: string
+          is_live?: boolean
+          replay_url?: string | null
+          starts_at?: string
+          stream_url?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_live_sessions_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "academy_courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      class_session_attendance: {
+        Row: {
+          id: string
+          joined_at: string
+          session_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          joined_at?: string
+          session_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          joined_at?: string
+          session_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_session_attendance_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "class_live_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       collectibles: {
         Row: {
