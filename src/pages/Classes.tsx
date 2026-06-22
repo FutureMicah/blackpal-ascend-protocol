@@ -83,6 +83,7 @@ export default function Classes() {
   const [completedLessons, setCompletedLessons] = useState<Set<string>>(new Set());
   const [activeLesson, setActiveLesson] = useState<Lesson | null>(null);
   const [loading, setLoading] = useState(true);
+  const [liveRoom, setLiveRoom] = useState<LiveSession | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
