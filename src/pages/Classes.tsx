@@ -503,6 +503,14 @@ export default function Classes() {
           )}
         </DialogContent>
       </Dialog>
+
+      <LiveSessionRoom
+        open={!!liveRoom}
+        onClose={() => setLiveRoom(null)}
+        session={liveRoom}
+        userName={user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Trader"}
+        userEmail={user?.email}
+      />
     </div>
   );
 }
