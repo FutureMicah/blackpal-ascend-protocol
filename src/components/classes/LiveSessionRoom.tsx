@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Loader2, Radio, ExternalLink } from "lucide-react";
+import { Loader2, Radio, ExternalLink, MessageSquare, X, Mic, MicOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { ClassChatRoom } from "@/components/classes/ClassChatRoom";
 
 type Props = {
   open: boolean;
@@ -11,25 +12,29 @@ type Props = {
   session: {
     id: string;
     title: string;
+    course_id?: string | null;
     provider?: "jitsi" | "daily" | "external" | null;
     room_name?: string | null;
     stream_url?: string | null;
     host_name?: string | null;
   } | null;
+  courseTitle?: string;
+  courseRules?: string | null;
+  userId: string;
   userName: string;
-  userEmail?: string;
   isHost?: boolean;
 };
 
-export const LiveSessionRoom = ({ open, onClose, session, userName, userEmail, isHost }: Props) => {
+export const LiveSessionRoom = ({ open, onClose, session, courseTitle, courseRules, userId, userName, isHost }: Props) => {
   const [loading, setLoading] = useState(false);
   const [dailyUrl, setDailyUrl] = useState<string | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const [showChat, setShowChat] = useState(true);
+  const [micOn, setMicOn] = useState(false);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
 
   const provider = session?.provider || "jitsi";
   const room = session?.room_name || (session ? `blackpal-${session.id}` : "");
 
-  // Daily.co: fetch a token + room URL from edge function
   useEffect(() => {
     if (!open || !session || provider !== "daily") { setDailyUrl(null); return; }
     let cancelled = false;
@@ -40,70 +45,110 @@ export const LiveSessionRoom = ({ open, onClose, session, userName, userEmail, i
       });
       if (cancelled) return;
       if (error || !data?.url) {
-        toast.error("Could not start the Daily room. Falling back to Jitsi.");
+        toast.error("Daily.co not configured yet — using Jitsi.");
         setDailyUrl(`https://meet.jit.si/${room}`);
-      } else {
-        setDailyUrl(data.url);
-      }
+      } else setDailyUrl(data.url);
       setLoading(false);
     })();
     return () => { cancelled = true; };
   }, [open, session?.id, provider]);
 
-  // Jitsi: inject iframe with display name
+  // Jitsi iframe — student joins muted, host joins with audio on
   const jitsiSrc = session
-    ? `https://meet.jit.si/${encodeURIComponent(room)}#userInfo.displayName=${encodeURIComponent(userName)}&config.prejoinPageEnabled=false&config.startWithAudioMuted=true`
+    ? `https://meet.jit.si/${encodeURIComponent(room)}#userInfo.displayName=${encodeURIComponent(userName)}` +
+      `&config.prejoinPageEnabled=false&config.startWithAudioMuted=${!isHost}&config.startWithVideoMuted=${!isHost}` +
+      `&config.disableDeepLinking=true&config.toolbarButtons=%5B%22microphone%22%2C%22camera%22%2C%22hangup%22%2C%22chat%22%5D`
     : "";
+
+  // Best-effort mic toggle via Jitsi iframe postMessage
+  const toggleMic = () => {
+    if (provider !== "jitsi" || !iframeRef.current) return;
+    iframeRef.current.contentWindow?.postMessage(
+      JSON.stringify({ type: "command", name: "toggleAudio" }),
+      "https://meet.jit.si",
+    );
+    setMicOn((m) => !m);
+    toast.success(micOn ? "Mic muted" : "Mic unmuted");
+  };
 
   if (!session) return null;
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-5xl w-[95vw] h-[85vh] p-0 overflow-hidden bg-black border-primary/30">
-        <DialogHeader className="p-3 border-b border-border/40 flex-row items-center justify-between space-y-0">
+      <DialogContent className="max-w-6xl w-[97vw] h-[90vh] p-0 overflow-hidden bg-black border-primary/30 flex flex-col">
+        <DialogHeader className="p-3 border-b border-border/40 flex-row items-center justify-between space-y-0 shrink-0">
           <DialogTitle className="flex items-center gap-2 text-sm">
             <Radio className="w-4 h-4 text-red-400 animate-pulse" />
             {session.title}
             <span className="text-[10px] text-muted-foreground ml-2 uppercase">{provider}</span>
           </DialogTitle>
-          {provider === "external" && session.stream_url && (
-            <Button size="sm" variant="outline" onClick={() => window.open(session.stream_url!, "_blank")}>
-              <ExternalLink className="w-3 h-3 mr-1" /> Open
+          <div className="flex items-center gap-1">
+            {provider === "jitsi" && (
+              <Button size="sm" variant={micOn ? "default" : "outline"} onClick={toggleMic} className="h-7 text-[11px]">
+                {micOn ? <Mic className="w-3 h-3 mr-1" /> : <MicOff className="w-3 h-3 mr-1" />}
+                {micOn ? "Mic on" : "Mic off"}
+              </Button>
+            )}
+            <Button size="sm" variant="ghost" onClick={() => setShowChat((s) => !s)} className="h-7 text-[11px]">
+              {showChat ? <X className="w-3 h-3 mr-1" /> : <MessageSquare className="w-3 h-3 mr-1" />}
+              {showChat ? "Hide chat" : "Show chat"}
             </Button>
-          )}
+            {provider === "external" && session.stream_url && (
+              <Button size="sm" variant="outline" onClick={() => window.open(session.stream_url!, "_blank")} className="h-7 text-[11px]">
+                <ExternalLink className="w-3 h-3 mr-1" /> Open
+              </Button>
+            )}
+          </div>
         </DialogHeader>
 
-        <div ref={containerRef} className="flex-1 w-full h-full bg-black relative">
-          {provider === "jitsi" && (
-            <iframe
-              src={jitsiSrc}
-              allow="camera; microphone; fullscreen; display-capture; autoplay; clipboard-write"
-              className="w-full h-full border-0"
-              title={session.title}
-            />
-          )}
-
-          {provider === "daily" && (
-            loading || !dailyUrl ? (
-              <div className="flex items-center justify-center h-full text-muted-foreground">
-                <Loader2 className="w-6 h-6 animate-spin mr-2" /> Preparing premium room…
-              </div>
-            ) : (
+        <div className="flex-1 flex min-h-0">
+          {/* Video pane */}
+          <div className={`relative bg-black ${showChat && session.course_id ? "flex-1 lg:flex-[2]" : "flex-1"}`}>
+            {provider === "jitsi" && (
               <iframe
-                src={dailyUrl}
+                ref={iframeRef}
+                src={jitsiSrc}
                 allow="camera; microphone; fullscreen; display-capture; autoplay; clipboard-write"
                 className="w-full h-full border-0"
                 title={session.title}
               />
-            )
-          )}
+            )}
+            {provider === "daily" && (
+              loading || !dailyUrl ? (
+                <div className="flex items-center justify-center h-full text-muted-foreground">
+                  <Loader2 className="w-6 h-6 animate-spin mr-2" /> Preparing premium room…
+                </div>
+              ) : (
+                <iframe
+                  src={dailyUrl}
+                  allow="camera; microphone; fullscreen; display-capture; autoplay; clipboard-write"
+                  className="w-full h-full border-0"
+                  title={session.title}
+                />
+              )
+            )}
+            {provider === "external" && (
+              <div className="flex flex-col items-center justify-center h-full gap-3 text-center px-6">
+                <p className="text-sm text-muted-foreground">This session uses an external link.</p>
+                <Button onClick={() => session.stream_url && window.open(session.stream_url, "_blank")}>
+                  <ExternalLink className="w-4 h-4 mr-2" /> Open meeting
+                </Button>
+              </div>
+            )}
+          </div>
 
-          {provider === "external" && (
-            <div className="flex flex-col items-center justify-center h-full gap-3 text-center px-6">
-              <p className="text-sm text-muted-foreground">This session uses an external link.</p>
-              <Button onClick={() => session.stream_url && window.open(session.stream_url, "_blank")}>
-                <ExternalLink className="w-4 h-4 mr-2" /> Open meeting
-              </Button>
+          {/* Side chat — only when course is linked */}
+          {showChat && session.course_id && (
+            <div className="hidden md:flex w-[360px] border-l border-border/40 bg-card/95 backdrop-blur">
+              <ClassChatRoom
+                courseId={session.course_id}
+                courseTitle={courseTitle || session.title}
+                rules={courseRules}
+                userId={userId}
+                userName={userName}
+                sessionId={session.id}
+                compact
+              />
             </div>
           )}
         </div>
