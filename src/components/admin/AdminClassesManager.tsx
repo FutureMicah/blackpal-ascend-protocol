@@ -252,8 +252,29 @@ export const AdminClassesManager = () => {
               <Input type="datetime-local" value={openSession.starts_at?.slice(0, 16) || ""} onChange={e => setOpenSession({ ...openSession, starts_at: new Date(e.target.value).toISOString() })} />
               <Input type="datetime-local" placeholder="Ends at" value={openSession.ends_at?.slice(0, 16) || ""} onChange={e => setOpenSession({ ...openSession, ends_at: e.target.value ? new Date(e.target.value).toISOString() : null })} />
               <Input placeholder="Host name" value={openSession.host_name || ""} onChange={e => setOpenSession({ ...openSession, host_name: e.target.value })} />
-              <Input placeholder="Stream URL (Zoom / YouTube Live)" value={openSession.stream_url || ""} onChange={e => setOpenSession({ ...openSession, stream_url: e.target.value })} />
-              <Input placeholder="Replay URL" value={openSession.replay_url || ""} onChange={e => setOpenSession({ ...openSession, replay_url: e.target.value })} />
+
+              <div className="border border-border rounded-lg p-2 space-y-2">
+                <p className="text-xs font-medium text-muted-foreground">Video provider</p>
+                <select className="w-full border border-border bg-background rounded px-2 py-2 text-sm"
+                  value={openSession.provider || "jitsi"}
+                  onChange={e => setOpenSession({ ...openSession, provider: e.target.value })}>
+                  <option value="jitsi">Jitsi — free, in-app video + screen share (default)</option>
+                  <option value="daily">Daily.co — premium HD, requires DAILY_API_KEY</option>
+                  <option value="external">External link — Zoom / Meet / YouTube Live</option>
+                </select>
+                {(openSession.provider || "jitsi") !== "external" && (
+                  <Input
+                    placeholder="Room name (auto-generated if blank, a-z 0-9 - _)"
+                    value={openSession.room_name || ""}
+                    onChange={e => setOpenSession({ ...openSession, room_name: e.target.value.replace(/[^a-zA-Z0-9_-]/g, "") })}
+                  />
+                )}
+                {openSession.provider === "external" && (
+                  <Input placeholder="Stream URL (Zoom / YouTube Live)" value={openSession.stream_url || ""} onChange={e => setOpenSession({ ...openSession, stream_url: e.target.value })} />
+                )}
+              </div>
+
+              <Input placeholder="Replay URL (after the session)" value={openSession.replay_url || ""} onChange={e => setOpenSession({ ...openSession, replay_url: e.target.value })} />
               <label className="flex items-center gap-2 text-sm">
                 <input type="checkbox" checked={!!openSession.is_live} onChange={e => setOpenSession({ ...openSession, is_live: e.target.checked })} />
                 Live now
