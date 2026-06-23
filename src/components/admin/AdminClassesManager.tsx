@@ -54,6 +54,7 @@ export const AdminClassesManager = () => {
       price_btax: Number(c.price_btax) || 0, xp_reward: Number(c.xp_reward) || 50,
       duration_minutes: Number(c.duration_minutes) || 0,
       is_published: !!c.is_published, display_order: Number(c.display_order) || 0,
+      rules: c.rules || null,
     };
     const op = c.id
       ? supabase.from("academy_courses").update(payload).eq("id", c.id)
@@ -61,6 +62,58 @@ export const AdminClassesManager = () => {
     const { error } = await op;
     if (error) toast.error(error.message);
     else { toast.success("Saved"); setOpenCourse(null); load(); }
+  };
+
+  const openRoles = async (c: Course) => {
+    setRolesCourse(c);
+    const { data } = await supabase.from("class_chat_roles").select("*").eq("course_id", c.id);
+    const ids = (data || []).map((r: any) => r.user_id);
+    const { data: profs } = ids.length
+      ? await supabase.from("profiles").select("id, display_name, email").in("id", ids)
+      : { data: [] as any[] };
+    const profMap: Record<string, any> = {};
+    (profs || []).forEach((p: any) => { profMap[p.id] = p; });
+    setCourseRoles((data || []).map((r: any) => ({
+      ...r, display_name: profMap[r.user_id]?.display_name, email: profMap[r.user_id]?.email,
+    })));
+  };
+
+  const searchUsers = async (q: string) => {
+    setRoleSearch(q);
+    if (q.length < 2) { setSearchResults([]); return; }
+    const { data } = await supabase.from("profiles")
+      .select("id, display_name, email, avatar_url")
+      .or(`display_name.ilike.%${q}%,email.ilike.%${q}%`).limit(8);
+    setSearchResults(data || []);
+  };
+
+  const assignRole = async (userId: string, role: string) => {
+    if (!rolesCourse) return;
+    const { error } = await supabase.from("class_chat_roles").upsert({
+      course_id: rolesCourse.id, user_id: userId, role,
+    } as any, { onConflict: "course_id,user_id" });
+    if (error) toast.error(error.message); else { toast.success("Role set"); openRoles(rolesCourse); }
+  };
+
+  const removeRole = async (id: string) => {
+    await supabase.from("class_chat_roles").delete().eq("id", id);
+    if (rolesCourse) openRoles(rolesCourse);
+  };
+
+  const sendClassNotification = async () => {
+    if (!notifyCourse || !notifyTitle.trim() || !notifyMessage.trim()) return;
+    const { data, error } = await supabase.rpc("notify_class_event" as any, {
+      p_course_id: notifyCourse.id,
+      p_title: notifyTitle.trim(),
+      p_message: notifyMessage.trim(),
+      p_icon: "📢",
+      p_type: "info",
+    });
+    if (error) toast.error(error.message);
+    else {
+      toast.success(`Notified ${data || 0} student${data === 1 ? "" : "s"}`);
+      setNotifyCourse(null); setNotifyTitle(""); setNotifyMessage("");
+    }
   };
 
   const deleteCourse = async (id: string) => {
