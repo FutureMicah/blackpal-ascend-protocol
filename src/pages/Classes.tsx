@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import { FloatingNav } from "@/components/FloatingNav";
 import { toast } from "sonner";
@@ -19,6 +19,7 @@ import { format, isAfter, isBefore } from "date-fns";
 import { LiveSessionRoom } from "@/components/classes/LiveSessionRoom";
 import { ClassChatRoom } from "@/components/classes/ClassChatRoom";
 import { ClassesSkeleton, LoadErrorState } from "@/components/classes/ClassesSkeleton";
+import { trackClassEvent, startTimer, backoffDelay } from "@/lib/class-analytics";
 
 type Course = {
   id: string;
@@ -87,26 +88,53 @@ export default function Classes() {
   const [activeLesson, setActiveLesson] = useState<Lesson | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [retryAttempt, setRetryAttempt] = useState(0);
   const [liveRoom, setLiveRoom] = useState<LiveSession | null>(null);
   const [chatCourse, setChatCourse] = useState<Course | null>(null);
   const navigate = useNavigate();
 
-  const bootstrap = async () => {
+  const bootstrap = async (isAutoRecover = false) => {
     setLoading(true);
     setLoadError(null);
+    const stop = startTimer("classes_load_ready");
+    void trackClassEvent({ event_type: "classes_load_start", retry_count: retryAttempt });
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) { navigate("/auth"); return; }
       setUser(session.user);
       await Promise.all([loadCourses(), loadEnrollments(session.user.id), loadSessions()]);
+      stop({ retries: retryAttempt, autoRecover: isAutoRecover });
+      if (isAutoRecover) {
+        void trackClassEvent({ event_type: "auto_recover", retry_count: retryAttempt });
+        toast.success("Reconnected.");
+      }
+      setRetryAttempt(0);
     } catch (e: any) {
-      setLoadError(e?.message || "Failed to load classes.");
+      const msg = e?.message || "Failed to load classes.";
+      setLoadError(msg);
+      void trackClassEvent({ event_type: "classes_load_error", retry_count: retryAttempt, meta: { message: msg } });
     } finally {
       setLoading(false);
     }
   };
 
+  const retryBootstrap = () => {
+    const next = retryAttempt + 1;
+    setRetryAttempt(next);
+    void trackClassEvent({ event_type: "retry", retry_count: next, meta: { surface: "classes_page" } });
+    const delay = backoffDelay(next - 1);
+    setTimeout(() => bootstrap(false), delay);
+  };
+
   useEffect(() => { bootstrap(); }, [navigate]);
+
+  // Auto-recover on reconnect
+  useEffect(() => {
+    const onOnline = () => { if (loadError) bootstrap(true); };
+    window.addEventListener("online", onOnline);
+    return () => window.removeEventListener("online", onOnline);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loadError]);
 
   const loadCourses = async () => {
     const { data } = await supabase.from("academy_courses")
@@ -227,7 +255,7 @@ export default function Classes() {
     return (
       <div className="min-h-screen bg-background pb-24">
         <FloatingNav />
-        <LoadErrorState onRetry={bootstrap} message={loadError} />
+        <LoadErrorState onRetry={retryBootstrap} message={loadError} />
       </div>
     );
   }
@@ -468,11 +496,17 @@ export default function Classes() {
 
       {/* Course details / lesson player */}
       <Dialog open={!!openCourse} onOpenChange={(o) => { if (!o) { setOpenCourse(null); setActiveLesson(null); } }}>
-        <DialogContent className="w-[96vw] max-w-2xl max-h-[90dvh] overflow-y-auto p-4 sm:p-6">
+        <DialogContent
+          className="w-[96vw] max-w-2xl max-h-[90dvh] overflow-y-auto p-4 sm:p-6 focus-visible:ring-2 focus-visible:ring-ring"
+          aria-describedby="course-details-desc"
+        >
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <GraduationCap className="w-5 h-5 text-primary" /> {openCourse?.title}
+              <GraduationCap className="w-5 h-5 text-primary" aria-hidden="true" /> {openCourse?.title}
             </DialogTitle>
+            <DialogDescription id="course-details-desc" className="sr-only">
+              Course details, lessons, and progress for {openCourse?.title || "the selected class"}.
+            </DialogDescription>
           </DialogHeader>
           {openCourse && (
             <div className="space-y-4">
@@ -542,7 +576,16 @@ export default function Classes() {
 
       {/* Class chat dialog */}
       <Dialog open={!!chatCourse} onOpenChange={(o) => !o && setChatCourse(null)}>
-        <DialogContent className="w-[100vw] sm:w-[95vw] max-w-2xl h-[100dvh] sm:h-[85vh] p-0 overflow-hidden rounded-none sm:rounded-lg">
+        <DialogContent
+          className="w-[100vw] sm:w-[95vw] max-w-2xl h-[100dvh] sm:h-[85vh] p-0 overflow-hidden rounded-none sm:rounded-lg focus-visible:ring-2 focus-visible:ring-ring"
+          aria-describedby="class-chat-desc"
+        >
+          <DialogHeader className="sr-only">
+            <DialogTitle>{chatCourse?.title ? `${chatCourse.title} chat` : "Class chat"}</DialogTitle>
+            <DialogDescription id="class-chat-desc">
+              Class chat room. Send messages, voice notes, and media to your mentor and classmates.
+            </DialogDescription>
+          </DialogHeader>
           {user && chatCourse && (
             <ClassChatRoom
               courseId={chatCourse.id}
