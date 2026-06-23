@@ -88,26 +88,53 @@ export default function Classes() {
   const [activeLesson, setActiveLesson] = useState<Lesson | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [retryAttempt, setRetryAttempt] = useState(0);
   const [liveRoom, setLiveRoom] = useState<LiveSession | null>(null);
   const [chatCourse, setChatCourse] = useState<Course | null>(null);
   const navigate = useNavigate();
 
-  const bootstrap = async () => {
+  const bootstrap = async (isAutoRecover = false) => {
     setLoading(true);
     setLoadError(null);
+    const stop = startTimer("classes_load_ready");
+    void trackClassEvent({ event_type: "classes_load_start", retry_count: retryAttempt });
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) { navigate("/auth"); return; }
       setUser(session.user);
       await Promise.all([loadCourses(), loadEnrollments(session.user.id), loadSessions()]);
+      stop({ retries: retryAttempt, autoRecover: isAutoRecover });
+      if (isAutoRecover) {
+        void trackClassEvent({ event_type: "auto_recover", retry_count: retryAttempt });
+        toast.success("Reconnected.");
+      }
+      setRetryAttempt(0);
     } catch (e: any) {
-      setLoadError(e?.message || "Failed to load classes.");
+      const msg = e?.message || "Failed to load classes.";
+      setLoadError(msg);
+      void trackClassEvent({ event_type: "classes_load_error", retry_count: retryAttempt, meta: { message: msg } });
     } finally {
       setLoading(false);
     }
   };
 
+  const retryBootstrap = () => {
+    const next = retryAttempt + 1;
+    setRetryAttempt(next);
+    void trackClassEvent({ event_type: "retry", retry_count: next, meta: { surface: "classes_page" } });
+    const delay = backoffDelay(next - 1);
+    setTimeout(() => bootstrap(false), delay);
+  };
+
   useEffect(() => { bootstrap(); }, [navigate]);
+
+  // Auto-recover on reconnect
+  useEffect(() => {
+    const onOnline = () => { if (loadError) bootstrap(true); };
+    window.addEventListener("online", onOnline);
+    return () => window.removeEventListener("online", onOnline);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loadError]);
 
   const loadCourses = async () => {
     const { data } = await supabase.from("academy_courses")
