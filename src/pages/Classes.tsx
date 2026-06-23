@@ -522,6 +522,21 @@ export default function Classes() {
           userName={user.user_metadata?.full_name || user.email?.split("@")[0] || "Trader"}
         />
       )}
+
+      {/* Class chat dialog */}
+      <Dialog open={!!chatCourse} onOpenChange={(o) => !o && setChatCourse(null)}>
+        <DialogContent className="max-w-2xl w-[95vw] h-[85vh] p-0 overflow-hidden">
+          {user && chatCourse && (
+            <ClassChatRoom
+              courseId={chatCourse.id}
+              courseTitle={chatCourse.title}
+              rules={(chatCourse as any).rules}
+              userId={user.id}
+              userName={user.user_metadata?.full_name || user.email?.split("@")[0] || "Trader"}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
