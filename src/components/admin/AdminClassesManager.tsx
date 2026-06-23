@@ -4,15 +4,16 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Pencil, Trash2, BookOpen, Radio } from "lucide-react";
+import { Plus, Pencil, Trash2, BookOpen, Radio, ScrollText, Megaphone, Users, Crown, Shield, VolumeX, X } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
 type Course = any;
 type Lesson = any;
 type Live = any;
+type RoleRow = { id: string; course_id: string; user_id: string; role: string; display_name?: string; email?: string };
 
 export const AdminClassesManager = () => {
   const [courses, setCourses] = useState<Course[]>([]);
@@ -22,6 +23,13 @@ export const AdminClassesManager = () => {
   const [openSession, setOpenSession] = useState<Live | null>(null);
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [activeCourseId, setActiveCourseId] = useState<string | null>(null);
+  const [rolesCourse, setRolesCourse] = useState<Course | null>(null);
+  const [courseRoles, setCourseRoles] = useState<RoleRow[]>([]);
+  const [roleSearch, setRoleSearch] = useState("");
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [notifyCourse, setNotifyCourse] = useState<Course | null>(null);
+  const [notifyTitle, setNotifyTitle] = useState("");
+  const [notifyMessage, setNotifyMessage] = useState("");
 
   useEffect(() => { load(); }, []);
 
@@ -46,6 +54,7 @@ export const AdminClassesManager = () => {
       price_btax: Number(c.price_btax) || 0, xp_reward: Number(c.xp_reward) || 50,
       duration_minutes: Number(c.duration_minutes) || 0,
       is_published: !!c.is_published, display_order: Number(c.display_order) || 0,
+      rules: c.rules || null,
     };
     const op = c.id
       ? supabase.from("academy_courses").update(payload).eq("id", c.id)
@@ -53,6 +62,58 @@ export const AdminClassesManager = () => {
     const { error } = await op;
     if (error) toast.error(error.message);
     else { toast.success("Saved"); setOpenCourse(null); load(); }
+  };
+
+  const openRoles = async (c: Course) => {
+    setRolesCourse(c);
+    const { data } = await supabase.from("class_chat_roles").select("*").eq("course_id", c.id);
+    const ids = (data || []).map((r: any) => r.user_id);
+    const { data: profs } = ids.length
+      ? await supabase.from("profiles").select("id, display_name, email").in("id", ids)
+      : { data: [] as any[] };
+    const profMap: Record<string, any> = {};
+    (profs || []).forEach((p: any) => { profMap[p.id] = p; });
+    setCourseRoles((data || []).map((r: any) => ({
+      ...r, display_name: profMap[r.user_id]?.display_name, email: profMap[r.user_id]?.email,
+    })));
+  };
+
+  const searchUsers = async (q: string) => {
+    setRoleSearch(q);
+    if (q.length < 2) { setSearchResults([]); return; }
+    const { data } = await supabase.from("profiles")
+      .select("id, display_name, email, avatar_url")
+      .or(`display_name.ilike.%${q}%,email.ilike.%${q}%`).limit(8);
+    setSearchResults(data || []);
+  };
+
+  const assignRole = async (userId: string, role: string) => {
+    if (!rolesCourse) return;
+    const { error } = await supabase.from("class_chat_roles").upsert({
+      course_id: rolesCourse.id, user_id: userId, role,
+    } as any, { onConflict: "course_id,user_id" });
+    if (error) toast.error(error.message); else { toast.success("Role set"); openRoles(rolesCourse); }
+  };
+
+  const removeRole = async (id: string) => {
+    await supabase.from("class_chat_roles").delete().eq("id", id);
+    if (rolesCourse) openRoles(rolesCourse);
+  };
+
+  const sendClassNotification = async () => {
+    if (!notifyCourse || !notifyTitle.trim() || !notifyMessage.trim()) return;
+    const { data, error } = await supabase.rpc("notify_class_event" as any, {
+      p_course_id: notifyCourse.id,
+      p_title: notifyTitle.trim(),
+      p_message: notifyMessage.trim(),
+      p_icon: "📢",
+      p_type: "info",
+    });
+    if (error) toast.error(error.message);
+    else {
+      toast.success(`Notified ${data || 0} student${data === 1 ? "" : "s"}`);
+      setNotifyCourse(null); setNotifyTitle(""); setNotifyMessage("");
+    }
   };
 
   const deleteCourse = async (id: string) => {
@@ -130,10 +191,14 @@ export const AdminClassesManager = () => {
                   <p className="font-semibold text-sm">{c.title} {c.is_published ? <span className="text-[10px] text-green-400">• Live</span> : <span className="text-[10px] text-muted-foreground">• Draft</span>}</p>
                   <p className="text-[10px] text-muted-foreground">{c.level} • {c.category || "uncategorized"} • {c.price_btax || 0} BTAX • {c.xp_reward || 0} XP</p>
                 </div>
-                <div className="flex gap-1">
-                  <Button size="sm" variant="outline" onClick={() => { loadLessons(c.id); }}>Lessons</Button>
-                  <Button size="icon" variant="ghost" onClick={() => setOpenCourse(c)}><Pencil className="w-4 h-4" /></Button>
-                  <Button size="icon" variant="ghost" onClick={() => deleteCourse(c.id)}><Trash2 className="w-4 h-4 text-red-400" /></Button>
+                <div className="flex flex-wrap gap-1">
+                  <Button size="sm" variant="outline" className="h-7 text-[11px]" onClick={() => { loadLessons(c.id); }}>Lessons</Button>
+                  <Button size="sm" variant="outline" className="h-7 text-[11px]" onClick={() => openRoles(c)}><Users className="w-3 h-3 mr-1" />Roles</Button>
+                  <Button size="sm" variant="outline" className="h-7 text-[11px]" onClick={() => { setNotifyCourse(c); setNotifyTitle("📚 Class starting soon"); setNotifyMessage("Join the live stream in 15 minutes!"); }}>
+                    <Megaphone className="w-3 h-3 mr-1" />Notify
+                  </Button>
+                  <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setOpenCourse(c)}><Pencil className="w-4 h-4" /></Button>
+                  <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => deleteCourse(c.id)}><Trash2 className="w-4 h-4 text-red-400" /></Button>
                 </div>
               </div>
               {activeCourseId === c.id && (
@@ -204,6 +269,13 @@ export const AdminClassesManager = () => {
                 <Input type="number" placeholder="Price (BTAX)" value={openCourse.price_btax || 0} onChange={e => setOpenCourse({ ...openCourse, price_btax: e.target.value })} />
                 <Input type="number" placeholder="XP reward" value={openCourse.xp_reward || 50} onChange={e => setOpenCourse({ ...openCourse, xp_reward: e.target.value })} />
                 <Input type="number" placeholder="Order" value={openCourse.display_order || 0} onChange={e => setOpenCourse({ ...openCourse, display_order: e.target.value })} />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[11px] font-medium text-muted-foreground flex items-center gap-1">
+                  <ScrollText className="w-3 h-3" /> Class chat rules (shown to students)
+                </label>
+                <Textarea rows={4} placeholder={"1. Be respectful\n2. No spam or self-promotion\n3. Stay on-topic during live sessions\n4. Mute when not speaking"}
+                  value={openCourse.rules || ""} onChange={e => setOpenCourse({ ...openCourse, rules: e.target.value })} />
               </div>
               <label className="flex items-center gap-2 text-sm">
                 <input type="checkbox" checked={!!openCourse.is_published} onChange={e => setOpenCourse({ ...openCourse, is_published: e.target.checked })} />
@@ -282,6 +354,72 @@ export const AdminClassesManager = () => {
               <Button className="w-full" onClick={() => saveSession(openSession)}>Save Session</Button>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+      {/* Roles manager */}
+      <Dialog open={!!rolesCourse} onOpenChange={(o) => { if (!o) { setRolesCourse(null); setSearchResults([]); setRoleSearch(""); } }}>
+        <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-sm flex items-center gap-2"><Users className="w-4 h-4" />Class roles · {rolesCourse?.title}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <p className="text-[11px] text-muted-foreground mb-1">Assign mentor, moderator, or mute a student. Mentors can pin / delete messages; muted users can't post.</p>
+              <Input placeholder="Search user by name or email…" value={roleSearch} onChange={(e) => searchUsers(e.target.value)} />
+              {searchResults.length > 0 && (
+                <div className="mt-2 border border-border rounded-lg divide-y divide-border max-h-48 overflow-y-auto">
+                  {searchResults.map((u: any) => (
+                    <div key={u.id} className="flex items-center justify-between gap-2 p-2 text-xs">
+                      <span className="truncate">{u.display_name} <span className="text-muted-foreground">· {u.email}</span></span>
+                      <div className="flex gap-1 shrink-0">
+                        <Button size="sm" variant="outline" className="h-6 px-2 text-[10px]" onClick={() => assignRole(u.id, "mentor")}><Crown className="w-2.5 h-2.5 mr-0.5" />Mentor</Button>
+                        <Button size="sm" variant="outline" className="h-6 px-2 text-[10px]" onClick={() => assignRole(u.id, "moderator")}><Shield className="w-2.5 h-2.5 mr-0.5" />Mod</Button>
+                        <Button size="sm" variant="outline" className="h-6 px-2 text-[10px]" onClick={() => assignRole(u.id, "muted")}><VolumeX className="w-2.5 h-2.5 mr-0.5" />Mute</Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div>
+              <p className="text-[11px] font-medium text-muted-foreground mb-1">Current roles ({courseRoles.length})</p>
+              {courseRoles.length === 0 && <p className="text-xs text-muted-foreground italic">No custom roles yet. Everyone enrolled is a student.</p>}
+              <div className="space-y-1">
+                {courseRoles.map((r) => (
+                  <div key={r.id} className="flex items-center justify-between p-2 border border-border rounded text-xs">
+                    <span className="truncate">
+                      <span className="font-medium">{r.display_name || r.user_id.slice(0, 8)}</span>
+                      <span className="ml-1 text-muted-foreground">· {r.email}</span>
+                    </span>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-primary/20 text-primary">{r.role}</span>
+                      <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => removeRole(r.id)}><X className="w-3 h-3" /></Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Notify all enrolled students */}
+      <Dialog open={!!notifyCourse} onOpenChange={(o) => !o && setNotifyCourse(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-sm flex items-center gap-2"><Megaphone className="w-4 h-4" />Notify class · {notifyCourse?.title}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2">
+            <p className="text-[11px] text-muted-foreground">
+              Sends an in-app notification to every enrolled student. Use to remind them class is starting, share materials, or urge them to join the live stream.
+            </p>
+            <Input placeholder="Title" value={notifyTitle} onChange={(e) => setNotifyTitle(e.target.value)} />
+            <Textarea rows={3} placeholder="Message — e.g. We go live in 15 min. Don't miss today's price-action breakdown!"
+              value={notifyMessage} onChange={(e) => setNotifyMessage(e.target.value)} />
+            <Button className="w-full" onClick={sendClassNotification} disabled={!notifyTitle.trim() || !notifyMessage.trim()}>
+              <Megaphone className="w-4 h-4 mr-1" />Send to all enrolled
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </Card>

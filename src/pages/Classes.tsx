@@ -13,10 +13,11 @@ import { FloatingNav } from "@/components/FloatingNav";
 import { toast } from "sonner";
 import {
   GraduationCap, Search, Play, Clock, Coins, Sparkles, Users, Calendar,
-  CheckCircle2, Lock, Radio, Award, BookOpen, ChevronRight,
+  CheckCircle2, Lock, Radio, Award, BookOpen, ChevronRight, MessageCircle,
 } from "lucide-react";
 import { format, isAfter, isBefore } from "date-fns";
 import { LiveSessionRoom } from "@/components/classes/LiveSessionRoom";
+import { ClassChatRoom } from "@/components/classes/ClassChatRoom";
 
 type Course = {
   id: string;
@@ -31,6 +32,7 @@ type Course = {
   duration_minutes: number | null;
   tags: string[] | null;
   is_published: boolean;
+  rules?: string | null;
 };
 
 type Lesson = {
@@ -84,6 +86,7 @@ export default function Classes() {
   const [activeLesson, setActiveLesson] = useState<Lesson | null>(null);
   const [loading, setLoading] = useState(true);
   const [liveRoom, setLiveRoom] = useState<LiveSession | null>(null);
+  const [chatCourse, setChatCourse] = useState<Course | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -325,9 +328,14 @@ export default function Classes() {
                             </div>
                           )}
                           {enrolled ? (
-                            <Button size="sm" className="w-full h-8 text-xs" variant="secondary" onClick={() => openCourseDetails(course)}>
-                              <Play className="w-3 h-3 mr-1" />Continue
-                            </Button>
+                            <div className="flex gap-1">
+                              <Button size="sm" className="flex-1 h-8 text-xs" variant="secondary" onClick={() => openCourseDetails(course)}>
+                                <Play className="w-3 h-3 mr-1" />Continue
+                              </Button>
+                              <Button size="sm" className="h-8 text-xs px-2" variant="outline" onClick={() => setChatCourse(course)}>
+                                <MessageCircle className="w-3 h-3" />
+                              </Button>
+                            </div>
                           ) : (
                             <Button size="sm" className="w-full h-8 text-xs" onClick={() => handleEnroll(course)}>
                               Enroll <ChevronRight className="w-3 h-3 ml-1" />
@@ -504,13 +512,32 @@ export default function Classes() {
         </DialogContent>
       </Dialog>
 
-      <LiveSessionRoom
-        open={!!liveRoom}
-        onClose={() => setLiveRoom(null)}
-        session={liveRoom}
-        userName={user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Trader"}
-        userEmail={user?.email}
-      />
+      {user && (
+        <LiveSessionRoom
+          open={!!liveRoom}
+          onClose={() => setLiveRoom(null)}
+          session={liveRoom}
+          courseTitle={courses.find(c => c.id === liveRoom?.course_id)?.title}
+          courseRules={(courses.find(c => c.id === liveRoom?.course_id) as any)?.rules}
+          userId={user.id}
+          userName={user.user_metadata?.full_name || user.email?.split("@")[0] || "Trader"}
+        />
+      )}
+
+      {/* Class chat dialog */}
+      <Dialog open={!!chatCourse} onOpenChange={(o) => !o && setChatCourse(null)}>
+        <DialogContent className="max-w-2xl w-[95vw] h-[85vh] p-0 overflow-hidden">
+          {user && chatCourse && (
+            <ClassChatRoom
+              courseId={chatCourse.id}
+              courseTitle={chatCourse.title}
+              rules={(chatCourse as any).rules}
+              userId={user.id}
+              userName={user.user_metadata?.full_name || user.email?.split("@")[0] || "Trader"}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

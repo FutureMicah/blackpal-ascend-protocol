@@ -65,6 +65,7 @@ export type Database = {
           is_published: boolean
           level: string | null
           price_btax: number
+          rules: string | null
           tags: string[] | null
           title: string
           updated_at: string
@@ -84,6 +85,7 @@ export type Database = {
           is_published?: boolean
           level?: string | null
           price_btax?: number
+          rules?: string | null
           tags?: string[] | null
           title: string
           updated_at?: string
@@ -103,6 +105,7 @@ export type Database = {
           is_published?: boolean
           level?: string | null
           price_btax?: number
+          rules?: string | null
           tags?: string[] | null
           title?: string
           updated_at?: string
@@ -1421,6 +1424,165 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      class_chat_announcements: {
+        Row: {
+          course_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          message: string
+          send_at: string
+          sent_at: string | null
+          session_id: string | null
+          title: string
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          message: string
+          send_at?: string
+          sent_at?: string | null
+          session_id?: string | null
+          title: string
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          message?: string
+          send_at?: string
+          sent_at?: string | null
+          session_id?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_chat_announcements_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "academy_courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_chat_announcements_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "class_live_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      class_chat_messages: {
+        Row: {
+          content: string | null
+          course_id: string
+          created_at: string
+          deleted_at: string | null
+          duration_seconds: number | null
+          id: string
+          is_pinned: boolean
+          media_type: string | null
+          media_url: string | null
+          message_type: string
+          reactions: Json
+          reply_to: string | null
+          sender_id: string
+          session_id: string | null
+        }
+        Insert: {
+          content?: string | null
+          course_id: string
+          created_at?: string
+          deleted_at?: string | null
+          duration_seconds?: number | null
+          id?: string
+          is_pinned?: boolean
+          media_type?: string | null
+          media_url?: string | null
+          message_type?: string
+          reactions?: Json
+          reply_to?: string | null
+          sender_id: string
+          session_id?: string | null
+        }
+        Update: {
+          content?: string | null
+          course_id?: string
+          created_at?: string
+          deleted_at?: string | null
+          duration_seconds?: number | null
+          id?: string
+          is_pinned?: boolean
+          media_type?: string | null
+          media_url?: string | null
+          message_type?: string
+          reactions?: Json
+          reply_to?: string | null
+          sender_id?: string
+          session_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_chat_messages_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "academy_courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_chat_messages_reply_to_fkey"
+            columns: ["reply_to"]
+            isOneToOne: false
+            referencedRelation: "class_chat_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_chat_messages_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "class_live_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      class_chat_roles: {
+        Row: {
+          assigned_by: string | null
+          course_id: string
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["class_role"]
+          user_id: string
+        }
+        Insert: {
+          assigned_by?: string | null
+          course_id: string
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["class_role"]
+          user_id: string
+        }
+        Update: {
+          assigned_by?: string | null
+          course_id?: string
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["class_role"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_chat_roles_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "academy_courses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       class_enrollments: {
         Row: {
@@ -5763,6 +5925,18 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_class_member: {
+        Args: { _course_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_class_muted: {
+        Args: { _course_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_class_staff: {
+        Args: { _course_id: string; _user_id: string }
+        Returns: boolean
+      }
       marketplace_purchase: { Args: { p_item_id: string }; Returns: string }
       mt5_accounts_to_sync: {
         Args: never
@@ -5793,6 +5967,16 @@ export type Database = {
           p_server: string
         }
         Returns: undefined
+      }
+      notify_class_event: {
+        Args: {
+          p_course_id: string
+          p_icon?: string
+          p_message: string
+          p_title: string
+          p_type?: string
+        }
+        Returns: number
       }
       refresh_quest_progress: { Args: never; Returns: undefined }
       reject_admin_request: {
@@ -5896,6 +6080,7 @@ export type Database = {
         | "customer_support"
         | "finance"
         | "sponsor"
+      class_role: "mentor" | "moderator" | "student" | "muted" | "banned"
       live_session_provider: "jitsi" | "daily" | "external"
       payment_method:
         | "paystack"
@@ -6051,6 +6236,7 @@ export const Constants = {
         "finance",
         "sponsor",
       ],
+      class_role: ["mentor", "moderator", "student", "muted", "banned"],
       live_session_provider: ["jitsi", "daily", "external"],
       payment_method: [
         "paystack",
