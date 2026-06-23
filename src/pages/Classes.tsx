@@ -32,6 +32,7 @@ type Course = {
   duration_minutes: number | null;
   tags: string[] | null;
   is_published: boolean;
+  rules?: string | null;
 };
 
 type Lesson = {
