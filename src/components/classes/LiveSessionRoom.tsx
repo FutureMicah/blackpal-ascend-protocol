@@ -196,9 +196,9 @@ export const LiveSessionRoom = ({
   if (!session) return null;
 
   const VideoPane = (
-    <div className="relative w-full h-full bg-black overflow-hidden">
+    <div className="relative w-full h-full bg-black overflow-hidden"> {/* color-audit-allow video-letterbox */}
       {!iframeReady && !error && provider !== "external" && (
-        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-black/85"
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-black/85" /* color-audit-allow video-letterbox */
           role="status" aria-live="polite">
           <Skeleton className="w-3/4 max-w-md h-2" />
           <Loader2 className="w-7 h-7 animate-spin text-primary" />
@@ -213,7 +213,7 @@ export const LiveSessionRoom = ({
       )}
 
       {error && (
-        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-black/90 px-6 text-center" role="alert" aria-live="assertive">
+        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-black/90 px-6 text-center" role="alert" aria-live="assertive"> {/* color-audit-allow video-letterbox */}
           <div className="w-12 h-12 rounded-full bg-destructive/15 flex items-center justify-center">
             <AlertCircle className="w-6 h-6 text-destructive" />
           </div>
