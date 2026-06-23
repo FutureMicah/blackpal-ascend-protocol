@@ -270,6 +270,13 @@ export const AdminClassesManager = () => {
                 <Input type="number" placeholder="XP reward" value={openCourse.xp_reward || 50} onChange={e => setOpenCourse({ ...openCourse, xp_reward: e.target.value })} />
                 <Input type="number" placeholder="Order" value={openCourse.display_order || 0} onChange={e => setOpenCourse({ ...openCourse, display_order: e.target.value })} />
               </div>
+              <div className="space-y-1">
+                <label className="text-[11px] font-medium text-muted-foreground flex items-center gap-1">
+                  <ScrollText className="w-3 h-3" /> Class chat rules (shown to students)
+                </label>
+                <Textarea rows={4} placeholder={"1. Be respectful\n2. No spam or self-promotion\n3. Stay on-topic during live sessions\n4. Mute when not speaking"}
+                  value={openCourse.rules || ""} onChange={e => setOpenCourse({ ...openCourse, rules: e.target.value })} />
+              </div>
               <label className="flex items-center gap-2 text-sm">
                 <input type="checkbox" checked={!!openCourse.is_published} onChange={e => setOpenCourse({ ...openCourse, is_published: e.target.checked })} />
                 Published
