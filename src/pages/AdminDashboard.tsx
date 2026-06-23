@@ -33,6 +33,7 @@ import { AdminDiagnosticsPanel } from "@/components/admin/AdminDiagnosticsPanel"
 import { AdminSettingsPanelShell } from "@/components/admin/AdminSettingsPanelShell";
 import { BtaxRulesPanel } from "@/components/admin/BtaxRulesPanel";
 import { AdminClassesManager } from "@/components/admin/AdminClassesManager";
+import { AdminClassAnalytics } from "@/components/admin/AdminClassAnalytics";
 import { CurrencyConverter } from "@/components/CurrencyConverter";
 import { AdminAtlasPanel } from "@/components/atlas/AdminAtlasPanel";
 import logo from "@/assets/blackpal-logo.jpg";
@@ -823,6 +824,9 @@ function AdminDashboardInner() {
                 </AdminSettingsPanelShell>
                 <AdminSettingsPanelShell title="Classes & Live Sessions" icon={Package}>
                   <AdminClassesManager />
+                </AdminSettingsPanelShell>
+                <AdminSettingsPanelShell title="Class Analytics" icon={BarChart3}>
+                  <AdminClassAnalytics />
                 </AdminSettingsPanelShell>
                 <AdminSettingsPanelShell title="Admin Credentials" icon={UserCog}>
                   <AdminCredentialsPanel />
