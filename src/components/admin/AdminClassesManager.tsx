@@ -356,6 +356,72 @@ export const AdminClassesManager = () => {
           )}
         </DialogContent>
       </Dialog>
+      {/* Roles manager */}
+      <Dialog open={!!rolesCourse} onOpenChange={(o) => { if (!o) { setRolesCourse(null); setSearchResults([]); setRoleSearch(""); } }}>
+        <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-sm flex items-center gap-2"><Users className="w-4 h-4" />Class roles · {rolesCourse?.title}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <p className="text-[11px] text-muted-foreground mb-1">Assign mentor, moderator, or mute a student. Mentors can pin / delete messages; muted users can't post.</p>
+              <Input placeholder="Search user by name or email…" value={roleSearch} onChange={(e) => searchUsers(e.target.value)} />
+              {searchResults.length > 0 && (
+                <div className="mt-2 border border-border rounded-lg divide-y divide-border max-h-48 overflow-y-auto">
+                  {searchResults.map((u: any) => (
+                    <div key={u.id} className="flex items-center justify-between gap-2 p-2 text-xs">
+                      <span className="truncate">{u.display_name} <span className="text-muted-foreground">· {u.email}</span></span>
+                      <div className="flex gap-1 shrink-0">
+                        <Button size="sm" variant="outline" className="h-6 px-2 text-[10px]" onClick={() => assignRole(u.id, "mentor")}><Crown className="w-2.5 h-2.5 mr-0.5" />Mentor</Button>
+                        <Button size="sm" variant="outline" className="h-6 px-2 text-[10px]" onClick={() => assignRole(u.id, "moderator")}><Shield className="w-2.5 h-2.5 mr-0.5" />Mod</Button>
+                        <Button size="sm" variant="outline" className="h-6 px-2 text-[10px]" onClick={() => assignRole(u.id, "muted")}><VolumeX className="w-2.5 h-2.5 mr-0.5" />Mute</Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div>
+              <p className="text-[11px] font-medium text-muted-foreground mb-1">Current roles ({courseRoles.length})</p>
+              {courseRoles.length === 0 && <p className="text-xs text-muted-foreground italic">No custom roles yet. Everyone enrolled is a student.</p>}
+              <div className="space-y-1">
+                {courseRoles.map((r) => (
+                  <div key={r.id} className="flex items-center justify-between p-2 border border-border rounded text-xs">
+                    <span className="truncate">
+                      <span className="font-medium">{r.display_name || r.user_id.slice(0, 8)}</span>
+                      <span className="ml-1 text-muted-foreground">· {r.email}</span>
+                    </span>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-primary/20 text-primary">{r.role}</span>
+                      <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => removeRole(r.id)}><X className="w-3 h-3" /></Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Notify all enrolled students */}
+      <Dialog open={!!notifyCourse} onOpenChange={(o) => !o && setNotifyCourse(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-sm flex items-center gap-2"><Megaphone className="w-4 h-4" />Notify class · {notifyCourse?.title}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2">
+            <p className="text-[11px] text-muted-foreground">
+              Sends an in-app notification to every enrolled student. Use to remind them class is starting, share materials, or urge them to join the live stream.
+            </p>
+            <Input placeholder="Title" value={notifyTitle} onChange={(e) => setNotifyTitle(e.target.value)} />
+            <Textarea rows={3} placeholder="Message — e.g. We go live in 15 min. Don't miss today's price-action breakdown!"
+              value={notifyMessage} onChange={(e) => setNotifyMessage(e.target.value)} />
+            <Button className="w-full" onClick={sendClassNotification} disabled={!notifyTitle.trim() || !notifyMessage.trim()}>
+              <Megaphone className="w-4 h-4 mr-1" />Send to all enrolled
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };
