@@ -1516,7 +1516,9 @@ export type Database = {
           host_name: string | null
           id: string
           is_live: boolean
+          provider: Database["public"]["Enums"]["live_session_provider"]
           replay_url: string | null
+          room_name: string | null
           starts_at: string
           stream_url: string | null
           title: string
@@ -1532,7 +1534,9 @@ export type Database = {
           host_name?: string | null
           id?: string
           is_live?: boolean
+          provider?: Database["public"]["Enums"]["live_session_provider"]
           replay_url?: string | null
+          room_name?: string | null
           starts_at: string
           stream_url?: string | null
           title: string
@@ -1548,7 +1552,9 @@ export type Database = {
           host_name?: string | null
           id?: string
           is_live?: boolean
+          provider?: Database["public"]["Enums"]["live_session_provider"]
           replay_url?: string | null
+          room_name?: string | null
           starts_at?: string
           stream_url?: string | null
           title?: string
@@ -5890,6 +5896,7 @@ export type Database = {
         | "customer_support"
         | "finance"
         | "sponsor"
+      live_session_provider: "jitsi" | "daily" | "external"
       payment_method:
         | "paystack"
         | "flutterwave"
@@ -6044,6 +6051,7 @@ export const Constants = {
         "finance",
         "sponsor",
       ],
+      live_session_provider: ["jitsi", "daily", "external"],
       payment_method: [
         "paystack",
         "flutterwave",

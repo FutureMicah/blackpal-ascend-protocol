@@ -16,6 +16,7 @@ import {
   CheckCircle2, Lock, Radio, Award, BookOpen, ChevronRight,
 } from "lucide-react";
 import { format, isAfter, isBefore } from "date-fns";
+import { LiveSessionRoom } from "@/components/classes/LiveSessionRoom";
 
 type Course = {
   id: string;
@@ -63,6 +64,8 @@ type LiveSession = {
   host_name: string | null;
   is_live: boolean;
   attendees_count: number;
+  provider?: "jitsi" | "daily" | "external" | null;
+  room_name?: string | null;
 };
 
 const LEVELS = ["all", "beginner", "intermediate", "advanced"];
@@ -80,6 +83,7 @@ export default function Classes() {
   const [completedLessons, setCompletedLessons] = useState<Set<string>>(new Set());
   const [activeLesson, setActiveLesson] = useState<Lesson | null>(null);
   const [loading, setLoading] = useState(true);
+  const [liveRoom, setLiveRoom] = useState<LiveSession | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -188,7 +192,12 @@ export default function Classes() {
     await supabase.from("class_session_attendance").upsert({
       session_id: s.id, user_id: user.id,
     } as any, { onConflict: "session_id,user_id" });
-    if (s.stream_url) window.open(s.stream_url, "_blank");
+    // External link → open in new tab. Jitsi/Daily → open in-app room.
+    if ((s.provider === "external") || (!s.provider && s.stream_url && !s.room_name)) {
+      if (s.stream_url) window.open(s.stream_url, "_blank");
+      return;
+    }
+    setLiveRoom(s);
   };
 
   const now = new Date();
@@ -494,6 +503,14 @@ export default function Classes() {
           )}
         </DialogContent>
       </Dialog>
+
+      <LiveSessionRoom
+        open={!!liveRoom}
+        onClose={() => setLiveRoom(null)}
+        session={liveRoom}
+        userName={user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Trader"}
+        userEmail={user?.email}
+      />
     </div>
   );
 }

@@ -84,11 +84,15 @@ export const AdminClassesManager = () => {
   };
 
   const saveSession = async (s: Live) => {
+    const provider = s.provider || "jitsi";
+    const slugify = (t: string) => (t || "session").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40);
+    const room_name = s.room_name?.trim() || `blackpal-${slugify(s.title)}-${Math.random().toString(36).slice(2, 6)}`;
     const payload = {
       course_id: s.course_id || null, title: s.title, description: s.description,
       starts_at: s.starts_at, ends_at: s.ends_at || null,
       stream_url: s.stream_url, replay_url: s.replay_url,
       host_name: s.host_name, is_live: !!s.is_live,
+      provider, room_name,
     };
     const op = s.id
       ? supabase.from("class_live_sessions").update(payload).eq("id", s.id)
@@ -158,7 +162,7 @@ export const AdminClassesManager = () => {
         <TabsContent value="live" className="space-y-3 mt-3">
           <div className="flex justify-between items-center">
             <h3 className="font-semibold">Live Sessions</h3>
-            <Button size="sm" onClick={() => setOpenSession({ starts_at: new Date().toISOString().slice(0, 16) })}>
+            <Button size="sm" onClick={() => setOpenSession({ starts_at: new Date().toISOString().slice(0, 16), provider: "jitsi" })}>
               <Plus className="w-4 h-4 mr-1" />New Session
             </Button>
           </div>
@@ -166,7 +170,7 @@ export const AdminClassesManager = () => {
             <div key={s.id} className="p-3 border border-border rounded-lg flex items-center justify-between gap-2">
               <div>
                 <p className="font-semibold text-sm">{s.title} {s.is_live && <span className="text-[10px] text-red-400">• LIVE</span>}</p>
-                <p className="text-[10px] text-muted-foreground">{format(new Date(s.starts_at), "MMM d, h:mm a")} • {s.host_name} • {s.attendees_count} attendees</p>
+                <p className="text-[10px] text-muted-foreground">{format(new Date(s.starts_at), "MMM d, h:mm a")} • {s.host_name} • {s.attendees_count} attendees • <span className="uppercase">{s.provider || "jitsi"}</span></p>
               </div>
               <div className="flex gap-1">
                 <Button size="icon" variant="ghost" onClick={() => setOpenSession(s)}><Pencil className="w-4 h-4" /></Button>
@@ -248,8 +252,29 @@ export const AdminClassesManager = () => {
               <Input type="datetime-local" value={openSession.starts_at?.slice(0, 16) || ""} onChange={e => setOpenSession({ ...openSession, starts_at: new Date(e.target.value).toISOString() })} />
               <Input type="datetime-local" placeholder="Ends at" value={openSession.ends_at?.slice(0, 16) || ""} onChange={e => setOpenSession({ ...openSession, ends_at: e.target.value ? new Date(e.target.value).toISOString() : null })} />
               <Input placeholder="Host name" value={openSession.host_name || ""} onChange={e => setOpenSession({ ...openSession, host_name: e.target.value })} />
-              <Input placeholder="Stream URL (Zoom / YouTube Live)" value={openSession.stream_url || ""} onChange={e => setOpenSession({ ...openSession, stream_url: e.target.value })} />
-              <Input placeholder="Replay URL" value={openSession.replay_url || ""} onChange={e => setOpenSession({ ...openSession, replay_url: e.target.value })} />
+
+              <div className="border border-border rounded-lg p-2 space-y-2">
+                <p className="text-xs font-medium text-muted-foreground">Video provider</p>
+                <select className="w-full border border-border bg-background rounded px-2 py-2 text-sm"
+                  value={openSession.provider || "jitsi"}
+                  onChange={e => setOpenSession({ ...openSession, provider: e.target.value })}>
+                  <option value="jitsi">Jitsi — free, in-app video + screen share (default)</option>
+                  <option value="daily">Daily.co — premium HD, requires DAILY_API_KEY</option>
+                  <option value="external">External link — Zoom / Meet / YouTube Live</option>
+                </select>
+                {(openSession.provider || "jitsi") !== "external" && (
+                  <Input
+                    placeholder="Room name (auto-generated if blank, a-z 0-9 - _)"
+                    value={openSession.room_name || ""}
+                    onChange={e => setOpenSession({ ...openSession, room_name: e.target.value.replace(/[^a-zA-Z0-9_-]/g, "") })}
+                  />
+                )}
+                {openSession.provider === "external" && (
+                  <Input placeholder="Stream URL (Zoom / YouTube Live)" value={openSession.stream_url || ""} onChange={e => setOpenSession({ ...openSession, stream_url: e.target.value })} />
+                )}
+              </div>
+
+              <Input placeholder="Replay URL (after the session)" value={openSession.replay_url || ""} onChange={e => setOpenSession({ ...openSession, replay_url: e.target.value })} />
               <label className="flex items-center gap-2 text-sm">
                 <input type="checkbox" checked={!!openSession.is_live} onChange={e => setOpenSession({ ...openSession, is_live: e.target.checked })} />
                 Live now
