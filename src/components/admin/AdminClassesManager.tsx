@@ -4,15 +4,16 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Pencil, Trash2, BookOpen, Radio } from "lucide-react";
+import { Plus, Pencil, Trash2, BookOpen, Radio, ScrollText, Megaphone, Users, Crown, Shield, VolumeX, X } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
 type Course = any;
 type Lesson = any;
 type Live = any;
+type RoleRow = { id: string; course_id: string; user_id: string; role: string; display_name?: string; email?: string };
 
 export const AdminClassesManager = () => {
   const [courses, setCourses] = useState<Course[]>([]);
