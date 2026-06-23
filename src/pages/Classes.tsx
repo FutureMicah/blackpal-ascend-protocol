@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import { FloatingNav } from "@/components/FloatingNav";
 import { toast } from "sonner";
@@ -19,6 +19,7 @@ import { format, isAfter, isBefore } from "date-fns";
 import { LiveSessionRoom } from "@/components/classes/LiveSessionRoom";
 import { ClassChatRoom } from "@/components/classes/ClassChatRoom";
 import { ClassesSkeleton, LoadErrorState } from "@/components/classes/ClassesSkeleton";
+import { trackClassEvent, startTimer, backoffDelay } from "@/lib/class-analytics";
 
 type Course = {
   id: string;
