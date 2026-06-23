@@ -85,6 +85,7 @@ export default function Classes() {
   const [activeLesson, setActiveLesson] = useState<Lesson | null>(null);
   const [loading, setLoading] = useState(true);
   const [liveRoom, setLiveRoom] = useState<LiveSession | null>(null);
+  const [chatCourse, setChatCourse] = useState<Course | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
