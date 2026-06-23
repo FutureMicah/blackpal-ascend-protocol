@@ -1425,6 +1425,57 @@ export type Database = {
         }
         Relationships: []
       }
+      class_analytics_events: {
+        Row: {
+          breakpoint: string | null
+          course_id: string | null
+          created_at: string
+          duration_ms: number | null
+          event_type: string
+          id: string
+          meta: Json | null
+          orientation: string | null
+          retry_count: number | null
+          session_id: string | null
+          user_agent: string | null
+          user_id: string | null
+          viewport_height: number | null
+          viewport_width: number | null
+        }
+        Insert: {
+          breakpoint?: string | null
+          course_id?: string | null
+          created_at?: string
+          duration_ms?: number | null
+          event_type: string
+          id?: string
+          meta?: Json | null
+          orientation?: string | null
+          retry_count?: number | null
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+          viewport_height?: number | null
+          viewport_width?: number | null
+        }
+        Update: {
+          breakpoint?: string | null
+          course_id?: string | null
+          created_at?: string
+          duration_ms?: number | null
+          event_type?: string
+          id?: string
+          meta?: Json | null
+          orientation?: string | null
+          retry_count?: number | null
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+          viewport_height?: number | null
+          viewport_width?: number | null
+        }
+        Relationships: []
+      }
       class_chat_announcements: {
         Row: {
           course_id: string
