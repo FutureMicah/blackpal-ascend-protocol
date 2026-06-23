@@ -152,7 +152,7 @@ export const AdminClassAnalytics = () => {
                 <Icon className="w-4 h-4 text-muted-foreground shrink-0" />
                 <span className="text-xs font-mono w-8">{bp}</span>
                 <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                  <div className="h-full bg-yellow-500" style={{ width: `${Math.min(100, retryRate)}%` }} />
+                  <div className="h-full bg-yellow-500" style={{ width: `${Math.min(100, retryRate)}%` }} /> {/* color-audit-allow status */}
                 </div>
                 <span className="text-[10px] text-muted-foreground w-32 text-right">
                   {s.loads} loads · {s.retries} retries · {s.errors} errors
@@ -188,7 +188,7 @@ export const AdminClassAnalytics = () => {
                 <span className="text-muted-foreground">{r.breakpoint}</span>
                 <span className="text-muted-foreground">{r.orientation}</span>
                 {r.duration_ms != null && <span className="font-mono text-primary">{r.duration_ms}ms</span>}
-                {r.retry_count ? <span className="text-yellow-500">×{r.retry_count}</span> : null}
+                {r.retry_count ? <span className="text-yellow-500">×{r.retry_count}</span> : null} {/* color-audit-allow status */}
                 <span className="ml-auto text-muted-foreground">{format(new Date(r.created_at), "MMM d HH:mm:ss")}</span>
               </div>
             ))}
