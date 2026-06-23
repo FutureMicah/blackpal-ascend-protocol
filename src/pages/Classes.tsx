@@ -325,9 +325,14 @@ export default function Classes() {
                             </div>
                           )}
                           {enrolled ? (
-                            <Button size="sm" className="w-full h-8 text-xs" variant="secondary" onClick={() => openCourseDetails(course)}>
-                              <Play className="w-3 h-3 mr-1" />Continue
-                            </Button>
+                            <div className="flex gap-1">
+                              <Button size="sm" className="flex-1 h-8 text-xs" variant="secondary" onClick={() => openCourseDetails(course)}>
+                                <Play className="w-3 h-3 mr-1" />Continue
+                              </Button>
+                              <Button size="sm" className="h-8 text-xs px-2" variant="outline" onClick={() => setChatCourse(course)}>
+                                <MessageCircle className="w-3 h-3" />
+                              </Button>
+                            </div>
                           ) : (
                             <Button size="sm" className="w-full h-8 text-xs" onClick={() => handleEnroll(course)}>
                               Enroll <ChevronRight className="w-3 h-3 ml-1" />
