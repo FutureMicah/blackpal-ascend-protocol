@@ -19,7 +19,6 @@ import { format, isAfter, isBefore } from "date-fns";
 import { LiveSessionRoom } from "@/components/classes/LiveSessionRoom";
 import { ClassChatRoom } from "@/components/classes/ClassChatRoom";
 import { ClassesSkeleton, LoadErrorState } from "@/components/classes/ClassesSkeleton";
-import { FloatingNav as _Nav } from "@/components/FloatingNav";
 
 type Course = {
   id: string;
