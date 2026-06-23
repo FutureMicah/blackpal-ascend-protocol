@@ -255,7 +255,7 @@ export default function Classes() {
     return (
       <div className="min-h-screen bg-background pb-24">
         <FloatingNav />
-        <LoadErrorState onRetry={bootstrap} message={loadError} />
+        <LoadErrorState onRetry={retryBootstrap} message={loadError} />
       </div>
     );
   }
