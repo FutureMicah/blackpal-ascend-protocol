@@ -61,7 +61,7 @@ describe("LiveSessionRoom responsive layout", () => {
     const mic = screen.getByLabelText(/microphone/i);
     expect(mic).toBeInTheDocument();
     expect(mic.className).toMatch(/min-h-11/);
-    const chat = screen.getByLabelText(/chat/i);
+    const chat = screen.getByRole("button", { name: /show chat|hide chat/i });
     expect(chat.className).toMatch(/min-h-11/);
   });
 
