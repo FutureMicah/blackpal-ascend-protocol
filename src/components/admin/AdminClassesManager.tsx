@@ -191,10 +191,14 @@ export const AdminClassesManager = () => {
                   <p className="font-semibold text-sm">{c.title} {c.is_published ? <span className="text-[10px] text-green-400">• Live</span> : <span className="text-[10px] text-muted-foreground">• Draft</span>}</p>
                   <p className="text-[10px] text-muted-foreground">{c.level} • {c.category || "uncategorized"} • {c.price_btax || 0} BTAX • {c.xp_reward || 0} XP</p>
                 </div>
-                <div className="flex gap-1">
-                  <Button size="sm" variant="outline" onClick={() => { loadLessons(c.id); }}>Lessons</Button>
-                  <Button size="icon" variant="ghost" onClick={() => setOpenCourse(c)}><Pencil className="w-4 h-4" /></Button>
-                  <Button size="icon" variant="ghost" onClick={() => deleteCourse(c.id)}><Trash2 className="w-4 h-4 text-red-400" /></Button>
+                <div className="flex flex-wrap gap-1">
+                  <Button size="sm" variant="outline" className="h-7 text-[11px]" onClick={() => { loadLessons(c.id); }}>Lessons</Button>
+                  <Button size="sm" variant="outline" className="h-7 text-[11px]" onClick={() => openRoles(c)}><Users className="w-3 h-3 mr-1" />Roles</Button>
+                  <Button size="sm" variant="outline" className="h-7 text-[11px]" onClick={() => { setNotifyCourse(c); setNotifyTitle("📚 Class starting soon"); setNotifyMessage("Join the live stream in 15 minutes!"); }}>
+                    <Megaphone className="w-3 h-3 mr-1" />Notify
+                  </Button>
+                  <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setOpenCourse(c)}><Pencil className="w-4 h-4" /></Button>
+                  <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => deleteCourse(c.id)}><Trash2 className="w-4 h-4 text-red-400" /></Button>
                 </div>
               </div>
               {activeCourseId === c.id && (
