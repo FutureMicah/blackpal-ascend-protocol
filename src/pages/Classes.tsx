@@ -496,11 +496,17 @@ export default function Classes() {
 
       {/* Course details / lesson player */}
       <Dialog open={!!openCourse} onOpenChange={(o) => { if (!o) { setOpenCourse(null); setActiveLesson(null); } }}>
-        <DialogContent className="w-[96vw] max-w-2xl max-h-[90dvh] overflow-y-auto p-4 sm:p-6">
+        <DialogContent
+          className="w-[96vw] max-w-2xl max-h-[90dvh] overflow-y-auto p-4 sm:p-6 focus-visible:ring-2 focus-visible:ring-ring"
+          aria-describedby="course-details-desc"
+        >
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <GraduationCap className="w-5 h-5 text-primary" /> {openCourse?.title}
+              <GraduationCap className="w-5 h-5 text-primary" aria-hidden="true" /> {openCourse?.title}
             </DialogTitle>
+            <DialogDescription id="course-details-desc" className="sr-only">
+              Course details, lessons, and progress for {openCourse?.title || "the selected class"}.
+            </DialogDescription>
           </DialogHeader>
           {openCourse && (
             <div className="space-y-4">
@@ -570,7 +576,16 @@ export default function Classes() {
 
       {/* Class chat dialog */}
       <Dialog open={!!chatCourse} onOpenChange={(o) => !o && setChatCourse(null)}>
-        <DialogContent className="w-[100vw] sm:w-[95vw] max-w-2xl h-[100dvh] sm:h-[85vh] p-0 overflow-hidden rounded-none sm:rounded-lg">
+        <DialogContent
+          className="w-[100vw] sm:w-[95vw] max-w-2xl h-[100dvh] sm:h-[85vh] p-0 overflow-hidden rounded-none sm:rounded-lg focus-visible:ring-2 focus-visible:ring-ring"
+          aria-describedby="class-chat-desc"
+        >
+          <DialogHeader className="sr-only">
+            <DialogTitle>{chatCourse?.title ? `${chatCourse.title} chat` : "Class chat"}</DialogTitle>
+            <DialogDescription id="class-chat-desc">
+              Class chat room. Send messages, voice notes, and media to your mentor and classmates.
+            </DialogDescription>
+          </DialogHeader>
           {user && chatCourse && (
             <ClassChatRoom
               courseId={chatCourse.id}
