@@ -23,6 +23,13 @@ export const AdminClassesManager = () => {
   const [openSession, setOpenSession] = useState<Live | null>(null);
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [activeCourseId, setActiveCourseId] = useState<string | null>(null);
+  const [rolesCourse, setRolesCourse] = useState<Course | null>(null);
+  const [courseRoles, setCourseRoles] = useState<RoleRow[]>([]);
+  const [roleSearch, setRoleSearch] = useState("");
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [notifyCourse, setNotifyCourse] = useState<Course | null>(null);
+  const [notifyTitle, setNotifyTitle] = useState("");
+  const [notifyMessage, setNotifyMessage] = useState("");
 
   useEffect(() => { load(); }, []);
 
