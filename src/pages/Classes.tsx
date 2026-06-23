@@ -237,14 +237,14 @@ export default function Classes() {
                 Browse, enroll, learn live, and earn XP + BTAX while you sharpen your edge.
               </p>
             </div>
-            <div className="flex gap-2">
-              <Card className="bg-card/60 backdrop-blur border border-border px-3 py-2">
+            <div className="flex gap-2 shrink-0">
+              <Card className="bg-card/60 backdrop-blur border border-border px-2.5 py-1.5 sm:px-3 sm:py-2">
                 <p className="text-[10px] text-muted-foreground">Enrolled</p>
-                <p className="text-xl font-bold text-primary">{enrollments.length}</p>
+                <p className="text-lg sm:text-xl font-bold text-primary">{enrollments.length}</p>
               </Card>
-              <Card className="bg-card/60 backdrop-blur border border-border px-3 py-2">
+              <Card className="bg-card/60 backdrop-blur border border-border px-2.5 py-1.5 sm:px-3 sm:py-2">
                 <p className="text-[10px] text-muted-foreground">Completed</p>
-                <p className="text-xl font-bold text-green-400">
+                <p className="text-lg sm:text-xl font-bold text-green-400">
                   {enrollments.filter(e => e.completed_at).length}
                 </p>
               </Card>
