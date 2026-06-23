@@ -18,6 +18,8 @@ import {
 import { format, isAfter, isBefore } from "date-fns";
 import { LiveSessionRoom } from "@/components/classes/LiveSessionRoom";
 import { ClassChatRoom } from "@/components/classes/ClassChatRoom";
+import { ClassesSkeleton, LoadErrorState } from "@/components/classes/ClassesSkeleton";
+import { FloatingNav as _Nav } from "@/components/FloatingNav";
 
 type Course = {
   id: string;
@@ -85,22 +87,27 @@ export default function Classes() {
   const [completedLessons, setCompletedLessons] = useState<Set<string>>(new Set());
   const [activeLesson, setActiveLesson] = useState<Lesson | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [liveRoom, setLiveRoom] = useState<LiveSession | null>(null);
   const [chatCourse, setChatCourse] = useState<Course | null>(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    (async () => {
+  const bootstrap = async () => {
+    setLoading(true);
+    setLoadError(null);
+    try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        navigate("/auth");
-        return;
-      }
+      if (!session) { navigate("/auth"); return; }
       setUser(session.user);
       await Promise.all([loadCourses(), loadEnrollments(session.user.id), loadSessions()]);
+    } catch (e: any) {
+      setLoadError(e?.message || "Failed to load classes.");
+    } finally {
       setLoading(false);
-    })();
-  }, [navigate]);
+    }
+  };
+
+  useEffect(() => { bootstrap(); }, [navigate]);
 
   const loadCourses = async () => {
     const { data } = await supabase.from("academy_courses")
@@ -210,8 +217,18 @@ export default function Classes() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-pulse text-muted-foreground">Loading classes…</div>
+      <div className="min-h-screen bg-background pb-24">
+        <FloatingNav />
+        <ClassesSkeleton />
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="min-h-screen bg-background pb-24">
+        <FloatingNav />
+        <LoadErrorState onRetry={bootstrap} message={loadError} />
       </div>
     );
   }
