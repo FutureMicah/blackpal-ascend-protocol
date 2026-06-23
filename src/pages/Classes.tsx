@@ -13,10 +13,11 @@ import { FloatingNav } from "@/components/FloatingNav";
 import { toast } from "sonner";
 import {
   GraduationCap, Search, Play, Clock, Coins, Sparkles, Users, Calendar,
-  CheckCircle2, Lock, Radio, Award, BookOpen, ChevronRight,
+  CheckCircle2, Lock, Radio, Award, BookOpen, ChevronRight, MessageCircle,
 } from "lucide-react";
 import { format, isAfter, isBefore } from "date-fns";
 import { LiveSessionRoom } from "@/components/classes/LiveSessionRoom";
+import { ClassChatRoom } from "@/components/classes/ClassChatRoom";
 
 type Course = {
   id: string;
