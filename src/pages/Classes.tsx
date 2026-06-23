@@ -237,14 +237,14 @@ export default function Classes() {
                 Browse, enroll, learn live, and earn XP + BTAX while you sharpen your edge.
               </p>
             </div>
-            <div className="flex gap-2">
-              <Card className="bg-card/60 backdrop-blur border border-border px-3 py-2">
+            <div className="flex gap-2 shrink-0">
+              <Card className="bg-card/60 backdrop-blur border border-border px-2.5 py-1.5 sm:px-3 sm:py-2">
                 <p className="text-[10px] text-muted-foreground">Enrolled</p>
-                <p className="text-xl font-bold text-primary">{enrollments.length}</p>
+                <p className="text-lg sm:text-xl font-bold text-primary">{enrollments.length}</p>
               </Card>
-              <Card className="bg-card/60 backdrop-blur border border-border px-3 py-2">
+              <Card className="bg-card/60 backdrop-blur border border-border px-2.5 py-1.5 sm:px-3 sm:py-2">
                 <p className="text-[10px] text-muted-foreground">Completed</p>
-                <p className="text-xl font-bold text-green-400">
+                <p className="text-lg sm:text-xl font-bold text-green-400">
                   {enrollments.filter(e => e.completed_at).length}
                 </p>
               </Card>
@@ -452,7 +452,7 @@ export default function Classes() {
 
       {/* Course details / lesson player */}
       <Dialog open={!!openCourse} onOpenChange={(o) => { if (!o) { setOpenCourse(null); setActiveLesson(null); } }}>
-        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="w-[96vw] max-w-2xl max-h-[90dvh] overflow-y-auto p-4 sm:p-6">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <GraduationCap className="w-5 h-5 text-primary" /> {openCourse?.title}
@@ -526,7 +526,7 @@ export default function Classes() {
 
       {/* Class chat dialog */}
       <Dialog open={!!chatCourse} onOpenChange={(o) => !o && setChatCourse(null)}>
-        <DialogContent className="max-w-2xl w-[95vw] h-[85vh] p-0 overflow-hidden">
+        <DialogContent className="w-[100vw] sm:w-[95vw] max-w-2xl h-[100dvh] sm:h-[85vh] p-0 overflow-hidden rounded-none sm:rounded-lg">
           {user && chatCourse && (
             <ClassChatRoom
               courseId={chatCourse.id}

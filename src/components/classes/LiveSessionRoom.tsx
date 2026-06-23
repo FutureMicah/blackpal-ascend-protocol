@@ -75,7 +75,7 @@ export const LiveSessionRoom = ({ open, onClose, session, courseTitle, courseRul
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-6xl w-[97vw] h-[90vh] p-0 overflow-hidden bg-black border-primary/30 flex flex-col">
+      <DialogContent className="w-[100vw] sm:w-[97vw] max-w-6xl h-[100dvh] sm:h-[90vh] p-0 overflow-hidden bg-black border-primary/30 flex flex-col rounded-none sm:rounded-lg">
         <DialogHeader className="p-3 border-b border-border/40 flex-row items-center justify-between space-y-0 shrink-0">
           <DialogTitle className="flex items-center gap-2 text-sm">
             <Radio className="w-4 h-4 text-red-400 animate-pulse" />
