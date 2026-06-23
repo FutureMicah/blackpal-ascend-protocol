@@ -526,7 +526,7 @@ export default function Classes() {
 
       {/* Class chat dialog */}
       <Dialog open={!!chatCourse} onOpenChange={(o) => !o && setChatCourse(null)}>
-        <DialogContent className="max-w-2xl w-[95vw] h-[85vh] p-0 overflow-hidden">
+        <DialogContent className="w-[100vw] sm:w-[95vw] max-w-2xl h-[100dvh] sm:h-[85vh] p-0 overflow-hidden rounded-none sm:rounded-lg">
           {user && chatCourse && (
             <ClassChatRoom
               courseId={chatCourse.id}
