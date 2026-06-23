@@ -452,7 +452,7 @@ export default function Classes() {
 
       {/* Course details / lesson player */}
       <Dialog open={!!openCourse} onOpenChange={(o) => { if (!o) { setOpenCourse(null); setActiveLesson(null); } }}>
-        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="w-[96vw] max-w-2xl max-h-[90dvh] overflow-y-auto p-4 sm:p-6">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <GraduationCap className="w-5 h-5 text-primary" /> {openCourse?.title}
