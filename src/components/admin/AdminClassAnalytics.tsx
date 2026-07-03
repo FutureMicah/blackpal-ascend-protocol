@@ -75,6 +75,7 @@ export const AdminClassAnalytics = () => {
   const [savingRet, setSavingRet] = useState(false);
   const [purging, setPurging] = useState(false);
   const seenAlertsRef = useRef<Set<string>>(new Set());
+  const [drill, setDrill] = useState<{ breakpoint: string | null; orientation: string | null; kind: "retry" | "error" } | null>(null);
 
   const load = async () => {
     setLoading(true);
