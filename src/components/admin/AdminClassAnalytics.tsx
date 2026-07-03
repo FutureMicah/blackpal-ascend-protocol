@@ -13,6 +13,8 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { AnalyticsDrilldown } from "./AnalyticsDrilldown";
+import { AdminAnalyticsAlertsConfig } from "./AdminAnalyticsAlertsConfig";
 
 type Row = {
   id: string;
@@ -75,6 +77,7 @@ export const AdminClassAnalytics = () => {
   const [savingRet, setSavingRet] = useState(false);
   const [purging, setPurging] = useState(false);
   const seenAlertsRef = useRef<Set<string>>(new Set());
+  const [drill, setDrill] = useState<{ breakpoint: string | null; orientation: string | null; kind: "retry" | "error" } | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -150,22 +153,24 @@ export const AdminClassAnalytics = () => {
     });
 
     // Spike detection
-    const spikes: { key: string; kind: "retry" | "error"; rate: number; loads: number }[] = [];
-    const check = (label: string, s: { loads: number; retries: number; errors: number }) => {
+    type Spike = { key: string; kind: "retry" | "error"; rate: number; loads: number; breakpoint: string | null; orientation: string | null };
+    const spikes: Spike[] = [];
+    const check = (label: string, s: { loads: number; retries: number; errors: number }, bp: string | null, or: string | null) => {
       if (s.loads < SPIKE_MIN_LOADS) return;
       const rr = s.retries / s.loads;
       const er = s.errors / s.loads;
-      if (rr >= SPIKE_RETRY_RATE) spikes.push({ key: label, kind: "retry", rate: rr, loads: s.loads });
-      if (er >= SPIKE_ERROR_RATE) spikes.push({ key: label, kind: "error", rate: er, loads: s.loads });
+      if (rr >= SPIKE_RETRY_RATE) spikes.push({ key: label, kind: "retry", rate: rr, loads: s.loads, breakpoint: bp, orientation: or });
+      if (er >= SPIKE_ERROR_RATE) spikes.push({ key: label, kind: "error", rate: er, loads: s.loads, breakpoint: bp, orientation: or });
     };
-    Object.entries(byBp).forEach(([k, s]) => check(`bp:${k}`, s));
-    Object.entries(byOr).forEach(([k, s]) => check(`or:${k}`, s));
+    Object.entries(byBp).forEach(([k, s]) => check(`bp:${k}`, s, k, null));
+    Object.entries(byOr).forEach(([k, s]) => check(`or:${k}`, s, null, k));
 
     return { total, sessionLoadCount: sessionLoads.length, retries, errors, recoveries, avgSkeletonMs, p95SkeletonMs, byBp, byOr, spikes };
   }, [rows]);
 
-  // Fire toast for freshly-detected spikes
+  // Fire toast + server dispatch for freshly-detected spikes
   useEffect(() => {
+    const fresh: any[] = [];
     stats.spikes.forEach(sp => {
       const sig = `${from}|${to}|${sp.key}|${sp.kind}|${Math.round(sp.rate * 100)}`;
       if (seenAlertsRef.current.has(sig)) return;
@@ -173,7 +178,11 @@ export const AdminClassAnalytics = () => {
       toast.warning(`Spike: ${sp.kind} rate ${(sp.rate * 100).toFixed(0)}% on ${sp.key}`, {
         description: `${sp.loads} session loads in window`,
       });
+      fresh.push({ kind: sp.kind, breakpoint: sp.breakpoint, orientation: sp.orientation, rate: sp.rate, loads: sp.loads });
     });
+    if (fresh.length) {
+      supabase.functions.invoke("dispatch-analytics-alert", { body: { spikes: fresh } }).catch(() => {});
+    }
   }, [stats.spikes, from, to]);
 
   const exportEvents = () => {
@@ -312,11 +321,20 @@ export const AdminClassAnalytics = () => {
           </div>
           <div className="flex flex-wrap gap-1.5">
             {stats.spikes.map((s, i) => (
-              <Badge key={i} variant="destructive" className="text-[10px]">
-                {s.kind === "retry" ? "Retry" : "Error"} {(s.rate * 100).toFixed(0)}% · {s.key} ({s.loads} loads)
-              </Badge>
+              <button key={i} onClick={() => setDrill({ breakpoint: s.breakpoint, orientation: s.orientation, kind: s.kind })}
+                className="focus:outline-none focus:ring-2 focus:ring-primary rounded" aria-label={`Drill into ${s.key} ${s.kind} spike`}>
+                <Badge variant="destructive" className="text-[10px] cursor-pointer hover:opacity-80">
+                  {s.kind === "retry" ? "Retry" : "Error"} {(s.rate * 100).toFixed(0)}% · {s.key} ({s.loads} loads) →
+                </Badge>
+              </button>
             ))}
           </div>
+          {drill && (
+            <div className="mt-3">
+              <AnalyticsDrilldown rows={rows} breakpoint={drill.breakpoint} orientation={drill.orientation}
+                kind={drill.kind} onClose={() => setDrill(null)} />
+            </div>
+          )}
         </Card>
       )}
 
@@ -416,6 +434,8 @@ export const AdminClassAnalytics = () => {
           </div>
         </ScrollArea>
       </Card>
+
+      <AdminAnalyticsAlertsConfig />
     </div>
   );
 };
