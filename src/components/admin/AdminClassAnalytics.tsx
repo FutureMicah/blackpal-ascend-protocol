@@ -319,11 +319,20 @@ export const AdminClassAnalytics = () => {
           </div>
           <div className="flex flex-wrap gap-1.5">
             {stats.spikes.map((s, i) => (
-              <Badge key={i} variant="destructive" className="text-[10px]">
-                {s.kind === "retry" ? "Retry" : "Error"} {(s.rate * 100).toFixed(0)}% · {s.key} ({s.loads} loads)
-              </Badge>
+              <button key={i} onClick={() => setDrill({ breakpoint: s.breakpoint, orientation: s.orientation, kind: s.kind })}
+                className="focus:outline-none focus:ring-2 focus:ring-primary rounded" aria-label={`Drill into ${s.key} ${s.kind} spike`}>
+                <Badge variant="destructive" className="text-[10px] cursor-pointer hover:opacity-80">
+                  {s.kind === "retry" ? "Retry" : "Error"} {(s.rate * 100).toFixed(0)}% · {s.key} ({s.loads} loads) →
+                </Badge>
+              </button>
             ))}
           </div>
+          {drill && (
+            <div className="mt-3">
+              <AnalyticsDrilldown rows={rows} breakpoint={drill.breakpoint} orientation={drill.orientation}
+                kind={drill.kind} onClose={() => setDrill(null)} />
+            </div>
+          )}
         </Card>
       )}
 
