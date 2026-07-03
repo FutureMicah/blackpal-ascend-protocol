@@ -434,6 +434,8 @@ export const AdminClassAnalytics = () => {
           </div>
         </ScrollArea>
       </Card>
+
+      <AdminAnalyticsAlertsConfig />
     </div>
   );
 };
