@@ -1476,6 +1476,27 @@ export type Database = {
         }
         Relationships: []
       }
+      class_analytics_settings: {
+        Row: {
+          id: boolean
+          retention_days: number
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          id?: boolean
+          retention_days?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          id?: boolean
+          retention_days?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       class_chat_announcements: {
         Row: {
           course_id: string
@@ -5959,6 +5980,7 @@ export type Database = {
         Returns: string
       }
       claim_quest: { Args: { p_progress_id: string }; Returns: undefined }
+      cleanup_class_analytics: { Args: never; Returns: number }
       fund_wallet: {
         Args: {
           p_description?: string
@@ -5968,6 +5990,7 @@ export type Database = {
         }
         Returns: string
       }
+      get_class_analytics_retention: { Args: never; Returns: number }
       get_my_admin_role: { Args: never; Returns: string }
       has_role: {
         Args: {
@@ -6029,6 +6052,7 @@ export type Database = {
         }
         Returns: number
       }
+      purge_class_analytics: { Args: { _days: number }; Returns: number }
       refresh_quest_progress: { Args: never; Returns: undefined }
       reject_admin_request: {
         Args: { _note?: string; _request_id: string }
@@ -6057,6 +6081,10 @@ export type Database = {
         Returns: undefined
       }
       set_admin_pin: { Args: { _pin: string }; Returns: undefined }
+      set_class_analytics_retention: {
+        Args: { _days: number }
+        Returns: number
+      }
       set_my_location_privacy: {
         Args: { p_precision: string }
         Returns: undefined
