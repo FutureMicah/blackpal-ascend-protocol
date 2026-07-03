@@ -166,8 +166,9 @@ export const AdminClassAnalytics = () => {
     return { total, sessionLoadCount: sessionLoads.length, retries, errors, recoveries, avgSkeletonMs, p95SkeletonMs, byBp, byOr, spikes };
   }, [rows]);
 
-  // Fire toast for freshly-detected spikes
+  // Fire toast + server dispatch for freshly-detected spikes
   useEffect(() => {
+    const fresh: any[] = [];
     stats.spikes.forEach(sp => {
       const sig = `${from}|${to}|${sp.key}|${sp.kind}|${Math.round(sp.rate * 100)}`;
       if (seenAlertsRef.current.has(sig)) return;
@@ -175,7 +176,11 @@ export const AdminClassAnalytics = () => {
       toast.warning(`Spike: ${sp.kind} rate ${(sp.rate * 100).toFixed(0)}% on ${sp.key}`, {
         description: `${sp.loads} session loads in window`,
       });
+      fresh.push({ kind: sp.kind, breakpoint: sp.breakpoint, orientation: sp.orientation, rate: sp.rate, loads: sp.loads });
     });
+    if (fresh.length) {
+      supabase.functions.invoke("dispatch-analytics-alert", { body: { spikes: fresh } }).catch(() => {});
+    }
   }, [stats.spikes, from, to]);
 
   const exportEvents = () => {
