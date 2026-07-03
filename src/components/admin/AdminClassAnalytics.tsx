@@ -13,6 +13,8 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { AnalyticsDrilldown } from "./AnalyticsDrilldown";
+import { AdminAnalyticsAlertsConfig } from "./AdminAnalyticsAlertsConfig";
 
 type Row = {
   id: string;
