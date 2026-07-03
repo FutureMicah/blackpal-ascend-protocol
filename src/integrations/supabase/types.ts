@@ -1425,6 +1425,123 @@ export type Database = {
         }
         Relationships: []
       }
+      class_analytics_alert_config: {
+        Row: {
+          debounce_minutes: number
+          email_enabled: boolean
+          email_recipients: string[]
+          error_threshold: number
+          id: boolean
+          min_loads: number
+          retry_threshold: number
+          slack_enabled: boolean
+          slack_webhook_url: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          debounce_minutes?: number
+          email_enabled?: boolean
+          email_recipients?: string[]
+          error_threshold?: number
+          id?: boolean
+          min_loads?: number
+          retry_threshold?: number
+          slack_enabled?: boolean
+          slack_webhook_url?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          debounce_minutes?: number
+          email_enabled?: boolean
+          email_recipients?: string[]
+          error_threshold?: number
+          id?: boolean
+          min_loads?: number
+          retry_threshold?: number
+          slack_enabled?: boolean
+          slack_webhook_url?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      class_analytics_alert_overrides: {
+        Row: {
+          breakpoint: string | null
+          debounce_minutes: number | null
+          enabled: boolean
+          error_threshold: number | null
+          id: string
+          min_loads: number | null
+          orientation: string | null
+          retry_threshold: number | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          breakpoint?: string | null
+          debounce_minutes?: number | null
+          enabled?: boolean
+          error_threshold?: number | null
+          id?: string
+          min_loads?: number | null
+          orientation?: string | null
+          retry_threshold?: number | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          breakpoint?: string | null
+          debounce_minutes?: number | null
+          enabled?: boolean
+          error_threshold?: number | null
+          id?: string
+          min_loads?: number | null
+          orientation?: string | null
+          retry_threshold?: number | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      class_analytics_alerts_sent: {
+        Row: {
+          breakpoint: string | null
+          channels: string[]
+          id: string
+          kind: string
+          loads: number | null
+          orientation: string | null
+          rate: number | null
+          sent_at: string
+          signature: string
+        }
+        Insert: {
+          breakpoint?: string | null
+          channels?: string[]
+          id?: string
+          kind: string
+          loads?: number | null
+          orientation?: string | null
+          rate?: number | null
+          sent_at?: string
+          signature: string
+        }
+        Update: {
+          breakpoint?: string | null
+          channels?: string[]
+          id?: string
+          kind?: string
+          loads?: number | null
+          orientation?: string | null
+          rate?: number | null
+          sent_at?: string
+          signature?: string
+        }
+        Relationships: []
+      }
       class_analytics_events: {
         Row: {
           breakpoint: string | null
