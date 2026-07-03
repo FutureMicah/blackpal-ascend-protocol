@@ -150,16 +150,17 @@ export const AdminClassAnalytics = () => {
     });
 
     // Spike detection
-    const spikes: { key: string; kind: "retry" | "error"; rate: number; loads: number }[] = [];
-    const check = (label: string, s: { loads: number; retries: number; errors: number }) => {
+    type Spike = { key: string; kind: "retry" | "error"; rate: number; loads: number; breakpoint: string | null; orientation: string | null };
+    const spikes: Spike[] = [];
+    const check = (label: string, s: { loads: number; retries: number; errors: number }, bp: string | null, or: string | null) => {
       if (s.loads < SPIKE_MIN_LOADS) return;
       const rr = s.retries / s.loads;
       const er = s.errors / s.loads;
-      if (rr >= SPIKE_RETRY_RATE) spikes.push({ key: label, kind: "retry", rate: rr, loads: s.loads });
-      if (er >= SPIKE_ERROR_RATE) spikes.push({ key: label, kind: "error", rate: er, loads: s.loads });
+      if (rr >= SPIKE_RETRY_RATE) spikes.push({ key: label, kind: "retry", rate: rr, loads: s.loads, breakpoint: bp, orientation: or });
+      if (er >= SPIKE_ERROR_RATE) spikes.push({ key: label, kind: "error", rate: er, loads: s.loads, breakpoint: bp, orientation: or });
     };
-    Object.entries(byBp).forEach(([k, s]) => check(`bp:${k}`, s));
-    Object.entries(byOr).forEach(([k, s]) => check(`or:${k}`, s));
+    Object.entries(byBp).forEach(([k, s]) => check(`bp:${k}`, s, k, null));
+    Object.entries(byOr).forEach(([k, s]) => check(`or:${k}`, s, null, k));
 
     return { total, sessionLoadCount: sessionLoads.length, retries, errors, recoveries, avgSkeletonMs, p95SkeletonMs, byBp, byOr, spikes };
   }, [rows]);
