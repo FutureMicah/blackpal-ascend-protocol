@@ -1508,8 +1508,10 @@ export type Database = {
       }
       class_analytics_alerts_sent: {
         Row: {
+          attempted_channels: string[]
           breakpoint: string | null
           channels: string[]
+          errors: Json
           id: string
           kind: string
           loads: number | null
@@ -1517,10 +1519,13 @@ export type Database = {
           rate: number | null
           sent_at: string
           signature: string
+          status: string
         }
         Insert: {
+          attempted_channels?: string[]
           breakpoint?: string | null
           channels?: string[]
+          errors?: Json
           id?: string
           kind: string
           loads?: number | null
@@ -1528,10 +1533,13 @@ export type Database = {
           rate?: number | null
           sent_at?: string
           signature: string
+          status?: string
         }
         Update: {
+          attempted_channels?: string[]
           breakpoint?: string | null
           channels?: string[]
+          errors?: Json
           id?: string
           kind?: string
           loads?: number | null
@@ -1539,6 +1547,7 @@ export type Database = {
           rate?: number | null
           sent_at?: string
           signature?: string
+          status?: string
         }
         Relationships: []
       }
