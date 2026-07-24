@@ -17,6 +17,32 @@ type Spike = {
 const escapeHtml = (s: string) =>
   s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!));
 
+// Retry helper: 3 attempts w/ exponential backoff for transient (5xx / network) errors.
+async function fetchWithRetry(
+  url: string,
+  init: RequestInit,
+  channel: string,
+): Promise<{ ok: boolean; status: number; attempts: number; error?: string }> {
+  let lastErr = "";
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const r = await fetch(url, init);
+      if (r.ok) return { ok: true, status: r.status, attempts: attempt };
+      const body = await r.text().catch(() => "");
+      lastErr = `HTTP ${r.status} ${body.slice(0, 200)}`;
+      // Only retry on 5xx / 429
+      if (r.status < 500 && r.status !== 429) {
+        return { ok: false, status: r.status, attempts: attempt, error: lastErr };
+      }
+    } catch (e) {
+      lastErr = (e as Error).message;
+    }
+    if (attempt < 3) await new Promise((res) => setTimeout(res, 400 * attempt));
+  }
+  console.error(`[dispatch-analytics-alert] ${channel} failed after 3 attempts: ${lastErr}`);
+  return { ok: false, status: 0, attempts: 3, error: lastErr };
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -25,7 +51,6 @@ serve(async (req) => {
     const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const RESEND = Deno.env.get("RESEND_API_KEY");
 
-    // AuthN: require caller JWT, then verify admin role with service role client
     const authHeader = req.headers.get("Authorization") || "";
     const jwt = authHeader.replace(/^Bearer\s+/i, "");
     if (!jwt) {
@@ -68,12 +93,11 @@ serve(async (req) => {
     const debounceMin = Number(cfg.debounce_minutes) || 30;
     const cutoff = new Date(Date.now() - debounceMin * 60_000).toISOString();
 
-    const result: { signature: string; channels: string[]; deduped?: boolean; errors?: string[] }[] = [];
+    const result: any[] = [];
 
     for (const sp of spikes) {
       const sig = `${sp.kind}|${sp.breakpoint || ""}|${sp.orientation || ""}|${Math.round((sp.rate || 0) * 100)}`;
 
-      // Debounce check
       const { data: prev } = await admin
         .from("class_analytics_alerts_sent")
         .select("id").eq("signature", sig).gte("sent_at", cutoff).limit(1);
@@ -82,38 +106,42 @@ serve(async (req) => {
         continue;
       }
 
-      const channels: string[] = [];
-      const errors: string[] = [];
+      const successChannels: string[] = [];
+      const attemptedChannels: string[] = [];
+      const errors: { channel: string; error: string; attempts: number; status: number }[] = [];
       const title = `⚠️ Class analytics spike: ${sp.kind.toUpperCase()} ${(sp.rate * 100).toFixed(0)}%`;
       const context = `${sp.breakpoint ? `breakpoint=${sp.breakpoint}` : ""}${sp.orientation ? ` orientation=${sp.orientation}` : ""}`.trim();
       const line = `${title} · ${context || "global"} · ${sp.loads} session loads · ${new Date().toISOString()}`;
 
       // Slack
       if (cfg.slack_enabled && cfg.slack_webhook_url) {
-        try {
-          const r = await fetch(cfg.slack_webhook_url, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              text: line,
-              blocks: [
-                { type: "header", text: { type: "plain_text", text: title } },
-                { type: "section", fields: [
-                  { type: "mrkdwn", text: `*Scope:*\n${context || "global"}` },
-                  { type: "mrkdwn", text: `*Rate:*\n${(sp.rate * 100).toFixed(1)}%` },
-                  { type: "mrkdwn", text: `*Session loads:*\n${sp.loads}` },
-                  { type: "mrkdwn", text: `*Debounce:*\n${debounceMin} min` },
-                ]},
-              ],
-            }),
-          });
-          if (!r.ok) errors.push(`slack:${r.status}`); else channels.push("slack");
-        } catch (e) { errors.push(`slack:${(e as Error).message}`); }
+        attemptedChannels.push("slack");
+        const r = await fetchWithRetry(cfg.slack_webhook_url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            text: line,
+            blocks: [
+              { type: "header", text: { type: "plain_text", text: title } },
+              { type: "section", fields: [
+                { type: "mrkdwn", text: `*Scope:*\n${context || "global"}` },
+                { type: "mrkdwn", text: `*Rate:*\n${(sp.rate * 100).toFixed(1)}%` },
+                { type: "mrkdwn", text: `*Session loads:*\n${sp.loads}` },
+                { type: "mrkdwn", text: `*Debounce:*\n${debounceMin} min` },
+              ]},
+            ],
+          }),
+        }, "slack");
+        if (r.ok) successChannels.push("slack");
+        else errors.push({ channel: "slack", error: r.error || "unknown", attempts: r.attempts, status: r.status });
       }
 
-      // Email via Resend (direct)
-      if (cfg.email_enabled && RESEND && Array.isArray(cfg.email_recipients) && cfg.email_recipients.length) {
-        try {
+      // Email via Resend
+      if (cfg.email_enabled && Array.isArray(cfg.email_recipients) && cfg.email_recipients.length) {
+        attemptedChannels.push("email");
+        if (!RESEND) {
+          errors.push({ channel: "email", error: "RESEND_API_KEY not configured", attempts: 0, status: 0 });
+        } else {
           const html = `
             <div style="font-family:sans-serif;padding:20px;background:#0a0a0a;color:#fff">
               <h2 style="color:#d4af37;margin:0 0 12px">${escapeHtml(title)}</h2>
@@ -122,7 +150,7 @@ serve(async (req) => {
               <p style="margin:4px 0"><strong>Session loads:</strong> ${sp.loads}</p>
               <p style="margin:12px 0 0;color:#888;font-size:12px">Sent by BlackPal analytics. Debounce ${debounceMin} min.</p>
             </div>`;
-          const r = await fetch("https://api.resend.com/emails", {
+          const r = await fetchWithRetry("https://api.resend.com/emails", {
             method: "POST",
             headers: { "Authorization": `Bearer ${RESEND}`, "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -131,18 +159,38 @@ serve(async (req) => {
               subject: title,
               html,
             }),
-          });
-          if (!r.ok) errors.push(`email:${r.status}`); else channels.push("email");
-        } catch (e) { errors.push(`email:${(e as Error).message}`); }
+          }, "email");
+          if (r.ok) successChannels.push("email");
+          else errors.push({ channel: "email", error: r.error || "unknown", attempts: r.attempts, status: r.status });
+        }
       }
 
-      if (channels.length) {
+      // Persist attempt (even if fully failed) so admins can audit
+      if (attemptedChannels.length) {
+        const status = successChannels.length === 0
+          ? "failed"
+          : successChannels.length < attemptedChannels.length
+            ? "partial"
+            : "sent";
         await admin.from("class_analytics_alerts_sent").insert({
-          signature: sig, kind: sp.kind, breakpoint: sp.breakpoint || null,
-          orientation: sp.orientation || null, rate: sp.rate, loads: sp.loads, channels,
+          signature: sig,
+          kind: sp.kind,
+          breakpoint: sp.breakpoint || null,
+          orientation: sp.orientation || null,
+          rate: sp.rate,
+          loads: sp.loads,
+          channels: successChannels,
+          attempted_channels: attemptedChannels,
+          errors,
+          status,
         });
       }
-      result.push({ signature: sig, channels, errors: errors.length ? errors : undefined });
+      result.push({
+        signature: sig,
+        channels: successChannels,
+        attempted: attemptedChannels,
+        errors: errors.length ? errors : undefined,
+      });
     }
 
     return new Response(JSON.stringify({ ok: true, results: result }), {

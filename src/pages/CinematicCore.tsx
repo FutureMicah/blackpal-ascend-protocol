@@ -15,6 +15,7 @@ import {
   ListOrdered, ChevronUp, ChevronDown, Settings2
 } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, ReferenceLine } from "recharts";
+import { MT5ConnectDialog } from "@/components/portfolio/MT5ConnectDialog";
 
 interface PropAccount {
   id: string;
@@ -99,6 +100,7 @@ export default function CinematicCore() {
   const [mobilePanel, setMobilePanel] = useState<"chart" | "order" | "trades">("chart");
   const [showMarketWatch, setShowMarketWatch] = useState(false);
   const chartRef = useRef<any[]>([]);
+  const [showMt5Dialog, setShowMt5Dialog] = useState(false);
 
   const symbols = getSymbolList();
   const prices = useLivePrices(symbols, 800);
@@ -166,6 +168,13 @@ export default function CinematicCore() {
 
   const executeTrade = async (type: "buy" | "sell") => {
     if (!propAccount || !currentPrice || !userId) return;
+    // Gate: broker credentials must be linked (account-checker) before any order is sent
+    const linked = (propAccount as any).mt5_login && (propAccount as any).mt5_server;
+    if (!linked) {
+      toast.error("Link your broker login first to enable trading");
+      setShowMt5Dialog(true);
+      return;
+    }
     const entryPrice = type === "buy" ? currentPrice.ask : currentPrice.bid;
     const pipSize = selectedSymbol.includes("JPY") ? 0.01 : 0.0001;
     const sl = slPips ? (type === "buy" ? entryPrice - Number(slPips) * pipSize : entryPrice + Number(slPips) * pipSize) : null;
@@ -603,6 +612,17 @@ export default function CinematicCore() {
           )}
         </aside>
       </div>
+      {propAccount && (
+        <MT5ConnectDialog
+          open={showMt5Dialog}
+          onOpenChange={setShowMt5Dialog}
+          accountId={propAccount.id}
+          onConnected={async () => {
+            const { data } = await supabase.from("user_prop_accounts").select("*").eq("id", propAccount.id).single();
+            if (data) setPropAccount(data as any);
+          }}
+        />
+      )}
     </div>
   );
 }

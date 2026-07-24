@@ -50,8 +50,29 @@ export const AdminAnalyticsAlertsConfig = () => {
   };
   useEffect(() => { load(); }, []);
 
+  const validateCfg = (c: Config): string | null => {
+    if (c.retry_threshold <= 0 || c.retry_threshold > 1) return "Retry rate must be 1–100%";
+    if (c.error_threshold <= 0 || c.error_threshold > 1) return "Error rate must be 1–100%";
+    if (!Number.isInteger(c.min_loads) || c.min_loads < 1 || c.min_loads > 100000) return "Min loads must be 1–100000";
+    if (!Number.isInteger(c.debounce_minutes) || c.debounce_minutes < 1 || c.debounce_minutes > 1440) return "Debounce must be 1–1440 min";
+    if (c.slack_enabled && !/^https:\/\/hooks\.slack\.com\//.test(c.slack_webhook_url || "")) return "Slack webhook URL is invalid";
+    if (c.email_enabled && c.email_recipients.length === 0) return "Add at least one email recipient";
+    return null;
+  };
+  const validateOverride = (o: Override): string | null => {
+    const inRange = (v: number | null, lo: number, hi: number) => v == null || (v >= lo && v <= hi);
+    if (!inRange(o.retry_threshold != null ? o.retry_threshold * 100 : null, 1, 100)) return "Retry % must be 1–100";
+    if (!inRange(o.error_threshold != null ? o.error_threshold * 100 : null, 1, 100)) return "Error % must be 1–100";
+    if (!inRange(o.min_loads, 1, 100000)) return "Min loads must be 1–100000";
+    if (!inRange(o.debounce_minutes, 1, 1440)) return "Debounce must be 1–1440 min";
+    if (!o.breakpoint && !o.orientation) return "Set at least a breakpoint or orientation";
+    return null;
+  };
+
   const saveCfg = async () => {
     if (!cfg) return;
+    const err = validateCfg(cfg);
+    if (err) return toast.error(err);
     setSaving(true);
     const { error } = await supabase
       .from("class_analytics_alert_config" as any)
@@ -91,6 +112,8 @@ export const AdminAnalyticsAlertsConfig = () => {
   };
   const saveOverride = async (idx: number) => {
     const o = overrides[idx];
+    const vErr = validateOverride(o);
+    if (vErr) return toast.error(vErr);
     const payload = { ...o, updated_at: new Date().toISOString() };
     if (o.id) {
       const { error } = await supabase.from("class_analytics_alert_overrides" as any).update(payload).eq("id", o.id);
