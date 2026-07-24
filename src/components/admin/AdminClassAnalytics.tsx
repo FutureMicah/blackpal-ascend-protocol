@@ -15,6 +15,7 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import { AnalyticsDrilldown } from "./AnalyticsDrilldown";
 import { AdminAnalyticsAlertsConfig } from "./AdminAnalyticsAlertsConfig";
+import { AdminAnalyticsAlertsLog } from "./AdminAnalyticsAlertsLog";
 
 type Row = {
   id: string;
@@ -436,6 +437,7 @@ export const AdminClassAnalytics = () => {
       </Card>
 
       <AdminAnalyticsAlertsConfig />
+      <AdminAnalyticsAlertsLog />
     </div>
   );
 };
