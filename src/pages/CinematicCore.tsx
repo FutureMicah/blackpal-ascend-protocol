@@ -612,6 +612,17 @@ export default function CinematicCore() {
           )}
         </aside>
       </div>
+      {propAccount && (
+        <MT5ConnectDialog
+          open={showMt5Dialog}
+          onOpenChange={setShowMt5Dialog}
+          accountId={propAccount.id}
+          onConnected={async () => {
+            const { data } = await supabase.from("user_prop_accounts").select("*").eq("id", propAccount.id).single();
+            if (data) setPropAccount(data as any);
+          }}
+        />
+      )}
     </div>
   );
 }
