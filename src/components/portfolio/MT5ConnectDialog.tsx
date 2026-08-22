@@ -172,7 +172,7 @@ export function MT5ConnectDialog({ open, onOpenChange, accountId, defaultBroker,
             <Button type="button" variant="ghost" size="sm" onClick={() => onOpenChange(false)} disabled={busy}>
               Cancel
             </Button>
-            <Button type="submit" size="sm" disabled={busy}>
+            <Button type="submit" size="sm" disabled={busy || !isValid}>
               {busy ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Link2 className="w-3 h-3 mr-1" />}
               {busy ? "Connecting…" : "Connect & sync"}
             </Button>
