@@ -104,7 +104,15 @@ export function MT5ConnectDialog({ open, onOpenChange, accountId, defaultBroker,
         <form onSubmit={submit} className="space-y-3">
           <div className="space-y-1.5">
             <Label className="text-xs">MT5 login</Label>
-            <Input value={login} onChange={(e) => setLogin(e.target.value)} inputMode="numeric" autoComplete="off" />
+            <Input
+              value={login}
+              onChange={(e) => setLogin(e.target.value)}
+              onBlur={() => setFieldErrors(validate({ login, investorPassword, server }))}
+              inputMode="numeric"
+              autoComplete="off"
+              aria-invalid={!!shown.login}
+            />
+            {shown.login && <p className="text-[10px] text-destructive">{shown.login}</p>}
           </div>
           <div className="space-y-1.5">
             <Label className="text-xs">Investor password</Label>
@@ -112,19 +120,32 @@ export function MT5ConnectDialog({ open, onOpenChange, accountId, defaultBroker,
               type="password"
               value={investorPassword}
               onChange={(e) => setInvestorPassword(e.target.value)}
+              onBlur={() => setFieldErrors(validate({ login, investorPassword, server }))}
               autoComplete="off"
+              aria-invalid={!!shown.investorPassword}
             />
+            {shown.investorPassword && (
+              <p className="text-[10px] text-destructive">{shown.investorPassword}</p>
+            )}
           </div>
           <div className="grid grid-cols-2 gap-2">
             <div className="space-y-1.5">
               <Label className="text-xs">Server</Label>
-              <Input value={server} onChange={(e) => setServer(e.target.value)} placeholder="e.g. ICMarkets-Live01" />
+              <Input
+                value={server}
+                onChange={(e) => setServer(e.target.value)}
+                onBlur={() => setFieldErrors(validate({ login, investorPassword, server }))}
+                placeholder="e.g. ICMarkets-Live01"
+                aria-invalid={!!shown.server}
+              />
+              {shown.server && <p className="text-[10px] text-destructive">{shown.server}</p>}
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs">Broker</Label>
               <Input value={broker} onChange={(e) => setBroker(e.target.value)} placeholder="optional" />
             </div>
           </div>
+
           <div className="space-y-1.5">
             <Label className="text-xs">Region</Label>
             <select
