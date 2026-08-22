@@ -36,7 +36,7 @@ export default function Contest() {
     <div className="min-h-screen bg-background rebrand-contest">
       <FloatingNav />
       <div className="max-w-5xl mx-auto px-3 sm:px-6 pt-16 pb-20">
-        <header className="mb-5">
+        <header className="mb-4">
           <h1 className="text-lg sm:text-2xl font-bold flex items-center gap-2">
             <Sparkles className="w-5 h-5" /> Contests
           </h1>
@@ -44,6 +44,17 @@ export default function Contest() {
             Live contests posted by the academy. Win BTAX rewards.
           </p>
         </header>
+
+        <Card className="mb-5 p-4 border-primary/30 bg-gradient-to-br from-primary/15 via-card to-card">
+          <p className="text-sm sm:text-base font-bold leading-snug">
+            78% of traders could not pass this. Prove them wrong and be on the record holder leaderboard.
+          </p>
+          <p className="text-[11px] text-muted-foreground mt-1.5">
+            Everyone says they have an edge. The drawdown rule says otherwise. Pick your entry — $10, $50 or $100 — and
+            let the leaderboard settle it.
+          </p>
+        </Card>
+
 
         {loading ? (
           <div className="flex justify-center py-10">

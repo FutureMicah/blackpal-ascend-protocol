@@ -16,6 +16,28 @@ interface Props {
   onConnected?: () => void;
 }
 
+const LOGIN_RE = /^\d{4,15}$/;
+const SERVER_RE = /^[A-Za-z0-9][A-Za-z0-9 ._-]{2,63}$/;
+
+function validate(fields: { login: string; investorPassword: string; server: string }) {
+  const errors: Record<string, string> = {};
+  const login = fields.login.trim();
+  const server = fields.server.trim();
+
+  if (!login) errors.login = "MT5 login is required.";
+  else if (!LOGIN_RE.test(login)) errors.login = "Login must be 4–15 digits — check your broker statement.";
+
+  if (!fields.investorPassword) errors.investorPassword = "Investor password is required.";
+  else if (fields.investorPassword.length < 6)
+    errors.investorPassword = "Investor password looks too short — re-check your credentials.";
+
+  if (!server) errors.server = "Server is required.";
+  else if (!SERVER_RE.test(server))
+    errors.server = "Server looks malformed (e.g. ICMarkets-Live01). Re-check your credentials.";
+
+  return errors;
+}
+
 export function MT5ConnectDialog({ open, onOpenChange, accountId, defaultBroker, onConnected }: Props) {
   const [login, setLogin] = useState("");
   const [investorPassword, setInvestorPassword] = useState("");
@@ -24,18 +46,34 @@ export function MT5ConnectDialog({ open, onOpenChange, accountId, defaultBroker,
   const [region, setRegion] = useState<"new-york" | "london" | "singapore">("new-york");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [touched, setTouched] = useState(false);
+
+  const liveErrors = validate({ login, investorPassword, server });
+  const isValid = Object.keys(liveErrors).length === 0;
+  const shown = touched ? liveErrors : fieldErrors;
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErr(null);
-    if (!login || !investorPassword || !server) {
-      setErr("Login, investor password and server are required.");
+    setTouched(true);
+    const errors = validate({ login, investorPassword, server });
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) {
+      setErr("Please re-check your credentials before trading.");
       return;
     }
     setBusy(true);
     try {
       const { data, error } = await supabase.functions.invoke("mt5-connect", {
-        body: { accountId, login, investorPassword, server, broker, region },
+        body: {
+          accountId,
+          login: login.trim(),
+          investorPassword,
+          server: server.trim(),
+          broker: broker.trim(),
+          region,
+        },
       });
       if (error) throw new Error(error.message);
       if ((data as any)?.error) throw new Error((data as any).error);
@@ -48,6 +86,7 @@ export function MT5ConnectDialog({ open, onOpenChange, accountId, defaultBroker,
       setBusy(false);
     }
   };
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -65,7 +104,15 @@ export function MT5ConnectDialog({ open, onOpenChange, accountId, defaultBroker,
         <form onSubmit={submit} className="space-y-3">
           <div className="space-y-1.5">
             <Label className="text-xs">MT5 login</Label>
-            <Input value={login} onChange={(e) => setLogin(e.target.value)} inputMode="numeric" autoComplete="off" />
+            <Input
+              value={login}
+              onChange={(e) => setLogin(e.target.value)}
+              onBlur={() => setFieldErrors(validate({ login, investorPassword, server }))}
+              inputMode="numeric"
+              autoComplete="off"
+              aria-invalid={!!shown.login}
+            />
+            {shown.login && <p className="text-[10px] text-destructive">{shown.login}</p>}
           </div>
           <div className="space-y-1.5">
             <Label className="text-xs">Investor password</Label>
@@ -73,19 +120,32 @@ export function MT5ConnectDialog({ open, onOpenChange, accountId, defaultBroker,
               type="password"
               value={investorPassword}
               onChange={(e) => setInvestorPassword(e.target.value)}
+              onBlur={() => setFieldErrors(validate({ login, investorPassword, server }))}
               autoComplete="off"
+              aria-invalid={!!shown.investorPassword}
             />
+            {shown.investorPassword && (
+              <p className="text-[10px] text-destructive">{shown.investorPassword}</p>
+            )}
           </div>
           <div className="grid grid-cols-2 gap-2">
             <div className="space-y-1.5">
               <Label className="text-xs">Server</Label>
-              <Input value={server} onChange={(e) => setServer(e.target.value)} placeholder="e.g. ICMarkets-Live01" />
+              <Input
+                value={server}
+                onChange={(e) => setServer(e.target.value)}
+                onBlur={() => setFieldErrors(validate({ login, investorPassword, server }))}
+                placeholder="e.g. ICMarkets-Live01"
+                aria-invalid={!!shown.server}
+              />
+              {shown.server && <p className="text-[10px] text-destructive">{shown.server}</p>}
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs">Broker</Label>
               <Input value={broker} onChange={(e) => setBroker(e.target.value)} placeholder="optional" />
             </div>
           </div>
+
           <div className="space-y-1.5">
             <Label className="text-xs">Region</Label>
             <select
@@ -112,7 +172,7 @@ export function MT5ConnectDialog({ open, onOpenChange, accountId, defaultBroker,
             <Button type="button" variant="ghost" size="sm" onClick={() => onOpenChange(false)} disabled={busy}>
               Cancel
             </Button>
-            <Button type="submit" size="sm" disabled={busy}>
+            <Button type="submit" size="sm" disabled={busy || !isValid}>
               {busy ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Link2 className="w-3 h-3 mr-1" />}
               {busy ? "Connecting…" : "Connect & sync"}
             </Button>
