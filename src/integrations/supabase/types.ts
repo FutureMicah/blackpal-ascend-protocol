@@ -2042,17 +2042,112 @@ export type Database = {
           },
         ]
       }
+      contest_entries: {
+        Row: {
+          active_days: number
+          contest_id: string
+          created_at: string
+          drawdown_pct: number
+          id: string
+          joined_at: string
+          profit_pct: number
+          rank: number | null
+          score: number
+          status: string
+          trades_count: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active_days?: number
+          contest_id: string
+          created_at?: string
+          drawdown_pct?: number
+          id?: string
+          joined_at?: string
+          profit_pct?: number
+          rank?: number | null
+          score?: number
+          status?: string
+          trades_count?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active_days?: number
+          contest_id?: string
+          created_at?: string
+          drawdown_pct?: number
+          id?: string
+          joined_at?: string
+          profit_pct?: number
+          rank?: number | null
+          score?: number
+          status?: string
+          trades_count?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contest_entries_contest_id_fkey"
+            columns: ["contest_id"]
+            isOneToOne: false
+            referencedRelation: "contests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contest_reminder_prefs: {
+        Row: {
+          created_at: string
+          email_enabled: boolean
+          ending_soon_minutes: number
+          id: string
+          in_app_enabled: boolean
+          score_updates: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email_enabled?: boolean
+          ending_soon_minutes?: number
+          id?: string
+          in_app_enabled?: boolean
+          score_updates?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email_enabled?: boolean
+          ending_soon_minutes?: number
+          id?: string
+          in_app_enabled?: boolean
+          score_updates?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       contests: {
         Row: {
           cover_url: string | null
           created_at: string
           description: string | null
           ends_at: string | null
+          entry_price_usd: number
+          fail_rate_pct: number
           id: string
           is_active: boolean
+          max_drawdown_pct: number
+          min_active_days: number
+          min_trades: number
           prize_btax: number
           rules: string | null
           starts_at: string | null
+          target_profit_pct: number
           title: string
         }
         Insert: {
@@ -2060,11 +2155,17 @@ export type Database = {
           created_at?: string
           description?: string | null
           ends_at?: string | null
+          entry_price_usd?: number
+          fail_rate_pct?: number
           id?: string
           is_active?: boolean
+          max_drawdown_pct?: number
+          min_active_days?: number
+          min_trades?: number
           prize_btax?: number
           rules?: string | null
           starts_at?: string | null
+          target_profit_pct?: number
           title: string
         }
         Update: {
@@ -2072,11 +2173,17 @@ export type Database = {
           created_at?: string
           description?: string | null
           ends_at?: string | null
+          entry_price_usd?: number
+          fail_rate_pct?: number
           id?: string
           is_active?: boolean
+          max_drawdown_pct?: number
+          min_active_days?: number
+          min_trades?: number
           prize_btax?: number
           rules?: string | null
           starts_at?: string | null
+          target_profit_pct?: number
           title?: string
         }
         Relationships: []
