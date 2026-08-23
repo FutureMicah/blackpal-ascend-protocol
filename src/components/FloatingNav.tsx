@@ -34,53 +34,63 @@ const mobileBottomTabs = [
   { name: "Vault", path: "/blackvault", icon: Vault },
 ];
 
-// Side drawer organised into groups (used on both desktop & mobile via the menu)
-const drawerGroups: { label: string; items: { name: string; path: string; icon: typeof Home }[] }[] = [
+// Side drawer: at most 5 top-level menus, each with a sub-menu
+const drawerGroups: { label: string; icon: typeof Home; items: { name: string; path: string; icon: typeof Home }[] }[] = [
   {
     label: "Trading",
+    icon: Activity,
     items: [
       { name: "Portfolio", path: "/my-accounts", icon: Wallet },
       { name: "Market Hub", path: "/market-hub", icon: Globe },
       { name: "Contest", path: "/contest", icon: Sparkles },
       { name: "Forex Tools", path: "/forex-tools", icon: Wrench },
       { name: "Analytics", path: "/trade-analytics", icon: Activity },
+    ],
+  },
+  {
+    label: "Wallet",
+    icon: Wallet,
+    items: [
       { name: "Transactions", path: "/blackvault", icon: Vault },
       { name: "Deposit ₦ → BTAX", path: "/wallet/topup", icon: ArrowDownToLine },
+      { name: "BTAX", path: "/btax", icon: Coins },
+      { name: "Marketplace", path: "/marketplace", icon: ShoppingBag },
+      { name: "Referrals", path: "/referrals", icon: Gift },
+    ],
+  },
+  {
+    label: "Learn",
+    icon: BookOpen,
+    items: [
+      { name: "Classes", path: "/classes", icon: BookOpen },
+      { name: "BlackBoard", path: "/blackboard", icon: BookOpen },
+      { name: "Academy Tools", path: "/blackpass", icon: MegaIcon },
+      { name: "BlackForge", path: "/blackforge", icon: Hammer },
     ],
   },
   {
     label: "Community",
+    icon: Users,
     items: [
       { name: "Discover", path: "/discover", icon: Search },
       { name: "Friends", path: "/friends", icon: Users },
       { name: "BlackVerse", path: "/blackverse", icon: Users },
       { name: "Community", path: "/community", icon: Megaphone },
       { name: "Trader Atlas", path: "/world-map", icon: Map },
-      { name: "Referrals", path: "/referrals", icon: Gift },
-    ],
-  },
-  {
-    label: "Progress",
-    items: [
       { name: "Achievements", path: "/achievements", icon: Trophy },
       { name: "Leaderboard", path: "/leaderboard", icon: BarChart3 },
-      { name: "BlackBoard", path: "/blackboard", icon: BookOpen },
-      { name: "Classes", path: "/classes", icon: BookOpen },
-      { name: "Academy Tools", path: "/blackpass", icon: MegaIcon },
-      { name: "BlackForge", path: "/blackforge", icon: Hammer },
-      { name: "BTAX", path: "/btax", icon: Coins },
-      { name: "Marketplace", path: "/marketplace", icon: ShoppingBag },
     ],
-
   },
   {
     label: "Account",
+    icon: UserIcon,
     items: [
       { name: "Profile", path: "/profile/edit", icon: UserIcon },
       { name: "Notifications", path: "/blacknotify", icon: Bell },
     ],
   },
 ];
+
 
 const CircularLogo = ({ size = 32 }: { size?: number }) => (
   <div
