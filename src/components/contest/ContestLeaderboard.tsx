@@ -36,11 +36,11 @@ export function ContestLeaderboard({
 
     const entries = (data ?? []) as Row[];
     if (entries.length) {
-      const { data: profs } = await supabase
-        .from("profiles")
+      const ids: string[] = entries.map((e) => e.user_id);
+      const { data: profs } = await (supabase.from("profiles") as any)
         .select("user_id,display_name,avatar_url")
-        .in("user_id", entries.map((e) => e.user_id));
-      const map = new Map((profs ?? []).map((p: any) => [p.user_id, p]));
+        .in("user_id", ids);
+      const map = new Map<string, any>(((profs ?? []) as any[]).map((p) => [p.user_id as string, p]));
       entries.forEach((e) => {
         const p = map.get(e.user_id);
         e.display_name = p?.display_name ?? "Anonymous trader";
