@@ -115,7 +115,6 @@ const DrawerContents = ({
   pathname: string;
   onNavigate: () => void;
   pendingRequests: number;
-}) => (
 }) => {
   const activeGroup = drawerGroups.find((g) => g.items.some((i) => i.path === pathname));
   return (
