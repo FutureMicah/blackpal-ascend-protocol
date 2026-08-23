@@ -186,7 +186,9 @@ const DrawerContents = ({
       <Translator variant="inline" />
     </div>
   </div>
-);
+  );
+};
+
 
 export const FloatingNav = () => {
   const location = useLocation();
