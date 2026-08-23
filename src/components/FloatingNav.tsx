@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/sheet";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 // Priority items always visible in header (kept to 3)
 const priorityItems = [
@@ -34,53 +35,63 @@ const mobileBottomTabs = [
   { name: "Vault", path: "/blackvault", icon: Vault },
 ];
 
-// Side drawer organised into groups (used on both desktop & mobile via the menu)
-const drawerGroups: { label: string; items: { name: string; path: string; icon: typeof Home }[] }[] = [
+// Side drawer: at most 5 top-level menus, each with a sub-menu
+const drawerGroups: { label: string; icon: typeof Home; items: { name: string; path: string; icon: typeof Home }[] }[] = [
   {
     label: "Trading",
+    icon: Activity,
     items: [
       { name: "Portfolio", path: "/my-accounts", icon: Wallet },
       { name: "Market Hub", path: "/market-hub", icon: Globe },
       { name: "Contest", path: "/contest", icon: Sparkles },
       { name: "Forex Tools", path: "/forex-tools", icon: Wrench },
       { name: "Analytics", path: "/trade-analytics", icon: Activity },
+    ],
+  },
+  {
+    label: "Wallet",
+    icon: Wallet,
+    items: [
       { name: "Transactions", path: "/blackvault", icon: Vault },
       { name: "Deposit ₦ → BTAX", path: "/wallet/topup", icon: ArrowDownToLine },
+      { name: "BTAX", path: "/btax", icon: Coins },
+      { name: "Marketplace", path: "/marketplace", icon: ShoppingBag },
+      { name: "Referrals", path: "/referrals", icon: Gift },
+    ],
+  },
+  {
+    label: "Learn",
+    icon: BookOpen,
+    items: [
+      { name: "Classes", path: "/classes", icon: BookOpen },
+      { name: "BlackBoard", path: "/blackboard", icon: BookOpen },
+      { name: "Academy Tools", path: "/blackpass", icon: MegaIcon },
+      { name: "BlackForge", path: "/blackforge", icon: Hammer },
     ],
   },
   {
     label: "Community",
+    icon: Users,
     items: [
       { name: "Discover", path: "/discover", icon: Search },
       { name: "Friends", path: "/friends", icon: Users },
       { name: "BlackVerse", path: "/blackverse", icon: Users },
       { name: "Community", path: "/community", icon: Megaphone },
       { name: "Trader Atlas", path: "/world-map", icon: Map },
-      { name: "Referrals", path: "/referrals", icon: Gift },
-    ],
-  },
-  {
-    label: "Progress",
-    items: [
       { name: "Achievements", path: "/achievements", icon: Trophy },
       { name: "Leaderboard", path: "/leaderboard", icon: BarChart3 },
-      { name: "BlackBoard", path: "/blackboard", icon: BookOpen },
-      { name: "Classes", path: "/classes", icon: BookOpen },
-      { name: "Academy Tools", path: "/blackpass", icon: MegaIcon },
-      { name: "BlackForge", path: "/blackforge", icon: Hammer },
-      { name: "BTAX", path: "/btax", icon: Coins },
-      { name: "Marketplace", path: "/marketplace", icon: ShoppingBag },
     ],
-
   },
   {
     label: "Account",
+    icon: UserIcon,
     items: [
       { name: "Profile", path: "/profile/edit", icon: UserIcon },
       { name: "Notifications", path: "/blacknotify", icon: Bell },
     ],
   },
 ];
+
 
 const CircularLogo = ({ size = 32 }: { size?: number }) => (
   <div
@@ -105,48 +116,67 @@ const DrawerContents = ({
   pathname: string;
   onNavigate: () => void;
   pendingRequests: number;
-}) => (
+}) => {
+  const activeGroup = drawerGroups.find((g) => g.items.some((i) => i.path === pathname));
+  return (
   <div className="flex-1 overflow-y-auto px-2 pb-6">
-    {drawerGroups.map((group) => (
-      <div key={group.label} className="mt-3">
-        <p className="px-3 pb-1 text-[10px] uppercase tracking-[0.15em] text-muted-foreground/70 font-semibold">
-          {group.label}
-        </p>
-        <div className="space-y-0.5">
-          {group.items.map((item) => {
-            const Icon = item.icon;
-            const isActive = pathname === item.path;
-            const showBadge = item.path === "/discover" && pendingRequests > 0;
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                onClick={onNavigate}
-                className={cn(
-                  "relative flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all text-xs",
-                  isActive
-                    ? "bg-primary text-primary-foreground"
-                    : "hover:bg-primary/10 text-muted-foreground hover:text-foreground"
+    <Accordion type="single" collapsible defaultValue={activeGroup?.label} className="w-full">
+      {drawerGroups.map((group) => {
+        const GroupIcon = group.icon;
+        const groupBadge = group.items.some((i) => i.path === "/discover") && pendingRequests > 0;
+        return (
+          <AccordionItem key={group.label} value={group.label} className="border-b border-border/50">
+            <AccordionTrigger className="px-3 py-3 text-xs font-semibold hover:no-underline">
+              <span className="flex items-center gap-2.5">
+                <GroupIcon className="w-4 h-4 text-primary" />
+                {group.label}
+                {groupBadge && (
+                  <Badge variant="destructive" className="h-4 px-1.5 text-[9px]">
+                    {pendingRequests > 9 ? "9+" : pendingRequests}
+                  </Badge>
                 )}
-              >
-                <div className="relative">
-                  <Icon className="w-4 h-4" />
-                  {showBadge && (
-                    <Badge
-                      variant="destructive"
-                      className="absolute -top-1.5 -right-1.5 h-3.5 w-3.5 p-0 flex items-center justify-center text-[8px]"
+              </span>
+            </AccordionTrigger>
+            <AccordionContent className="pb-2">
+              <div className="space-y-0.5 pl-3">
+                {group.items.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = pathname === item.path;
+                  const showBadge = item.path === "/discover" && pendingRequests > 0;
+                  return (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      onClick={onNavigate}
+                      className={cn(
+                        "relative flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all text-xs",
+                        isActive
+                          ? "bg-primary text-primary-foreground"
+                          : "hover:bg-primary/10 text-muted-foreground hover:text-foreground"
+                      )}
                     >
-                      {pendingRequests > 9 ? "9+" : pendingRequests}
-                    </Badge>
-                  )}
-                </div>
-                <span className="font-medium">{item.name}</span>
-              </Link>
-            );
-          })}
-        </div>
-      </div>
-    ))}
+                      <div className="relative">
+                        <Icon className="w-4 h-4" />
+                        {showBadge && (
+                          <Badge
+                            variant="destructive"
+                            className="absolute -top-1.5 -right-1.5 h-3.5 w-3.5 p-0 flex items-center justify-center text-[8px]"
+                          >
+                            {pendingRequests > 9 ? "9+" : pendingRequests}
+                          </Badge>
+                        )}
+                      </div>
+                      <span className="font-medium">{item.name}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        );
+      })}
+    </Accordion>
+
     <div className="flex items-center gap-2.5 px-3 py-3 mt-4 border-t border-border">
       <ThemeToggle />
       <span className="text-xs text-muted-foreground">Theme</span>
@@ -156,7 +186,9 @@ const DrawerContents = ({
       <Translator variant="inline" />
     </div>
   </div>
-);
+  );
+};
+
 
 export const FloatingNav = () => {
   const location = useLocation();
