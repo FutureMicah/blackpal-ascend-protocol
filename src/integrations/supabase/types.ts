@@ -6214,6 +6214,7 @@ export type Database = {
       }
       claim_quest: { Args: { p_progress_id: string }; Returns: undefined }
       cleanup_class_analytics: { Args: never; Returns: number }
+      contest_baseline_balance: { Args: { p_user_id: string }; Returns: number }
       fund_wallet: {
         Args: {
           p_description?: string
@@ -6286,6 +6287,12 @@ export type Database = {
         Returns: number
       }
       purge_class_analytics: { Args: { _days: number }; Returns: number }
+      recompute_active_contests: { Args: never; Returns: number }
+      recompute_contest: { Args: { p_contest_id: string }; Returns: undefined }
+      recompute_contest_entry: {
+        Args: { p_entry_id: string }
+        Returns: undefined
+      }
       refresh_quest_progress: { Args: never; Returns: undefined }
       reject_admin_request: {
         Args: { _note?: string; _request_id: string }
@@ -6300,6 +6307,7 @@ export type Database = {
         Returns: undefined
       }
       request_prop_payout: { Args: { p_account_id: string }; Returns: string }
+      rerank_contest: { Args: { p_contest_id: string }; Returns: undefined }
       reward_user: {
         Args: {
           p_btax_amount: number
