@@ -2098,6 +2098,124 @@ export type Database = {
           },
         ]
       }
+      contest_recompute_log: {
+        Row: {
+          change_kind: string
+          contest_id: string
+          created_at: string
+          entry_id: string
+          id: string
+          new_drawdown_pct: number | null
+          new_profit_pct: number | null
+          new_rank: number | null
+          new_score: number | null
+          new_status: string | null
+          old_drawdown_pct: number | null
+          old_profit_pct: number | null
+          old_rank: number | null
+          old_score: number | null
+          old_status: string | null
+          run_id: string | null
+          source: string
+          user_id: string
+        }
+        Insert: {
+          change_kind?: string
+          contest_id: string
+          created_at?: string
+          entry_id: string
+          id?: string
+          new_drawdown_pct?: number | null
+          new_profit_pct?: number | null
+          new_rank?: number | null
+          new_score?: number | null
+          new_status?: string | null
+          old_drawdown_pct?: number | null
+          old_profit_pct?: number | null
+          old_rank?: number | null
+          old_score?: number | null
+          old_status?: string | null
+          run_id?: string | null
+          source?: string
+          user_id: string
+        }
+        Update: {
+          change_kind?: string
+          contest_id?: string
+          created_at?: string
+          entry_id?: string
+          id?: string
+          new_drawdown_pct?: number | null
+          new_profit_pct?: number | null
+          new_rank?: number | null
+          new_score?: number | null
+          new_status?: string | null
+          old_drawdown_pct?: number | null
+          old_profit_pct?: number | null
+          old_rank?: number | null
+          old_score?: number | null
+          old_status?: string | null
+          run_id?: string | null
+          source?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contest_recompute_log_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "contest_recompute_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contest_recompute_runs: {
+        Row: {
+          contest_id: string | null
+          created_at: string
+          duration_ms: number | null
+          entries_changed: number
+          entries_total: number
+          finished_at: string | null
+          id: string
+          source: string
+          started_at: string
+          status: string
+        }
+        Insert: {
+          contest_id?: string | null
+          created_at?: string
+          duration_ms?: number | null
+          entries_changed?: number
+          entries_total?: number
+          finished_at?: string | null
+          id?: string
+          source?: string
+          started_at?: string
+          status?: string
+        }
+        Update: {
+          contest_id?: string | null
+          created_at?: string
+          duration_ms?: number | null
+          entries_changed?: number
+          entries_total?: number
+          finished_at?: string | null
+          id?: string
+          source?: string
+          started_at?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contest_recompute_runs_contest_id_fkey"
+            columns: ["contest_id"]
+            isOneToOne: false
+            referencedRelation: "contests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contest_reminder_prefs: {
         Row: {
           created_at: string
