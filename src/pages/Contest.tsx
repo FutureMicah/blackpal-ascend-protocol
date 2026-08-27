@@ -13,6 +13,8 @@ import { ContestLeaderboard } from "@/components/contest/ContestLeaderboard";
 import { ContestProgressPanel } from "@/components/contest/ContestProgressPanel";
 import { ContestReminderPrefs } from "@/components/contest/ContestReminderPrefs";
 import { RecomputeStatusIndicator } from "@/components/contest/RecomputeStatusIndicator";
+import { ContestScoreHistory } from "@/components/contest/ContestScoreHistory";
+
 
 import { ContestRules, ContestStats } from "@/lib/contest-scoring";
 
@@ -267,19 +269,22 @@ export default function Contest() {
                     <TabsContent value="leaderboard" className="mt-2">
                       <ContestLeaderboard contestId={c.id} meId={userId} />
                     </TabsContent>
-                    <TabsContent value="progress" className="mt-2">
-                      {entry ? (
-                        <ContestProgressPanel
-                          rules={toRules(c)}
-                          stats={{
-                            profit_pct: Number(entry.profit_pct),
-                            drawdown_pct: Number(entry.drawdown_pct),
-                            trades_count: Number(entry.trades_count),
-                            active_days: Number(entry.active_days),
-                          }}
-                          ended={ended}
-                          rank={entry.rank}
-                        />
+                    <TabsContent value="progress" className="mt-2 space-y-2">
+                      {entry && userId ? (
+                        <>
+                          <ContestProgressPanel
+                            rules={toRules(c)}
+                            stats={{
+                              profit_pct: Number(entry.profit_pct),
+                              drawdown_pct: Number(entry.drawdown_pct),
+                              trades_count: Number(entry.trades_count),
+                              active_days: Number(entry.active_days),
+                            }}
+                            ended={ended}
+                            rank={entry.rank}
+                          />
+                          <ContestScoreHistory contestId={c.id} userId={userId} />
+                        </>
                       ) : (
                         <Card className="p-4 text-center">
                           <p className="text-[11px] text-muted-foreground">
@@ -289,6 +294,7 @@ export default function Contest() {
                         </Card>
                       )}
                     </TabsContent>
+
                   </Tabs>
 
                   {c.rules && (
