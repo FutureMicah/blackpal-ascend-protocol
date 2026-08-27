@@ -12,6 +12,8 @@ import { ContestRulesModal } from "@/components/contest/ContestRulesModal";
 import { ContestLeaderboard } from "@/components/contest/ContestLeaderboard";
 import { ContestProgressPanel } from "@/components/contest/ContestProgressPanel";
 import { ContestReminderPrefs } from "@/components/contest/ContestReminderPrefs";
+import { RecomputeStatusIndicator } from "@/components/contest/RecomputeStatusIndicator";
+
 import { ContestRules, ContestStats } from "@/lib/contest-scoring";
 
 interface Contest {
@@ -223,7 +225,9 @@ export default function Contest() {
                         {ended ? "Ended" : `Ends ${format(new Date(c.ends_at), "MMM d")}`}
                       </span>
                     )}
+                    <RecomputeStatusIndicator contestId={c.id} />
                   </div>
+
 
                   <div className="flex items-center gap-2">
                     <Button
