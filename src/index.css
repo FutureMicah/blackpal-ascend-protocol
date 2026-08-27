@@ -666,3 +666,131 @@ html[data-energy="silent"] .animate-pulse,
 html[data-energy="silent"] [class*="animate-"] {
   animation: none !important;
 }
+
+/* ===== Neon + 4K-ready 3D motion layer ===== */
+@layer utilities {
+  .neon-text {
+    color: hsl(var(--primary-foreground));
+    text-shadow:
+      0 0 4px hsl(var(--primary) / 0.9),
+      0 0 12px hsl(var(--primary) / 0.7),
+      0 0 32px hsl(var(--primary) / 0.45),
+      0 0 64px hsl(var(--primary) / 0.25);
+  }
+
+  .neon-text-accent {
+    color: hsl(var(--primary));
+    text-shadow:
+      0 0 6px hsl(var(--primary) / 0.8),
+      0 0 24px hsl(var(--primary) / 0.4);
+  }
+
+  .neon-flicker {
+    animation: neon-flicker 4.5s infinite steps(1, end);
+  }
+
+  @keyframes neon-flicker {
+    0%, 92%, 100% { opacity: 1; }
+    93% { opacity: 0.55; }
+    94% { opacity: 1; }
+    96% { opacity: 0.7; }
+    97% { opacity: 1; }
+  }
+
+  .neon-border {
+    position: relative;
+    border: 1px solid hsl(var(--primary) / 0.45);
+    box-shadow:
+      0 0 12px hsl(var(--primary) / 0.28),
+      inset 0 0 18px hsl(var(--primary) / 0.12);
+  }
+
+  .neon-sweep::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background: linear-gradient(
+      110deg,
+      transparent 35%,
+      hsl(var(--primary) / 0.18) 50%,
+      transparent 65%
+    );
+    background-size: 250% 100%;
+    animation: neon-sweep 3.6s ease-in-out infinite;
+  }
+
+  @keyframes neon-sweep {
+    0% { background-position: 180% 0; }
+    100% { background-position: -80% 0; }
+  }
+
+  /* GPU-composited 3D scene wrappers — crisp on 4K / high-dpr displays */
+  .scene-3d {
+    perspective: 1400px;
+    transform-style: preserve-3d;
+  }
+
+  .tilt-3d {
+    transform-style: preserve-3d;
+    backface-visibility: hidden;
+    will-change: transform;
+    transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 420ms ease;
+  }
+
+  .tilt-3d:hover {
+    transform: rotateX(6deg) rotateY(-6deg) translateZ(24px) scale(1.015);
+    box-shadow: 0 28px 70px -22px hsl(var(--primary) / 0.55);
+  }
+
+  .orbit-3d {
+    animation: orbit-3d 14s linear infinite;
+    transform-style: preserve-3d;
+  }
+
+  @keyframes orbit-3d {
+    0% { transform: rotateY(0deg) translateZ(6px); }
+    100% { transform: rotateY(360deg) translateZ(6px); }
+  }
+
+  .depth-float {
+    animation: depth-float 7s ease-in-out infinite;
+  }
+
+  @keyframes depth-float {
+    0%, 100% { transform: translate3d(0, 0, 0) rotateX(0deg); }
+    50% { transform: translate3d(0, -12px, 40px) rotateX(4deg); }
+  }
+
+  .pulse-ring {
+    position: relative;
+  }
+
+  .pulse-ring::before {
+    content: "";
+    position: absolute;
+    inset: -3px;
+    border-radius: inherit;
+    border: 1px solid hsl(var(--primary) / 0.5);
+    animation: pulse-ring 2.4s ease-out infinite;
+    pointer-events: none;
+  }
+
+  @keyframes pulse-ring {
+    0% { opacity: 0.8; transform: scale(0.96); }
+    100% { opacity: 0; transform: scale(1.08); }
+  }
+}
+
+/* Respect the OS reduced-motion setting for every effect above */
+@media (prefers-reduced-motion: reduce) {
+  .neon-flicker,
+  .neon-sweep::after,
+  .orbit-3d,
+  .depth-float,
+  .pulse-ring::before {
+    animation: none !important;
+  }
+  .tilt-3d:hover { transform: none; }
+}
