@@ -12,6 +12,8 @@ import { ContestRulesModal } from "@/components/contest/ContestRulesModal";
 import { ContestLeaderboard } from "@/components/contest/ContestLeaderboard";
 import { ContestProgressPanel } from "@/components/contest/ContestProgressPanel";
 import { ContestReminderPrefs } from "@/components/contest/ContestReminderPrefs";
+import { RecomputeStatusIndicator } from "@/components/contest/RecomputeStatusIndicator";
+
 import { ContestRules, ContestStats } from "@/lib/contest-scoring";
 
 interface Contest {
