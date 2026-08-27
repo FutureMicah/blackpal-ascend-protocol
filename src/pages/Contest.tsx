@@ -223,7 +223,9 @@ export default function Contest() {
                         {ended ? "Ended" : `Ends ${format(new Date(c.ends_at), "MMM d")}`}
                       </span>
                     )}
+                    <RecomputeStatusIndicator contestId={c.id} />
                   </div>
+
 
                   <div className="flex items-center gap-2">
                     <Button
