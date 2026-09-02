@@ -3,7 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Crown, Loader2, Trophy } from "lucide-react";
+import { Crown, Trophy } from "lucide-react";
+import { LeaderboardSkeleton } from "./ContestSkeletons";
 
 interface Row {
   user_id: string;
@@ -66,13 +67,7 @@ export function ContestLeaderboard({
     };
   }, [contestId, load]);
 
-  if (loading) {
-    return (
-      <div className="flex justify-center py-6">
-        <Loader2 className="w-4 h-4 animate-spin text-primary" />
-      </div>
-    );
-  }
+  if (loading) return <LeaderboardSkeleton />;
 
   if (!rows.length) {
     return (
@@ -92,8 +87,8 @@ export function ContestLeaderboard({
         return (
           <div
             key={r.user_id}
-            className={`flex items-center gap-2 rounded-lg border px-2.5 py-2 ${
-              isMe ? "border-primary/50 bg-primary/10" : "border-border/60 bg-card"
+            className={`flex items-center gap-2 rounded-lg border px-2.5 py-2 transition-transform duration-200 hover:translate-x-0.5 ${
+              isMe ? "border-primary/50 bg-primary/10 neon-border" : "border-border/60 bg-card"
             }`}
           >
             <span className="w-5 text-center text-[11px] font-bold tabular-nums text-muted-foreground">
@@ -106,7 +101,7 @@ export function ContestLeaderboard({
               </AvatarFallback>
             </Avatar>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-[11px] font-semibold">
+              <p className={`truncate text-[11px] font-semibold ${i < 3 ? "neon-text" : ""}`}>
                 {r.display_name}
                 {isMe && <span className="ml-1 text-[9px] text-primary">you</span>}
               </p>
@@ -120,7 +115,7 @@ export function ContestLeaderboard({
             >
               {r.status === "in_progress" ? "running" : r.status}
             </Badge>
-            <span className="w-10 text-right text-[11px] font-bold tabular-nums text-primary">
+            <span className="w-10 text-right text-[11px] font-bold tabular-nums text-primary neon-text-accent">
               {Number(r.score).toFixed(1)}
             </span>
           </div>

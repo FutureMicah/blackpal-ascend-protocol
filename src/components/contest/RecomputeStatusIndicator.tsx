@@ -106,20 +106,22 @@ export function RecomputeStatusIndicator({ contestId }: { contestId: string }) {
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <Badge
-            variant={running ? "default" : "secondary"}
-            aria-live="polite"
-            className="text-[9px] px-1.5 py-0 gap-1 font-medium"
-          >
-            {running ? (
-              <Loader2 className="w-2.5 h-2.5 animate-spin" />
-            ) : run ? (
-              <CheckCircle2 className="w-2.5 h-2.5" />
-            ) : (
-              <Clock className="w-2.5 h-2.5" />
-            )}
-            {label}
-          </Badge>
+          <span tabIndex={0} className="inline-flex">
+            <Badge
+              variant={running ? "default" : "secondary"}
+              aria-live="polite"
+              className="text-[9px] px-1.5 py-0 gap-1 font-medium"
+            >
+              {running ? (
+                <Loader2 className="w-2.5 h-2.5 animate-spin" />
+              ) : run ? (
+                <CheckCircle2 className="w-2.5 h-2.5" />
+              ) : (
+                <Clock className="w-2.5 h-2.5" />
+              )}
+              {label}
+            </Badge>
+          </span>
         </TooltipTrigger>
         <TooltipContent side="top" className="max-w-[220px] text-[10px]">
           {detail}
