@@ -180,8 +180,10 @@ export default function Contest() {
         )}
 
         {loading ? (
-          <div className="flex justify-center py-10">
-            <Loader2 className="w-6 h-6 animate-spin text-primary" />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+            {[0, 1, 2, 3].map((i) => (
+              <ContestCardSkeleton key={i} />
+            ))}
           </div>
         ) : contests.length === 0 ? (
           <Card className="p-8 text-center">
