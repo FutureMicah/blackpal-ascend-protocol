@@ -157,7 +157,7 @@ export default function Contest() {
       <div className="max-w-5xl mx-auto px-3 sm:px-6 pt-16 pb-20">
         <header className="mb-4">
           <h1 className="text-lg sm:text-2xl font-bold flex items-center gap-2">
-            <Sparkles className="w-5 h-5" /> Contests
+            <Sparkles className="w-5 h-5 orbit-3d" /> <span className="neon-text">Contests</span>
           </h1>
           <p className="text-xs text-muted-foreground mt-0.5">
             Live contests posted by the academy. Win BTAX rewards.
@@ -200,14 +200,14 @@ export default function Contest() {
               const entry = entries[c.id];
               const ended = !!c.ends_at && new Date(c.ends_at).getTime() < Date.now();
               return (
-                <Card key={c.id} className="p-4 space-y-3">
+                <Card key={c.id} className="p-4 space-y-3 tilt-3d neon-border">
                   {c.cover_url && (
                     <img src={c.cover_url} alt={c.title} className="w-full h-28 object-cover rounded-lg" />
                   )}
 
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <h3 className="text-sm font-bold truncate">{c.title}</h3>
+                      <h3 className="text-sm font-bold truncate neon-text">{c.title}</h3>
                       {c.description && (
                         <p className="text-[11px] text-muted-foreground line-clamp-2">{c.description}</p>
                       )}
@@ -218,7 +218,7 @@ export default function Contest() {
                   </div>
 
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px]">
-                    <span className="text-primary font-semibold">
+                    <span className="text-primary font-semibold neon-text-accent">
                       Prize: {Number(c.prize_btax).toLocaleString()} BTAX
                     </span>
                     <span className="text-muted-foreground">
