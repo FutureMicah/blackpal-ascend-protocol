@@ -14,6 +14,7 @@ import { ContestProgressPanel } from "@/components/contest/ContestProgressPanel"
 import { ContestReminderPrefs } from "@/components/contest/ContestReminderPrefs";
 import { RecomputeStatusIndicator } from "@/components/contest/RecomputeStatusIndicator";
 import { ContestScoreHistory } from "@/components/contest/ContestScoreHistory";
+import { ContestCardSkeleton } from "@/components/contest/ContestSkeletons";
 
 
 import { ContestRules, ContestStats } from "@/lib/contest-scoring";
