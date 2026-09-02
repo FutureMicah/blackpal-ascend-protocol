@@ -81,13 +81,26 @@ export function RecomputeStatusIndicator({ contestId }: { contestId: string }) {
       ? "Recomputing scores…"
       : `Scored ${relative(run.finished_at ?? run.started_at)}`;
 
-  const detail = !run
-    ? "This gauntlet has not been scored by the engine yet."
-    : running
-      ? `Scoring run in progress (${run.source}).`
-      : `${run.entries_changed} of ${run.entries_total} entries changed · ${run.source} run · ${
-          run.duration_ms ?? 0
-        }ms`;
+  const abs = (iso?: string | null) => (iso ? new Date(iso).toLocaleString() : "—");
+
+  const detail = !run ? (
+    "This gauntlet has not been scored by the engine yet."
+  ) : (
+    <span className="block space-y-0.5">
+      <span className="block">
+        {running
+          ? `Scoring run in progress (${run.source}).`
+          : `${run.entries_changed} of ${run.entries_total} entries changed · ${run.source} run · ${
+              run.duration_ms ?? 0
+            }ms`}
+      </span>
+      <span className="block text-muted-foreground">Started: {abs(run.started_at)}</span>
+      <span className="block text-muted-foreground">
+        Finished: {running ? "running…" : abs(run.finished_at)}
+      </span>
+      <span className="block text-muted-foreground break-all">Run id: {run.id}</span>
+    </span>
+  );
 
   return (
     <TooltipProvider>
