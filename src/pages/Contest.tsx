@@ -15,6 +15,9 @@ import { ContestReminderPrefs } from "@/components/contest/ContestReminderPrefs"
 import { RecomputeStatusIndicator } from "@/components/contest/RecomputeStatusIndicator";
 import { ContestScoreHistory } from "@/components/contest/ContestScoreHistory";
 import { ContestCardSkeleton } from "@/components/contest/ContestSkeletons";
+import { BullBearArena } from "@/components/ascend/BullBearArena";
+import { AscendAmbient } from "@/components/ascend/AscendAmbient";
+import { CountUp } from "@/components/ascend/CountUp";
 
 
 import { ContestRules, ContestStats } from "@/lib/contest-scoring";
@@ -58,6 +61,8 @@ export default function Contest() {
   const [userId, setUserId] = useState<string | null>(null);
   const [rulesFor, setRulesFor] = useState<Contest | null>(null);
   const [joining, setJoining] = useState<string | null>(null);
+  const [bullPct, setBullPct] = useState(50);
+  const [prizePool, setPrizePool] = useState(0);
 
   const loadEntries = useCallback(async (uid: string) => {
     const { data } = await supabase
@@ -84,6 +89,21 @@ export default function Contest() {
         .order("entry_price_usd", { ascending: true });
       const list = (data as Contest[]) || [];
       setContests(list);
+      setPrizePool(list.reduce((s, c) => s + Number(c.prize_btax || 0), 0));
+
+      // Live bull/bear pressure across every active contest run
+      if (list.length) {
+        const { data: pressure } = await supabase
+          .from("contest_entries")
+          .select("profit_pct")
+          .in("contest_id", list.map((c) => c.id));
+        const rows = (pressure ?? []) as { profit_pct: number | null }[];
+        if (rows.length) {
+          const bulls = rows.filter((r) => Number(r.profit_pct ?? 0) >= 0).length;
+          setBullPct(Math.round((bulls / rows.length) * 100));
+        }
+      }
+
       if (uid) await loadEntries(uid);
       setLoading(false);
     })();
