@@ -794,3 +794,263 @@ html[data-energy="silent"] [class*="animate-"] {
   }
   .tilt-3d:hover { transform: none; }
 }
+
+/* ===================================================================
+   ASCEND PROTOCOL — void tokens, ambient layer, holo cards, arena
+   All motion is transform/opacity/filter only. Reduced-motion safe.
+   =================================================================== */
+:root {
+  --ascend-void: 240 25% 3%;
+  --ascend-panel: 240 14% 7%;
+  --ascend-cyan: 186 100% 50%;
+  --ascend-violet: 258 90% 66%;
+  --ascend-gold: 45 85% 69%;
+  --ascend-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@layer utilities {
+  /* ---------- Ambient layer ---------- */
+  .ascend-grain {
+    opacity: 0.045;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
+    animation: ascend-grain-drift 8s steps(6) infinite;
+    will-change: transform;
+  }
+  @keyframes ascend-grain-drift {
+    0%   { transform: translate3d(0, 0, 0); }
+    33%  { transform: translate3d(-2%, 1%, 0); }
+    66%  { transform: translate3d(1%, -2%, 0); }
+    100% { transform: translate3d(0, 0, 0); }
+  }
+
+  .ascend-vignette {
+    background: radial-gradient(ellipse at 50% 45%, transparent 42%, hsl(var(--ascend-void) / 0.85) 100%);
+    animation: ascend-breathe 11s ease-in-out infinite;
+  }
+  @keyframes ascend-breathe {
+    0%, 100% { opacity: 0.85; transform: scale(1); }
+    50%      { opacity: 1;    transform: scale(1.03); }
+  }
+
+  .ascend-streak {
+    position: absolute;
+    left: -30%;
+    width: 42%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, hsl(var(--ascend-cyan) / 0.55), transparent);
+    filter: blur(1px);
+    opacity: 0;
+    animation: ascend-streak 18s linear infinite;
+    will-change: transform, opacity;
+  }
+  .ascend-streak--violet {
+    background: linear-gradient(90deg, transparent, hsl(var(--ascend-violet) / 0.5), transparent);
+  }
+  @keyframes ascend-streak {
+    0%   { transform: translate3d(0, 0, 0) rotate(-8deg); opacity: 0; }
+    8%   { opacity: 0.9; }
+    22%  { opacity: 0; }
+    100% { transform: translate3d(320%, -6vh, 0) rotate(-8deg); opacity: 0; }
+  }
+
+  /* ---------- Holographic NFT card ---------- */
+  .holo-card {
+    --mx: 50%; --my: 50%; --rx: 0deg; --ry: 0deg;
+    --holo: var(--ascend-cyan);
+    position: relative;
+    isolation: isolate;
+    border-radius: 1rem;
+    padding: 1px;
+    background:
+      linear-gradient(140deg, hsl(var(--holo) / 0.55), transparent 40%, hsl(var(--holo) / 0.35));
+    box-shadow: 0 18px 50px -24px hsl(var(--holo) / 0.7);
+    transform: perspective(1100px) rotateX(var(--rx)) rotateY(var(--ry));
+    transform-style: preserve-3d;
+    backface-visibility: hidden;
+    will-change: transform;
+    transition: transform 320ms var(--ascend-ease), box-shadow 320ms ease;
+  }
+  .holo-card > * { border-radius: calc(1rem - 1px); }
+  .holo-card[data-rarity="operator"]  { --holo: var(--ascend-violet); }
+  .holo-card[data-rarity="apex"]      { --holo: var(--ascend-cyan); box-shadow: 0 18px 54px -22px hsl(var(--ascend-violet) / 0.8); }
+  .holo-card[data-rarity="sovereign"] { --holo: var(--ascend-gold); }
+
+  .holo-card__sheen {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 5;
+    background: radial-gradient(
+      circle at var(--mx) var(--my),
+      hsl(var(--holo) / 0.22),
+      transparent 55%
+    );
+    mix-blend-mode: screen;
+    transition: opacity 200ms ease;
+  }
+
+  /* ---------- Glass panel ---------- */
+  .ascend-panel {
+    background: hsl(var(--ascend-panel) / 0.72);
+    backdrop-filter: blur(16px);
+    border: 1px solid hsl(var(--ascend-cyan) / 0.16);
+    border-radius: 1rem;
+  }
+
+  /* ---------- Magnetic / glow button ---------- */
+  .ascend-cta {
+    position: relative;
+    transition: transform 180ms var(--ascend-ease), box-shadow 180ms ease;
+    box-shadow: 0 0 0 0 hsl(var(--ascend-cyan) / 0.5);
+  }
+  .ascend-cta:hover  { transform: translateY(-2px) scale(1.04); box-shadow: 0 0 28px -2px hsl(var(--ascend-cyan) / 0.6); }
+  .ascend-cta:active { transform: scale(0.97); }
+
+  /* ---------- Scroll / mount reveal ---------- */
+  .ascend-reveal { animation: ascend-reveal 620ms var(--ascend-ease) both; }
+  @keyframes ascend-reveal {
+    from { opacity: 0; transform: translate3d(0, 22px, 0) scale(0.98); filter: blur(6px); }
+    to   { opacity: 1; transform: none; filter: none; }
+  }
+
+  /* ---------- Orbital loader ---------- */
+  .ascend-loader {
+    width: 34px; height: 34px; border-radius: 999px;
+    border: 1px solid hsl(var(--ascend-cyan) / 0.25);
+    position: relative;
+  }
+  .ascend-loader::after {
+    content: ""; position: absolute; inset: -1px; border-radius: inherit;
+    border: 1px solid transparent; border-top-color: hsl(var(--ascend-cyan));
+    animation: ascend-spin 900ms linear infinite;
+  }
+  @keyframes ascend-spin { to { transform: rotate(360deg); } }
+}
+
+/* ===================== Bull vs Bear Arena ===================== */
+.arena {
+  --px: 0; --py: 0;
+  position: relative;
+  width: 100%;
+  aspect-ratio: 64 / 34;
+  min-height: 190px;
+  overflow: hidden;
+  border-radius: 1rem;
+  background: radial-gradient(ellipse at 50% 120%, hsl(var(--ascend-violet) / 0.16), hsl(var(--ascend-void) / 1) 65%);
+  border: 1px solid hsl(var(--ascend-cyan) / 0.18);
+  isolation: isolate;
+  touch-action: pan-y;
+}
+
+.arena__floor {
+  position: absolute; inset: 55% 0 0 0;
+  background-image:
+    linear-gradient(hsl(var(--ascend-cyan) / 0.12) 1px, transparent 1px),
+    linear-gradient(90deg, hsl(var(--ascend-cyan) / 0.09) 1px, transparent 1px);
+  background-size: 44px 26px, 44px 26px;
+  transform: perspective(320px) rotateX(62deg);
+  transform-origin: top center;
+  mask-image: linear-gradient(to bottom, black, transparent 85%);
+}
+
+.arena__glow {
+  position: absolute; top: 20%; width: 46%; height: 70%;
+  filter: blur(46px); opacity: 0.4; pointer-events: none;
+  transition: opacity 360ms ease, transform 360ms var(--ascend-ease);
+}
+.arena__glow--bull { left: -6%;  background: radial-gradient(circle, hsl(var(--ascend-cyan) / 0.75), transparent 65%); }
+.arena__glow--bear { right: -6%; background: radial-gradient(circle, hsl(var(--ascend-violet) / 0.8), transparent 65%); }
+.arena[data-favor="bull"] .arena__glow--bull,
+.arena[data-charge="bull"] .arena__glow--bull { opacity: 0.85; transform: scale(1.12); }
+.arena[data-favor="bear"] .arena__glow--bear,
+.arena[data-charge="bear"] .arena__glow--bear { opacity: 0.85; transform: scale(1.12); }
+
+.arena__stage {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  transform: translate3d(calc(var(--px) * -10px), calc(var(--py) * -6px), 0);
+  transition: transform 240ms var(--ascend-ease);
+  will-change: transform;
+}
+
+.arena__candles { transform: translate3d(calc(var(--px) * 5px), 0, 0); }
+
+.arena__fighter {
+  transform-origin: center;
+  transition: transform 420ms var(--ascend-ease), filter 420ms ease;
+  will-change: transform;
+}
+.arena__fighter--bull { animation: arena-push-bull 6s ease-in-out infinite; filter: drop-shadow(0 0 10px hsl(var(--ascend-cyan) / 0.6)); }
+.arena__fighter--bear { animation: arena-push-bear 6s ease-in-out infinite; filter: drop-shadow(0 0 10px hsl(var(--ascend-violet) / 0.6)); }
+
+@keyframes arena-push-bull {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+  50%      { transform: translate3d(14px, -3px, 0) rotate(1.4deg); }
+}
+@keyframes arena-push-bear {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+  50%      { transform: translate3d(-14px, -3px, 0) rotate(-1.4deg); }
+}
+
+.arena[data-favor="bull"] .arena__fighter--bull,
+.arena[data-charge="bull"] .arena__fighter--bull { transform: translate3d(22px, -4px, 0) scale(1.05); }
+.arena[data-favor="bull"] .arena__fighter--bear { transform: translate3d(16px, 4px, 0) scale(0.97); }
+.arena[data-favor="bear"] .arena__fighter--bear,
+.arena[data-charge="bear"] .arena__fighter--bear { transform: translate3d(-22px, -4px, 0) scale(1.05); }
+.arena[data-favor="bear"] .arena__fighter--bull { transform: translate3d(-16px, 4px, 0) scale(0.97); }
+
+.arena__body--bull { fill: hsl(var(--ascend-cyan) / 0.16); stroke: hsl(var(--ascend-cyan)); stroke-width: 1.6; }
+.arena__body--bear { fill: hsl(var(--ascend-violet) / 0.18); stroke: hsl(var(--ascend-violet)); stroke-width: 1.6; }
+.arena__horn { stroke: hsl(var(--ascend-cyan)); stroke-width: 2.2; fill: none; stroke-linecap: round; }
+.arena__claw { stroke: hsl(var(--ascend-violet)); stroke-width: 2.2; fill: none; stroke-linecap: round; }
+.arena__limb { stroke: hsl(var(--ascend-gold) / 0.5); stroke-width: 1.4; fill: none; stroke-linecap: round; }
+.arena__eye--bull { fill: hsl(var(--ascend-cyan)); }
+.arena__eye--bear { fill: hsl(var(--ascend-gold)); }
+
+.arena__clash { transform-origin: 320px 160px; animation: arena-clash 4.5s ease-in-out infinite; }
+.arena__clash-core { fill: hsl(var(--ascend-gold) / 0.1); }
+.arena__spark { fill: hsl(var(--ascend-gold) / 0.85); filter: drop-shadow(0 0 8px hsl(var(--ascend-gold) / 0.9)); }
+@keyframes arena-clash {
+  0%, 100% { transform: scale(0.75) rotate(0deg); opacity: 0.55; }
+  46%      { transform: scale(1.25) rotate(28deg); opacity: 1; }
+}
+.arena[data-charge="bull"] .arena__clash,
+.arena[data-charge="bear"] .arena__clash { animation: arena-burst 700ms var(--ascend-ease); }
+@keyframes arena-burst {
+  0%   { transform: scale(0.8); opacity: 1; }
+  60%  { transform: scale(2.1); opacity: 0.7; }
+  100% { transform: scale(0.8); opacity: 0.55; }
+}
+
+.arena__zone { position: absolute; top: 0; bottom: 22%; width: 50%; background: transparent; border: 0; cursor: pointer; }
+.arena__zone--left  { left: 0; }
+.arena__zone--right { right: 0; }
+.arena__zone:focus-visible { outline: 1px solid hsl(var(--ascend-cyan) / 0.6); outline-offset: -4px; border-radius: 0.75rem; }
+
+.arena__hud {
+  position: absolute; left: 0; right: 0; bottom: 8px;
+  display: flex; align-items: center; gap: 8px;
+  padding: 0 12px; font-size: 10px; font-weight: 700; letter-spacing: 0.04em;
+}
+.arena__hud-label--bull { color: hsl(var(--ascend-cyan)); text-shadow: 0 0 10px hsl(var(--ascend-cyan) / 0.6); }
+.arena__hud-label--bear { color: hsl(var(--ascend-violet)); text-shadow: 0 0 10px hsl(var(--ascend-violet) / 0.6); }
+.arena__bar { flex: 1; height: 4px; border-radius: 999px; background: hsl(var(--ascend-violet) / 0.45); overflow: hidden; }
+.arena__bar-fill {
+  height: 100%; border-radius: 999px;
+  background: linear-gradient(90deg, hsl(var(--ascend-cyan)), hsl(var(--ascend-cyan) / 0.5));
+  box-shadow: 0 0 12px hsl(var(--ascend-cyan) / 0.8);
+  transition: width 700ms var(--ascend-ease);
+}
+.arena__caption {
+  position: absolute; top: 10px; left: 0; right: 0; text-align: center;
+  font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase;
+  color: hsl(var(--ascend-gold) / 0.85);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ascend-grain, .ascend-vignette, .ascend-streak,
+  .ascend-reveal, .ascend-loader::after,
+  .arena__fighter--bull, .arena__fighter--bear, .arena__clash { animation: none !important; }
+  .ascend-streak { opacity: 0; }
+  .holo-card, .arena__stage, .arena__fighter { transform: none !important; }
+}
