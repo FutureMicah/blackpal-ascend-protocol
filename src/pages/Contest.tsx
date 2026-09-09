@@ -172,10 +172,11 @@ export default function Contest() {
   };
 
   return (
-    <div className="min-h-screen bg-background rebrand-contest">
+    <div className="min-h-screen bg-background rebrand-contest relative">
+      <AscendAmbient />
       <FloatingNav />
-      <div className="max-w-5xl mx-auto px-3 sm:px-6 pt-16 pb-20">
-        <header className="mb-4">
+      <div className="relative z-10 max-w-5xl mx-auto px-3 sm:px-6 pt-16 pb-20">
+        <header className="mb-4 ascend-reveal">
           <h1 className="text-lg sm:text-2xl font-bold flex items-center gap-2">
             <Sparkles className="w-5 h-5 orbit-3d" /> <span className="neon-text">Contests</span>
           </h1>
@@ -184,7 +185,22 @@ export default function Contest() {
           </p>
         </header>
 
-        <Card className="mb-4 p-4 border-primary/30 bg-gradient-to-br from-primary/15 via-card to-card">
+        <section className="mb-4 ascend-panel rounded-2xl p-4 ascend-reveal">
+          <BullBearArena bullPct={bullPct} label="Live floor pressure" className="mb-3" />
+          <div className="grid grid-cols-3 gap-2 mb-3 text-center">
+            <div>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Prize pool</p>
+              <CountUp value={prizePool} className="text-sm sm:text-lg font-bold neon-text-accent" suffix=" BTAX" />
+            </div>
+            <div>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Bulls</p>
+              <CountUp value={bullPct} className="text-sm sm:text-lg font-bold neon-text" suffix="%" />
+            </div>
+            <div>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Live contests</p>
+              <CountUp value={contests.length} className="text-sm sm:text-lg font-bold neon-text" />
+            </div>
+          </div>
           <p className="text-sm sm:text-base font-bold leading-snug">
             78% of traders could not pass this. Prove them wrong and be on the record holder leaderboard.
           </p>
@@ -192,7 +208,7 @@ export default function Contest() {
             Everyone says they have an edge. The drawdown rule says otherwise. Pick your entry — $10, $50 or $100 — and
             let the leaderboard settle it.
           </p>
-        </Card>
+        </section>
 
         {userId && (
           <div className="mb-4">

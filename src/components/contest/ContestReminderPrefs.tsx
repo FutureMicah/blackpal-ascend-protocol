@@ -48,10 +48,10 @@ export function ContestReminderPrefs({ userId }: { userId: string }) {
   if (!ready) return null;
 
   return (
-    <Card className="p-3 space-y-2.5">
+    <Card className="p-3 space-y-2.5 neon-border ascend-reveal">
       <div className="flex items-center gap-1.5">
-        <BellRing className="w-4 h-4 text-primary" />
-        <span className="text-xs font-bold">Contest reminders</span>
+        <BellRing className="w-4 h-4 text-primary orbit-3d" />
+        <span className="text-xs font-bold neon-text">Contest reminders</span>
       </div>
 
       <div className="flex items-center justify-between">

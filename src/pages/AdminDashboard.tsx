@@ -31,6 +31,7 @@ import { AdminAnnouncements } from "@/components/admin/AdminAnnouncements";
 import { AdminErrorBoundary } from "@/components/admin/AdminErrorBoundary";
 import { AdminDiagnosticsPanel } from "@/components/admin/AdminDiagnosticsPanel";
 import { AdminSettingsPanelShell } from "@/components/admin/AdminSettingsPanelShell";
+import { AdminContestPanel } from "@/components/admin/AdminContestPanel";
 import { BtaxRulesPanel } from "@/components/admin/BtaxRulesPanel";
 import { AdminClassesManager } from "@/components/admin/AdminClassesManager";
 import { AdminClassAnalytics } from "@/components/admin/AdminClassAnalytics";
@@ -821,6 +822,9 @@ function AdminDashboardInner() {
                 </AdminSettingsPanelShell>
                 <AdminSettingsPanelShell title="BTAX Rules & Marketplace" icon={Coins}>
                   <BtaxRulesPanel />
+                </AdminSettingsPanelShell>
+                <AdminSettingsPanelShell title="Contests & Scoring" icon={Trophy}>
+                  <AdminContestPanel />
                 </AdminSettingsPanelShell>
                 <AdminSettingsPanelShell title="Classes & Live Sessions" icon={Package}>
                   <AdminClassesManager />
