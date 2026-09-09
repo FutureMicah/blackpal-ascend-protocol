@@ -18,11 +18,11 @@ export function ContestProgressPanel({ rules, stats, ended, rank }: Props) {
   const failing = gates.filter((g) => !g.passed);
 
   return (
-    <Card className="p-3 space-y-3 border-primary/25">
+    <Card className="p-3 space-y-3 border-primary/25 neon-border ascend-reveal">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5">
-          <Gauge className="w-4 h-4 text-primary" />
-          <span className="text-xs font-bold">Your run</span>
+          <Gauge className="w-4 h-4 text-primary orbit-3d" />
+          <span className="text-xs font-bold neon-text">Your run</span>
         </div>
         <div className="flex items-center gap-1.5">
           {rank != null && (
@@ -42,7 +42,7 @@ export function ContestProgressPanel({ rules, stats, ended, rank }: Props) {
       <div>
         <div className="flex items-baseline justify-between mb-1">
           <span className="text-[10px] text-muted-foreground">Gauntlet score</span>
-          <span className="text-lg font-bold tabular-nums text-primary">{score.toFixed(1)}</span>
+          <span className="text-lg font-bold tabular-nums text-primary neon-text-accent">{score.toFixed(1)}</span>
         </div>
         <Progress value={score} className="h-1.5" />
       </div>
