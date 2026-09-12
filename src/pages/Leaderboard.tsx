@@ -168,11 +168,12 @@ const Leaderboard = () => {
         )}
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4 mb-3 h-8">
+          <TabsList className="grid w-full grid-cols-5 mb-3 h-8">
             <TabsTrigger value="xp" className="text-[10px] gap-1"><Zap className="h-3 w-3" />XP</TabsTrigger>
             <TabsTrigger value="achievements" className="text-[10px] gap-1"><Award className="h-3 w-3" />Badges</TabsTrigger>
             <TabsTrigger value="streak" className="text-[10px] gap-1"><Trophy className="h-3 w-3" />Streak</TabsTrigger>
             <TabsTrigger value="rarest" className="text-[10px] gap-1"><Star className="h-3 w-3" />Rare</TabsTrigger>
+            <TabsTrigger value="payouts" className="text-[10px] gap-1"><Coins className="h-3 w-3" />Payouts</TabsTrigger>
           </TabsList>
           <TabsContent value="xp">{renderLeaderboard(sortedByTab("xp"), "xp_points", "XP")}</TabsContent>
           <TabsContent value="achievements">{renderLeaderboard(sortedByTab("achievements"), "total_achievements", "Badges")}</TabsContent>
