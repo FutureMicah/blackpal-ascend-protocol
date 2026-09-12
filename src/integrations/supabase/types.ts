@@ -5541,9 +5541,13 @@ export type Database = {
         Row: {
           access_code: string
           account_balance: number
+          account_rules: string | null
+          admin_message: string | null
           assigned_by: string | null
           consistency_threshold_percent: number
+          contest_id: string | null
           created_at: string
+          credentials_sent_at: string | null
           current_equity: number
           failed_at: string | null
           highest_balance: number
@@ -5561,6 +5565,7 @@ export type Database = {
           mt5_login: string | null
           mt5_margin: number | null
           mt5_open_positions: number
+          mt5_password: string | null
           mt5_server: string | null
           mt5_sync_enabled: boolean
           mt5_sync_status: string
@@ -5580,9 +5585,13 @@ export type Database = {
         Insert: {
           access_code: string
           account_balance?: number
+          account_rules?: string | null
+          admin_message?: string | null
           assigned_by?: string | null
           consistency_threshold_percent?: number
+          contest_id?: string | null
           created_at?: string
+          credentials_sent_at?: string | null
           current_equity?: number
           failed_at?: string | null
           highest_balance?: number
@@ -5600,6 +5609,7 @@ export type Database = {
           mt5_login?: string | null
           mt5_margin?: number | null
           mt5_open_positions?: number
+          mt5_password?: string | null
           mt5_server?: string | null
           mt5_sync_enabled?: boolean
           mt5_sync_status?: string
@@ -5619,9 +5629,13 @@ export type Database = {
         Update: {
           access_code?: string
           account_balance?: number
+          account_rules?: string | null
+          admin_message?: string | null
           assigned_by?: string | null
           consistency_threshold_percent?: number
+          contest_id?: string | null
           created_at?: string
+          credentials_sent_at?: string | null
           current_equity?: number
           failed_at?: string | null
           highest_balance?: number
@@ -5639,6 +5653,7 @@ export type Database = {
           mt5_login?: string | null
           mt5_margin?: number | null
           mt5_open_positions?: number
+          mt5_password?: string | null
           mt5_server?: string | null
           mt5_sync_enabled?: boolean
           mt5_sync_status?: string
@@ -5656,6 +5671,13 @@ export type Database = {
           winning_trades?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "user_prop_accounts_contest_id_fkey"
+            columns: ["contest_id"]
+            isOneToOne: false
+            referencedRelation: "contests"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "user_prop_accounts_tier_id_fkey"
             columns: ["tier_id"]
