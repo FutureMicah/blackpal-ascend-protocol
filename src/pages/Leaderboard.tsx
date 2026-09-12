@@ -179,6 +179,7 @@ const Leaderboard = () => {
           <TabsContent value="achievements">{renderLeaderboard(sortedByTab("achievements"), "total_achievements", "Badges")}</TabsContent>
           <TabsContent value="streak">{renderLeaderboard(sortedByTab("streak"), "best_achievement_streak", "Streak")}</TabsContent>
           <TabsContent value="rarest">{renderLeaderboard(sortedByTab("rarest"), "rarest_achievement_count", "Legendary+")}</TabsContent>
+          <TabsContent value="payouts">{currentUserId && <ProfitSharePanel userId={currentUserId} />}</TabsContent>
         </Tabs>
 
         {leaderboard.length === 0 && (
