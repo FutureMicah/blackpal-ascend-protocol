@@ -6404,6 +6404,21 @@ export type Database = {
         }
         Returns: number
       }
+      profit_share_leaderboard: {
+        Args: { p_limit?: number }
+        Returns: {
+          account_balance: number
+          avatar_url: string
+          badge_icon: string
+          display_name: string
+          platform_share: number
+          profit_split_percent: number
+          tier_name: string
+          total_pnl: number
+          trader_share: number
+          user_id: string
+        }[]
+      }
       purge_class_analytics: { Args: { _days: number }; Returns: number }
       recompute_active_contests: { Args: never; Returns: number }
       recompute_contest: { Args: { p_contest_id: string }; Returns: undefined }
