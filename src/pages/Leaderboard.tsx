@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Trophy, Award, Crown, Zap, Star } from "lucide-react";
+import { ArrowLeft, Trophy, Award, Crown, Zap, Star, Coins } from "lucide-react";
+import { ProfitSharePanel } from "@/components/leaderboard/ProfitSharePanel";
 import { useToast } from "@/hooks/use-toast";
 import { calculateProfileCompletion } from "@/lib/profile-utils";
 import { FloatingNav } from "@/components/FloatingNav";
@@ -167,16 +168,18 @@ const Leaderboard = () => {
         )}
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4 mb-3 h-8">
+          <TabsList className="grid w-full grid-cols-5 mb-3 h-8">
             <TabsTrigger value="xp" className="text-[10px] gap-1"><Zap className="h-3 w-3" />XP</TabsTrigger>
             <TabsTrigger value="achievements" className="text-[10px] gap-1"><Award className="h-3 w-3" />Badges</TabsTrigger>
             <TabsTrigger value="streak" className="text-[10px] gap-1"><Trophy className="h-3 w-3" />Streak</TabsTrigger>
             <TabsTrigger value="rarest" className="text-[10px] gap-1"><Star className="h-3 w-3" />Rare</TabsTrigger>
+            <TabsTrigger value="payouts" className="text-[10px] gap-1"><Coins className="h-3 w-3" />Payouts</TabsTrigger>
           </TabsList>
           <TabsContent value="xp">{renderLeaderboard(sortedByTab("xp"), "xp_points", "XP")}</TabsContent>
           <TabsContent value="achievements">{renderLeaderboard(sortedByTab("achievements"), "total_achievements", "Badges")}</TabsContent>
           <TabsContent value="streak">{renderLeaderboard(sortedByTab("streak"), "best_achievement_streak", "Streak")}</TabsContent>
           <TabsContent value="rarest">{renderLeaderboard(sortedByTab("rarest"), "rarest_achievement_count", "Legendary+")}</TabsContent>
+          <TabsContent value="payouts">{currentUserId && <ProfitSharePanel userId={currentUserId} />}</TabsContent>
         </Tabs>
 
         {leaderboard.length === 0 && (
