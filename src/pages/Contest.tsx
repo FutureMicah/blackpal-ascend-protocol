@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
-import { Sparkles, Trophy, Loader2, Info, Swords, Timer } from "lucide-react";
+import { Sparkles, Trophy, Loader2, Info, Swords, Timer, KeyRound } from "lucide-react";
 import { format, formatDistanceToNowStrict } from "date-fns";
 import { toast } from "sonner";
 import { ContestRulesModal } from "@/components/contest/ContestRulesModal";
@@ -297,6 +297,17 @@ export default function Contest() {
                       <Info className="w-3.5 h-3.5 mr-1" /> Rules
                     </Button>
                   </div>
+
+                  {entry && userId && (
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      className="h-8 w-full text-[11px]"
+                      onClick={() => setAccountFor(c.id)}
+                    >
+                      <KeyRound className="w-3.5 h-3.5 mr-1" /> My account & login details
+                    </Button>
+                  )}
 
                   <Tabs defaultValue="leaderboard">
                     <TabsList className="grid w-full grid-cols-2 h-8">
