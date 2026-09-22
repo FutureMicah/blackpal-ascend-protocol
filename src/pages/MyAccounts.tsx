@@ -338,6 +338,12 @@ export default function MyAccounts() {
           )}
         </DialogContent>
       </Dialog>
+
+      <AccountAccessDialog
+        open={!!openAccountId}
+        onOpenChange={o => !o && setOpenAccountId(null)}
+        accountId={openAccountId ?? undefined}
+      />
     </div>
   );
 }
