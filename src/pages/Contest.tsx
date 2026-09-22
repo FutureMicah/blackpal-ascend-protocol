@@ -15,6 +15,7 @@ import { ContestReminderPrefs } from "@/components/contest/ContestReminderPrefs"
 import { RecomputeStatusIndicator } from "@/components/contest/RecomputeStatusIndicator";
 import { ContestScoreHistory } from "@/components/contest/ContestScoreHistory";
 import { ContestCardSkeleton } from "@/components/contest/ContestSkeletons";
+import { AccountAccessDialog } from "@/components/portfolio/AccountAccessDialog";
 import { BullBearArena } from "@/components/ascend/BullBearArena";
 import { AscendAmbient } from "@/components/ascend/AscendAmbient";
 import { CountUp } from "@/components/ascend/CountUp";
@@ -63,6 +64,7 @@ export default function Contest() {
   const [joining, setJoining] = useState<string | null>(null);
   const [bullPct, setBullPct] = useState(50);
   const [prizePool, setPrizePool] = useState(0);
+  const [accountFor, setAccountFor] = useState<string | null>(null);
 
   const loadEntries = useCallback(async (uid: string) => {
     const { data } = await supabase
