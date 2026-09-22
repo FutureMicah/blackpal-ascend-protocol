@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { Loader2, Package, Plus, Wallet, ChevronRight, ShieldCheck, Target, TrendingDown, Percent } from "lucide-react";
 import { AccountHealthCard } from "@/components/portfolio/AccountHealthCard";
+import { AccountAccessDialog } from "@/components/portfolio/AccountAccessDialog";
 
 interface Package {
   id: string;
@@ -50,6 +51,7 @@ export default function MyAccounts() {
   const [requesting, setRequesting] = useState(false);
   const [agreed, setAgreed] = useState(false);
   const [firmFilter, setFirmFilter] = useState<string>("all");
+  const [openAccountId, setOpenAccountId] = useState<string | null>(null);
 
 
   useEffect(() => { init(); }, []);
