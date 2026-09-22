@@ -176,7 +176,18 @@ export default function MyAccounts() {
                 <p className="text-[10px] text-muted-foreground text-center py-4">No accounts under this firm.</p>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {filtered.map(a => <AccountHealthCard key={a.id} account={a} />)}
+                  {filtered.map(a => (
+                    <div
+                      key={a.id}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => setOpenAccountId(a.id)}
+                      onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setOpenAccountId(a.id); } }}
+                      className="text-left cursor-pointer rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    >
+                      <AccountHealthCard account={a} />
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
