@@ -9,7 +9,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Plus, Trophy, Users, Search, Eye, Ban, Check, RefreshCw, BarChart3 } from "lucide-react";
+import { Plus, Trophy, Users, Search, Eye, Ban, Check, RefreshCw, BarChart3, KeyRound } from "lucide-react";
+import { AdminAccountCredentialsDialog } from "@/components/admin/AdminAccountCredentialsDialog";
 
 interface AdminPropManagerProps {
   adminUserId?: string;
