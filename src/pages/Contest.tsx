@@ -370,6 +370,13 @@ export default function Contest() {
           rules={toRules(rulesFor)}
         />
       )}
+
+      <AccountAccessDialog
+        open={!!accountFor}
+        onOpenChange={(v) => !v && setAccountFor(null)}
+        contestId={accountFor ?? undefined}
+        userId={userId ?? undefined}
+      />
     </div>
   );
 }
