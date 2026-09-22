@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { Loader2, Package, Plus, Wallet, ChevronRight, ShieldCheck, Target, TrendingDown, Percent } from "lucide-react";
 import { AccountHealthCard } from "@/components/portfolio/AccountHealthCard";
+import { AccountAccessDialog } from "@/components/portfolio/AccountAccessDialog";
 
 interface Package {
   id: string;
@@ -50,6 +51,7 @@ export default function MyAccounts() {
   const [requesting, setRequesting] = useState(false);
   const [agreed, setAgreed] = useState(false);
   const [firmFilter, setFirmFilter] = useState<string>("all");
+  const [openAccountId, setOpenAccountId] = useState<string | null>(null);
 
 
   useEffect(() => { init(); }, []);
@@ -174,7 +176,18 @@ export default function MyAccounts() {
                 <p className="text-[10px] text-muted-foreground text-center py-4">No accounts under this firm.</p>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {filtered.map(a => <AccountHealthCard key={a.id} account={a} />)}
+                  {filtered.map(a => (
+                    <div
+                      key={a.id}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => setOpenAccountId(a.id)}
+                      onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setOpenAccountId(a.id); } }}
+                      className="text-left cursor-pointer rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    >
+                      <AccountHealthCard account={a} />
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
@@ -325,6 +338,12 @@ export default function MyAccounts() {
           )}
         </DialogContent>
       </Dialog>
+
+      <AccountAccessDialog
+        open={!!openAccountId}
+        onOpenChange={o => !o && setOpenAccountId(null)}
+        accountId={openAccountId ?? undefined}
+      />
     </div>
   );
 }

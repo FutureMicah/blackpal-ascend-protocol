@@ -9,7 +9,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Plus, Trophy, Users, Search, Eye, Ban, Check, RefreshCw, BarChart3 } from "lucide-react";
+import { Plus, Trophy, Users, Search, Eye, Ban, Check, RefreshCw, BarChart3, KeyRound } from "lucide-react";
+import { AdminAccountCredentialsDialog } from "@/components/admin/AdminAccountCredentialsDialog";
 
 interface AdminPropManagerProps {
   adminUserId?: string;
@@ -27,6 +28,7 @@ export function AdminPropManager({ adminUserId = "", users = [] }: AdminPropMana
   const [loading, setLoading] = useState(false);
   const [searchFilter, setSearchFilter] = useState("");
   const [activeTab, setActiveTab] = useState("accounts");
+  const [credsFor, setCredsFor] = useState<string | null>(null);
 
   useEffect(() => {
     loadData();
@@ -204,6 +206,9 @@ export function AdminPropManager({ adminUserId = "", users = [] }: AdminPropMana
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-1">
+                        <Button variant="ghost" size="icon" className="w-6 h-6" title="Send rules & login details" onClick={() => setCredsFor(account.id)}>
+                          <KeyRound className="w-3 h-3 text-primary" />
+                        </Button>
                         {account.status === "active" && (
                           <>
                             <Button variant="ghost" size="icon" className="w-6 h-6" title="Mark Passed" onClick={() => markAsPassed(account)}>
@@ -289,6 +294,13 @@ export function AdminPropManager({ adminUserId = "", users = [] }: AdminPropMana
           </div>
         </DialogContent>
       </Dialog>
+
+      <AdminAccountCredentialsDialog
+        open={!!credsFor}
+        onOpenChange={(o) => !o && setCredsFor(null)}
+        accountId={credsFor}
+        onSaved={loadData}
+      />
     </TabsContent>
   );
 }

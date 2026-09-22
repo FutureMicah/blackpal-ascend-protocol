@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
-import { Sparkles, Trophy, Loader2, Info, Swords, Timer } from "lucide-react";
+import { Sparkles, Trophy, Loader2, Info, Swords, Timer, KeyRound } from "lucide-react";
 import { format, formatDistanceToNowStrict } from "date-fns";
 import { toast } from "sonner";
 import { ContestRulesModal } from "@/components/contest/ContestRulesModal";
@@ -15,6 +15,7 @@ import { ContestReminderPrefs } from "@/components/contest/ContestReminderPrefs"
 import { RecomputeStatusIndicator } from "@/components/contest/RecomputeStatusIndicator";
 import { ContestScoreHistory } from "@/components/contest/ContestScoreHistory";
 import { ContestCardSkeleton } from "@/components/contest/ContestSkeletons";
+import { AccountAccessDialog } from "@/components/portfolio/AccountAccessDialog";
 import { BullBearArena } from "@/components/ascend/BullBearArena";
 import { AscendAmbient } from "@/components/ascend/AscendAmbient";
 import { CountUp } from "@/components/ascend/CountUp";
@@ -63,6 +64,7 @@ export default function Contest() {
   const [joining, setJoining] = useState<string | null>(null);
   const [bullPct, setBullPct] = useState(50);
   const [prizePool, setPrizePool] = useState(0);
+  const [accountFor, setAccountFor] = useState<string | null>(null);
 
   const loadEntries = useCallback(async (uid: string) => {
     const { data } = await supabase
@@ -296,6 +298,17 @@ export default function Contest() {
                     </Button>
                   </div>
 
+                  {entry && userId && (
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      className="h-8 w-full text-[11px]"
+                      onClick={() => setAccountFor(c.id)}
+                    >
+                      <KeyRound className="w-3.5 h-3.5 mr-1" /> My account & login details
+                    </Button>
+                  )}
+
                   <Tabs defaultValue="leaderboard">
                     <TabsList className="grid w-full grid-cols-2 h-8">
                       <TabsTrigger value="leaderboard" className="text-[11px]">
@@ -357,6 +370,13 @@ export default function Contest() {
           rules={toRules(rulesFor)}
         />
       )}
+
+      <AccountAccessDialog
+        open={!!accountFor}
+        onOpenChange={(v) => !v && setAccountFor(null)}
+        contestId={accountFor ?? undefined}
+        userId={userId ?? undefined}
+      />
     </div>
   );
 }
