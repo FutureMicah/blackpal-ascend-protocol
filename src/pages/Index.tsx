@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrivalAnimation } from "@/components/ArrivalAnimation";
 import { GlassPortal } from "@/components/GlassPortal";
-import { ProfileSetupEnhanced } from "@/components/ProfileSetupEnhanced";
-import { WelcomeScene } from "@/components/WelcomeScene";
-import { PaymentTierCard } from "@/components/PaymentTierCard";
-import { PaymentGateway } from "@/pages/PaymentGateway";
+const ProfileSetupEnhanced = lazy(() => import("@/components/ProfileSetupEnhanced").then(m => ({ default: m.ProfileSetupEnhanced })));
+const WelcomeScene = lazy(() => import("@/components/WelcomeScene").then(m => ({ default: m.WelcomeScene })));
+const PaymentTierCard = lazy(() => import("@/components/PaymentTierCard").then(m => ({ default: m.PaymentTierCard })));
+const PaymentGateway = lazy(() => import("@/pages/PaymentGateway").then(m => ({ default: m.PaymentGateway })));
 import { ParticleField } from "@/components/ParticleField";
 import { CursorTrail } from "@/components/CursorTrail";
 import { FloatingCandlesticks } from "@/components/FloatingCandlesticks";
@@ -146,6 +146,7 @@ const Index = () => {
         <GlassPortal onSuccess={handleAuthSuccess} />
       )}
 
+      <Suspense fallback={null}>
       {stage === "profile" && user && (
         <ProfileSetupEnhanced 
           userId={user.id}
@@ -177,6 +178,7 @@ const Index = () => {
           onEnter={() => navigate("/dashboard")} 
         />
       )}
+      </Suspense>
     </div>
   );
 };
