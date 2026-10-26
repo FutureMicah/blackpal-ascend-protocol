@@ -145,13 +145,6 @@ export function getPaymentMethods(tier: PaymentTier): PaymentMethodInfo[] {
         category: 'ussd',
       },
       {
-        id: 'flutterwave',
-        name: 'Flutterwave (Coming Soon)',
-        description: 'Worldwide payments — launching shortly',
-        icon: '⚡',
-        category: 'card',
-      },
-      {
         id: 'voucher',
         name: 'BTA Voucher Code',
         description: 'Redeem a pre-purchased voucher',

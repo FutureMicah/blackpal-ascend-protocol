@@ -6,6 +6,7 @@ const ProfileSetupEnhanced = lazy(() => import("@/components/ProfileSetupEnhance
 const WelcomeScene = lazy(() => import("@/components/WelcomeScene").then(m => ({ default: m.WelcomeScene })));
 const PaymentTierCard = lazy(() => import("@/components/PaymentTierCard").then(m => ({ default: m.PaymentTierCard })));
 const PaymentGateway = lazy(() => import("@/pages/PaymentGateway").then(m => ({ default: m.PaymentGateway })));
+import { PaymentPendingScreen } from "@/components/PaymentPendingScreen";
 import { ParticleField } from "@/components/ParticleField";
 import { CursorTrail } from "@/components/CursorTrail";
 import { FloatingCandlesticks } from "@/components/FloatingCandlesticks";
@@ -20,8 +21,11 @@ type Stage =
   | "profile" 
   | "payment-tier"
   | "payment-gateway"
+  | "payment-pending"
   | "welcome" 
   | "dashboard";
+
+const PAYMENT_POLL_MS = 8000;
 
 const Index = () => {
   const navigate = useNavigate();
@@ -69,7 +73,7 @@ const Index = () => {
       // Check profile completion status
       const completionStatus = checkProfileCompletion(data);
       
-      // If profile is complete and payment is done
+      // If profile is complete and the SERVER says payment is done (set by verified webhook)
       if (completionStatus.isComplete && data.payment_completed) {
         setStage("welcome");
       } 
@@ -86,7 +90,15 @@ const Index = () => {
           isAfrica: data.is_africa || false
         };
         setGeoData(storedGeo);
-        setStage("payment-tier");
+        // Has a payment already been recorded and is it still awaiting verification?
+        const { data: pendingRow } = await supabase
+          .from('payments')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('payment_status', 'pending')
+          .limit(1)
+          .maybeSingle();
+        setStage(pendingRow ? "payment-pending" : "payment-tier");
       } 
       // Profile incomplete - go to profile setup with existing data
       else {
@@ -113,16 +125,44 @@ const Index = () => {
     setStage("payment-tier");
   };
 
-  const handlePaymentMethodSelect = (method: string) => {
-    // TODO: Implement actual payment processing
-    // For now, just mark as complete for demo
-    console.log("Selected payment method:", method);
-    
-    // In real implementation, this would process payment
-    // and update the database
-    setPaymentComplete(true);
-    setStage("welcome");
+  // Reads the authoritative payment status from Supabase. Local state is never trusted.
+  // Only the server (paystack-verify / paystack-webhook) or an admin can set
+  // profiles.payment_completed, enforced by DB triggers (migration 20261026120000).
+  const fetchPaymentStatus = async (userId: string): Promise<boolean> => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('payment_completed')
+      .eq('id', userId)
+      .maybeSingle();
+    if (error) return false;
+    return data?.payment_completed === true;
   };
+
+  // Called after the gateway has recorded a PENDING payment. Nothing is unlocked here.
+  const handlePaymentMethodSelect = (_method: string) => {
+    setPaymentComplete(false);
+    setStage("payment-pending");
+  };
+
+  // While pending, re-check Supabase periodically. Unlock only when the server says so.
+  useEffect(() => {
+    if (stage !== "payment-pending" || !user) return;
+    let cancelled = false;
+    const check = async () => {
+      const paid = await fetchPaymentStatus(user.id);
+      if (cancelled) return;
+      if (paid) {
+        setPaymentComplete(true);
+        setStage("welcome");
+      }
+    };
+    check();
+    const id = window.setInterval(check, PAYMENT_POLL_MS);
+    return () => {
+      cancelled = true;
+      window.clearInterval(id);
+    };
+  }, [stage, user]);
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-background">
@@ -168,6 +208,12 @@ const Index = () => {
           geoData={geoData}
           userId={user?.id}
           onMethodSelect={handlePaymentMethodSelect}
+          onBack={() => setStage("payment-tier")}
+        />
+      )}
+
+      {stage === "payment-pending" && (
+        <PaymentPendingScreen
           onBack={() => setStage("payment-tier")}
         />
       )}

@@ -92,7 +92,6 @@ export const PaymentGateway = ({ geoData, userId, onMethodSelect, onBack }: Paym
           title: "Transfer Initiated",
           description: "Please complete the transfer. Your account will be activated upon confirmation.",
         });
-        // For now, mark as completed (in production, use webhook verification)
         await markPaymentComplete();
       } else if (selectedMethod === 'momo') {
         toast({
@@ -140,32 +139,15 @@ export const PaymentGateway = ({ geoData, userId, onMethodSelect, onBack }: Paym
     window.location.href = data.authorization_url;
   };
 
+  // Never marks a payment complete from the browser. The payment stays 'pending'
+  // until the server (paystack-verify / paystack-webhook) or an admin confirms it.
   const markPaymentComplete = async () => {
-    if (!userId) return;
-
-    // Update profile payment status
-    const { error } = await supabase
-      .from('profiles')
-      .update({ payment_completed: true })
-      .eq('id', userId);
-
-    if (error) {
-      console.error('Failed to update payment status:', error);
-      toast({ title: "Error", description: "Payment recorded but profile update failed.", variant: "destructive" });
-      return;
-    }
-
-    // Update payment record
-    await supabase
-      .from('payments')
-      .update({ 
-        payment_status: 'completed' as any,
-        completed_at: new Date().toISOString(),
-      })
-      .eq('user_id', userId)
-      .eq('payment_status', 'pending' as any);
-
-    onMethodSelect(selectedMethod!);
+    if (!selectedMethod) return;
+    toast({
+      title: "Payment submitted",
+      description: "We're waiting for confirmation. Your access unlocks once it is verified.",
+    });
+    onMethodSelect(selectedMethod);
   };
 
   const getCategoryLabel = (category: string) => {
@@ -248,10 +230,6 @@ export const PaymentGateway = ({ geoData, userId, onMethodSelect, onBack }: Paym
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.05 * index }}
                     onClick={() => {
-                      if (method.id === 'flutterwave') {
-                        toast({ title: 'Coming soon', description: 'Flutterwave will be available shortly. Please choose another method.' });
-                        return;
-                      }
                       setSelectedMethod(method.id);
                     }}
                     className={`p-4 rounded-2xl border transition-all text-left ${
