@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
 import { AccountCreatedCelebration } from "./AccountCreatedCelebration";
@@ -29,14 +28,15 @@ export const GlassPortal = ({ onSuccess }: GlassPortalProps) => {
     setError(null);
     
     try {
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
+      // Direct Supabase OAuth: the browser redirects to Google and back to
+      // window.location.origin. The session is picked up by the existing
+      // onAuthStateChange listeners on return, so nothing runs inline here.
+      const { error: oauthError } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: window.location.origin },
       });
 
-      if (result.error) throw result.error;
-      if (result.redirected) return;
-
-      onSuccess();
+      if (oauthError) throw oauthError;
     } catch (err: any) {
       setError("Failed to sign in with Google. Please try again.");
       toast({
