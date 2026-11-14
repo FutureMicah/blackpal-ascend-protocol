@@ -8,7 +8,6 @@ const PaymentTierCard = lazy(() => import("@/components/PaymentTierCard").then(m
 const PaymentGateway = lazy(() => import("@/pages/PaymentGateway").then(m => ({ default: m.PaymentGateway })));
 import { ParticleField } from "@/components/ParticleField";
 import { CursorTrail } from "@/components/CursorTrail";
-import { FloatingCandlesticks } from "@/components/FloatingCandlesticks";
 import { supabase } from "@/integrations/supabase/client";
 import type { User } from "@supabase/supabase-js";
 import { GeoData, detectGeo } from "@/lib/geo";
@@ -128,7 +127,6 @@ const Index = () => {
     <div className="relative min-h-screen overflow-hidden bg-background">
       {/* Background effects layer - always behind content */}
       <div className="fixed inset-0 -z-10 pointer-events-none">
-        <FloatingCandlesticks />
         {stage !== "arrival" && <ParticleField />}
         <CursorTrail />
       </div>
