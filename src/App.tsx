@@ -1,4 +1,4 @@
-import { Component, lazy, Suspense, type ErrorInfo, type ReactNode } from "react";
+import { Component, lazy, Suspense, type ComponentType, type ErrorInfo, type ReactNode } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -49,7 +49,7 @@ const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const NairaTopUp = lazy(() => import("./pages/NairaTopUp"));
 const A11yChecklist = lazy(() => import("./pages/A11yChecklist"));
 const Terms = lazy(() => import("./pages/Terms"));
-const Contest = lazy(() => import("./pages/Contest"));
+const Contest = lazyWithRetry(() => import("./pages/Contest"));
 const ReferralLanding = lazy(() => import("./pages/ReferralLanding"));
 const Marketplace = lazy(() => import("./pages/Marketplace"));
 const Classes = lazy(() => import("./pages/Classes"));
@@ -61,6 +61,22 @@ import { PresenceProvider } from "./components/PresenceProvider";
 import { EnergyModeProvider } from "./contexts/EnergyModeContext";
 import { AccessGrantedSeal } from "./components/AccessGrantedSeal";
 import { LevelUpCelebration } from "./components/xp/LevelUpCelebration";
+
+const isModuleLoadError = (error: unknown) => {
+  const message = error instanceof Error ? error.message : String(error);
+  return /failed to fetch dynamically imported module|importing a module script failed|chunkloaderror|unable to preload css/i.test(message);
+};
+
+const lazyWithRetry = <T extends ComponentType<any>>(load: () => Promise<{ default: T }>) =>
+  lazy(async () => {
+    try {
+      return await load();
+    } catch (error) {
+      if (!isModuleLoadError(error)) throw error;
+      await new Promise((resolve) => window.setTimeout(resolve, 250));
+      return load();
+    }
+  });
 
 const queryClient = new QueryClient();
 
@@ -81,11 +97,10 @@ class RouteErrorBoundary extends Component<
   }
 
   componentDidCatch(error: Error, _info: ErrorInfo) {
-    const isModuleLoadFailure = /failed to fetch dynamically imported module|importing a module script failed|chunkloaderror/i.test(error.message);
-    if (!isModuleLoadFailure) return;
+    if (!isModuleLoadError(error)) return;
 
     try {
-      const key = "route-module-reload-at";
+      const key = `route-module-reload-at:${window.location.pathname}`;
       const previousAttempt = Number(sessionStorage.getItem(key) || 0);
       if (Date.now() - previousAttempt > 30_000) {
         sessionStorage.setItem(key, String(Date.now()));
@@ -107,7 +122,7 @@ class RouteErrorBoundary extends Component<
               className="w-full"
               onClick={() => {
                 try {
-                  sessionStorage.removeItem("route-module-reload-at");
+                  sessionStorage.removeItem(`route-module-reload-at:${window.location.pathname}`);
                 } finally {
                   window.location.reload();
                 }
