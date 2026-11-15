@@ -9,6 +9,7 @@ import { FloatingNav } from "@/components/FloatingNav";
 import { ProfileHeroCard } from "@/components/dashboard/ProfileHeroCard";
 import { XPReactor } from "@/components/dashboard/XPReactor";
 import { WalletSnapshot } from "@/components/dashboard/WalletSnapshot";
+import { BtaxWalletOverview } from "@/components/dashboard/BtaxWalletOverview";
 import { WalletHero } from "@/components/dashboard/WalletHero";
 import { PaymentHistoryPanel } from "@/components/dashboard/PaymentHistoryPanel";
 import { KycStatusBanner } from "@/components/dashboard/KycStatusBanner";
@@ -24,11 +25,11 @@ import { useRealtimeNotifications } from "@/hooks/use-realtime-notifications";
 import { SessionLockScreen } from "@/components/security/SessionLockScreen";
 import { SecurityPanel } from "@/components/security/SecurityPanel";
 import { SupportChat } from "@/components/SupportChat";
+import { CurrencyConverter } from "@/components/CurrencyConverter";
 import { PropAccountLadder } from "@/components/PropAccountLadder";
 import { QuestsPanel } from "@/components/xp/QuestsPanel";
 import { XpTimeline } from "@/components/xp/XpTimeline";
 import { QuestClaimHistory } from "@/components/xp/QuestClaimHistory";
-import { ContestGlassEntry } from "@/components/dashboard/ContestGlassEntry";
 
 export default function Dashboard() {
   const [user, setUser] = useState<any>(null);
@@ -245,8 +246,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <ContestGlassEntry />
-
         {user && (
           <div className="mb-4">
             <KycStatusBanner userId={user.id} />
@@ -289,8 +288,10 @@ export default function Dashboard() {
             <StreakTracker userId={profile.id} />
             <FriendActivityFeed userId={profile.id} maxItems={10} />
             <WalletSnapshot userId={profile.id} />
+            <BtaxWalletOverview userId={profile.id} />
             <PaymentHistoryPanel userId={profile.id} />
             <PropAccountLadder userId={profile.id} />
+            <CurrencyConverter compact />
 
             {user && (
               <div className="rounded-xl border border-border bg-card/50 p-3">
