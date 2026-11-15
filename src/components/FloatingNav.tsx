@@ -1,7 +1,7 @@
 import {
   Home, Trophy, BarChart3, BookOpen, Vault, Users, Megaphone as MegaIcon,
-  CreditCard, Hammer, Coins, Bell, Menu, Search, Megaphone, Wallet, Globe,
-  Gift, Activity, Map, Wrench, User as UserIcon, LogOut, Sparkles, ArrowDownToLine, ShoppingBag,
+  CreditCard, Hammer, Bell, Menu, Search, Megaphone, Wallet, Globe,
+  Gift, Activity, Map, Wrench, User as UserIcon, LogOut, Sparkles, ShoppingBag,
 } from "lucide-react";
 
 import { useToast } from "@/hooks/use-toast";
@@ -35,7 +35,7 @@ const mobileBottomTabs = [
   { name: "Vault", path: "/blackvault", icon: Vault },
 ];
 
-// Side drawer: at most 5 top-level menus, each with a sub-menu
+// BTAX and naira top-up are paused. Routes still exist; they are just hidden.
 const drawerGroups: { label: string; icon: typeof Home; items: { name: string; path: string; icon: typeof Home }[] }[] = [
   {
     label: "Trading",
@@ -53,8 +53,6 @@ const drawerGroups: { label: string; icon: typeof Home; items: { name: string; p
     icon: Wallet,
     items: [
       { name: "Transactions", path: "/blackvault", icon: Vault },
-      { name: "Deposit ₦ → BTAX", path: "/wallet/topup", icon: ArrowDownToLine },
-      { name: "BTAX", path: "/btax", icon: Coins },
       { name: "Marketplace", path: "/marketplace", icon: ShoppingBag },
       { name: "Referrals", path: "/referrals", icon: Gift },
     ],
@@ -231,7 +229,6 @@ export const FloatingNav = () => {
   if (isMobile) {
     return (
       <>
-        {/* Top bar — circular logo + brand + 3 priority items + menu */}
         <nav className="fixed top-0 left-0 right-0 z-50 h-14 bg-background/90 backdrop-blur-xl border-b border-border/50 flex items-center px-3 gap-2">
           <CircularLogo size={32} />
           <span className="text-sm font-bold text-foreground">BlackPal</span>
@@ -284,7 +281,6 @@ export const FloatingNav = () => {
           </Sheet>
         </nav>
 
-        {/* Bottom tab bar — 4 fixed destinations + More */}
         <nav
           className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-xl border-t border-border/50"
           style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
@@ -320,7 +316,6 @@ export const FloatingNav = () => {
     );
   }
 
-  // Desktop — slim header with circular logo, 3 priority items, and side menu trigger
   return (
     <nav className="fixed top-5 left-1/2 -translate-x-1/2 z-50 animate-fade-in">
       <div className="glass-strong rounded-full pl-2 pr-3 py-2 shadow-depth-xl border border-primary/20">
