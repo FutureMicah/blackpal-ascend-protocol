@@ -1,6 +1,5 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { useState, useEffect } from "react";
-import { GlassSigil } from "./GlassSigil";
 
 interface ArrivalAnimationProps {
   onComplete: () => void;
@@ -34,7 +33,7 @@ export const ArrivalAnimation = ({ onComplete }: ArrivalAnimationProps) => {
   if (prefersReducedMotion) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-background">
-        <GlassSigil size={140} />
+        <img src="/blackpal-logo.png" alt="BlackPAL" className="w-28 h-28 object-contain" />
       </div>
     );
   }
@@ -61,7 +60,11 @@ export const ArrivalAnimation = ({ onComplete }: ArrivalAnimationProps) => {
           transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
           className="flex flex-col items-center gap-6"
         >
-          <GlassSigil size={220} />
+          <img
+            src="/blackpal-logo.png"
+            alt="BlackPAL"
+            className="w-28 h-28 md:w-40 md:h-40 object-contain"
+          />
 
           {(stage === "text" || stage === "energy") && (
             <motion.div

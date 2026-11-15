@@ -8,7 +8,6 @@ import { lovable } from "@/integrations/lovable/index";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
 import { AccountCreatedCelebration } from "./AccountCreatedCelebration";
-import { GlassSigil } from "./GlassSigil";
 
 interface GlassPortalProps {
   onSuccess: () => void;
@@ -132,8 +131,8 @@ export const GlassPortal = ({ onSuccess }: GlassPortalProps) => {
               }}
             />
 
-            <div className="flex justify-center mb-4">
-              <GlassSigil size={96} />
+            <div className="flex justify-center mb-5">
+              <img src="/blackpal-logo.png" alt="BlackPAL" className="w-16 h-16 object-contain" />
             </div>
 
             <motion.div
