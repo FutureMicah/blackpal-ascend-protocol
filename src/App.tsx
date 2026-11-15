@@ -62,13 +62,13 @@ import { EnergyModeProvider } from "./contexts/EnergyModeContext";
 import { AccessGrantedSeal } from "./components/AccessGrantedSeal";
 import { LevelUpCelebration } from "./components/xp/LevelUpCelebration";
 
-const isModuleLoadError = (error: unknown) => {
+function isModuleLoadError(error: unknown) {
   const message = error instanceof Error ? error.message : String(error);
   return /failed to fetch dynamically imported module|importing a module script failed|chunkloaderror|unable to preload css/i.test(message);
-};
+}
 
-const lazyWithRetry = <T extends ComponentType<any>>(load: () => Promise<{ default: T }>) =>
-  lazy(async () => {
+function lazyWithRetry<T extends ComponentType<any>>(load: () => Promise<{ default: T }>) {
+  return lazy(async () => {
     try {
       return await load();
     } catch (error) {
@@ -77,6 +77,7 @@ const lazyWithRetry = <T extends ComponentType<any>>(load: () => Promise<{ defau
       return load();
     }
   });
+}
 
 const queryClient = new QueryClient();
 
