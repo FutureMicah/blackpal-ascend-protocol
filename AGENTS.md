@@ -1,3 +1,3 @@
 # Architecture decisions
 
-- Wrap route rendering in a shared error boundary so failed lazy page imports can recover without leaving users on a blank screen.
+- Retry failed lazy page imports and wrap route rendering in a shared error boundary, so transient module fetch failures recover without leaving users on a blank screen.
