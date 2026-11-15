@@ -7,10 +7,18 @@ interface XPReactorProps {
 }
 
 export const XPReactor = ({ profile }: XPReactorProps) => {
-  const currentXP = profile.xp_points || 0;
-  const currentLevel = profile.rank_level || 1;
+  const currentXP = profile?.xp_points ?? 0;
+  const currentLevel = profile?.rank_level ?? 1;
   const xpForNextLevel = currentLevel * 1000; // Simple calculation
-  const xpProgress = (currentXP % xpForNextLevel) / xpForNextLevel * 100;
+  const xpProgress =
+    xpForNextLevel > 0
+      ? ((currentXP % xpForNextLevel) / xpForNextLevel) * 100
+      : 0;
+
+  // StreakTracker keeps achievement_streak and streak_days in sync.
+  // Prefer achievement_streak so both widgets show the same number.
+  const streakDays =
+    profile?.achievement_streak ?? profile?.streak_days ?? 0;
 
   return (
     <motion.div
@@ -83,7 +91,7 @@ export const XPReactor = ({ profile }: XPReactorProps) => {
           <div>
             <div className="text-sm text-muted-foreground">Streak</div>
             <div className="text-lg font-bold text-foreground">
-              {profile.streak_days || 0} days
+              {streakDays} days
             </div>
           </div>
         </div>
