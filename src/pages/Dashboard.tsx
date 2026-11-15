@@ -3,13 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Trophy, Users, GitCompare, Fingerprint } from "lucide-react";
+import { Loader2, Trophy, GitCompare, Fingerprint } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { FloatingNav } from "@/components/FloatingNav";
 import { ProfileHeroCard } from "@/components/dashboard/ProfileHeroCard";
 import { XPReactor } from "@/components/dashboard/XPReactor";
-import { AchievementsCarousel } from "@/components/dashboard/AchievementsCarousel";
 import { WalletSnapshot } from "@/components/dashboard/WalletSnapshot";
 import { BtaxWalletOverview } from "@/components/dashboard/BtaxWalletOverview";
 import { WalletHero } from "@/components/dashboard/WalletHero";
@@ -32,7 +30,7 @@ import { PropAccountLadder } from "@/components/PropAccountLadder";
 import { QuestsPanel } from "@/components/xp/QuestsPanel";
 import { XpTimeline } from "@/components/xp/XpTimeline";
 import { QuestClaimHistory } from "@/components/xp/QuestClaimHistory";
-
+import { ContestGlassEntry } from "@/components/dashboard/ContestGlassEntry";
 
 export default function Dashboard() {
   const [user, setUser] = useState<any>(null);
@@ -47,7 +45,6 @@ export default function Dashboard() {
   const { checkAndAwardAchievements } = useAchievements();
   useRealtimeNotifications(user?.id ?? null);
 
-  // Verify a returning Paystack checkout (?paystack=1&reference=...)
   useEffect(() => {
     const url = new URL(window.location.href);
     const ref = url.searchParams.get("reference") || url.searchParams.get("trxref");
@@ -68,7 +65,6 @@ export default function Dashboard() {
     })();
   }, [toast]);
 
-  // Load user stats for comparison
   const loadUserStats = async (userId: string) => {
     try {
       const { data: achievementsData } = await supabase
@@ -104,7 +100,7 @@ export default function Dashboard() {
   useEffect(() => {
     const initAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      
+
       if (!session) {
         navigate("/");
         return;
@@ -138,7 +134,6 @@ export default function Dashboard() {
 
       if (error) throw error;
 
-      // COMPULSORY PAYMENT CHECK — redirect to home if not paid
       if (!data?.payment_completed) {
         toast({
           variant: "destructive",
@@ -151,15 +146,14 @@ export default function Dashboard() {
 
       setProfile(data);
 
-      // Check for level and XP achievements
       if (data) {
         const levelAchievements = await checkAndAwardAchievements({
           user_id: userId,
-          event_type: 'level_reach',
+          event_type: "level_reach",
           event_data: {
             level: data.rank_level || 1,
-            xp_total: data.xp_points || 0
-          }
+            xp_total: data.xp_points || 0,
+          },
         });
 
         if (levelAchievements.length > 0) {
@@ -168,10 +162,10 @@ export default function Dashboard() {
 
         const xpAchievements = await checkAndAwardAchievements({
           user_id: userId,
-          event_type: 'xp_total',
+          event_type: "xp_total",
           event_data: {
-            xp_total: data.xp_points || 0
-          }
+            xp_total: data.xp_points || 0,
+          },
         });
 
         if (xpAchievements.length > 0 && !notification) {
@@ -207,10 +201,8 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-background rebrand-dashboard">
-      {/* Session Lock */}
       <SessionLockScreen timeoutMinutes={5} />
 
-      {/* Security Panel */}
       <SecurityPanel
         userId={user?.id}
         userEmail={user?.email}
@@ -218,24 +210,17 @@ export default function Dashboard() {
         onClose={() => setShowSecurityPanel(false)}
       />
 
-      {/* Onboarding Tour */}
       <OnboardingTour />
 
-      {/* Achievement notification */}
       <AchievementNotification
         achievement={notification}
         onClose={() => setNotification(null)}
       />
 
-      {/* Aurora canvas — replaces the flat radial */}
       <div className="frost-aurora" />
-
-      {/* Floating Navigation */}
       <FloatingNav />
 
-      {/* Main content */}
       <div className="relative max-w-[1400px] mx-auto px-3 sm:px-6 lg:px-8 py-10 sm:py-16">
-        {/* Editorial greeting + floating utility cluster */}
         <div className="flex items-end justify-between gap-2 mb-3">
           <div className="min-w-0">
             <p className="text-[9px] uppercase tracking-[0.22em] text-white/50">
@@ -244,47 +229,34 @@ export default function Dashboard() {
             <h1 className="text-lg sm:text-2xl font-semibold tracking-tight text-white truncate">
               {profile?.display_name ? `Hello, ${profile.display_name.split(" ")[0]}` : "Welcome back"}
             </h1>
+            <p className="text-[11px] text-cyan-300/80">
+              Level {profile.rank_level || 1} · {Number(profile.xp_points || 0).toLocaleString()} XP
+            </p>
           </div>
           <div className="flex items-center gap-1.5 shrink-0">
             {user && <NotificationCenter userId={user.id} />}
-            <button
-              onClick={() => setShowSecurityPanel(true)}
-              className="frost-fab"
-              aria-label="Security"
-              title="Security"
-            >
+            <button onClick={() => setShowSecurityPanel(true)} className="frost-fab" aria-label="Security" title="Security">
               <Fingerprint className="h-4 w-4" />
             </button>
-            <button
-              onClick={() => setShowComparison(true)}
-              className="frost-fab"
-              aria-label="Compare"
-              title="Compare"
-            >
+            <button onClick={() => setShowComparison(true)} className="frost-fab" aria-label="Compare" title="Compare">
               <GitCompare className="h-4 w-4" />
             </button>
-            <button
-              onClick={() => navigate("/leaderboard")}
-              className="frost-fab"
-              aria-label="Leaderboard"
-              title="Leaderboard"
-            >
+            <button onClick={() => navigate("/leaderboard")} className="frost-fab" aria-label="Leaderboard" title="Leaderboard">
               <Trophy className="h-4 w-4" />
             </button>
           </div>
         </div>
 
-        {/* KYC verification banner — soft gate */}
+        <ContestGlassEntry />
+
         {user && (
           <div className="mb-4">
             <KycStatusBanner userId={user.id} />
           </div>
         )}
 
-        {/* Crypto-wallet hero (rebrand ref IMG_0320) */}
         <WalletHero userId={profile.id} displayName={profile.display_name} avatarUrl={profile.avatar_url} />
 
-        {/* Profile Comparison Modal */}
         {showComparison && profile && (
           <ProfileComparison
             currentProfile={profile}
@@ -292,32 +264,29 @@ export default function Dashboard() {
             onClose={() => setShowComparison(false)}
           />
         )}
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-6"
         >
-          {/* Left Column - Profile Card */}
           <div className="lg:col-span-3 order-1">
-            <ProfileHeroCard 
-              profile={profile} 
-              user={user} 
+            <ProfileHeroCard
+              profile={profile}
+              user={user}
               onProfileUpdate={() => loadProfile(user.id)}
             />
           </div>
 
-          {/* Middle Column - Main Content */}
           <div className="lg:col-span-6 space-y-3 sm:space-y-6 order-3 lg:order-2">
             <XPReactor profile={profile} />
             <QuestsPanel userId={profile.id} />
             <XpTimeline userId={profile.id} />
             <QuestClaimHistory userId={profile.id} />
             <ActivityFeed userId={profile.id} />
-
           </div>
 
-          {/* Right Column - Sidebar */}
           <div className="lg:col-span-3 space-y-3 sm:space-y-6 order-2 lg:order-3">
             <StreakTracker userId={profile.id} />
             <FriendActivityFeed userId={profile.id} maxItems={10} />
@@ -326,25 +295,15 @@ export default function Dashboard() {
             <PaymentHistoryPanel userId={profile.id} />
             <PropAccountLadder userId={profile.id} />
             <CurrencyConverter compact />
-            
-            {/* Support Chat */}
+
             {user && (
               <div className="rounded-xl border border-border bg-card/50 p-3">
                 <SupportChat userId={user.id} />
               </div>
             )}
-            
-            {/* Quick Access to Hub */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-            >
-              <Button
-                onClick={() => navigate("/achievements/hub")}
-                className="w-full h-8 text-xs"
-                size="sm"
-              >
+
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+              <Button onClick={() => navigate("/achievements/hub")} className="w-full h-8 text-xs" size="sm">
                 <Trophy className="mr-1.5 h-3.5 w-3.5" />
                 Achievement Hub
               </Button>
