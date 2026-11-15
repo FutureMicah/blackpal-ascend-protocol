@@ -1,5 +1,6 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { useState, useEffect } from "react";
+import { GlassSigil } from "./GlassSigil";
 
 interface ArrivalAnimationProps {
   onComplete: () => void;
@@ -11,7 +12,6 @@ export const ArrivalAnimation = ({ onComplete }: ArrivalAnimationProps) => {
 
   useEffect(() => {
     if (prefersReducedMotion) {
-      // Fast path for reduced motion
       const t = setTimeout(() => onComplete(), 800);
       return () => clearTimeout(t);
     }
@@ -34,18 +34,13 @@ export const ArrivalAnimation = ({ onComplete }: ArrivalAnimationProps) => {
   if (prefersReducedMotion) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-background">
-        <img
-          src="/blackpal-logo.png"
-          alt="BlackPAL"
-          className="w-28 h-28 object-contain opacity-90"
-        />
+        <GlassSigil size={140} />
       </div>
     );
   }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background overflow-hidden">
-      {/* Light Streak */}
       {stage !== "silence" && (
         <motion.div
           initial={{ x: "-100%", opacity: 0 }}
@@ -59,7 +54,6 @@ export const ArrivalAnimation = ({ onComplete }: ArrivalAnimationProps) => {
         />
       )}
 
-      {/* Sigil + Text */}
       {(stage === "sigil" || stage === "text" || stage === "energy") && (
         <motion.div
           initial={{ scale: 0.6, opacity: 0 }}
@@ -67,34 +61,9 @@ export const ArrivalAnimation = ({ onComplete }: ArrivalAnimationProps) => {
           transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
           className="flex flex-col items-center gap-6"
         >
-          <div className="relative">
-            {/* Soft energy ring */}
-            <motion.div
-              className="absolute inset-0 rounded-full border border-cyan-400/40"
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1.35, opacity: [0.5, 0] }}
-              transition={{ duration: 1.8, repeat: Infinity, ease: "easeOut" }}
-              style={{ width: "100%", height: "100%" }}
-            />
-            <motion.img
-              src="/blackpal-logo.png"
-              alt="BlackPAL"
-              className="relative w-28 h-28 md:w-40 md:h-40 object-contain"
-              style={{
-                filter: "drop-shadow(0 0 28px rgba(34, 211, 238, 0.55))",
-              }}
-              animate={{
-                filter: [
-                  "drop-shadow(0 0 24px rgba(34, 211, 238, 0.5))",
-                  "drop-shadow(0 0 36px rgba(34, 211, 238, 0.75))",
-                  "drop-shadow(0 0 24px rgba(34, 211, 238, 0.5))",
-                ],
-              }}
-              transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
-            />
-          </div>
+          <GlassSigil size={220} />
 
-          {stage === "text" || stage === "energy" ? (
+          {(stage === "text" || stage === "energy") && (
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
@@ -114,29 +83,21 @@ export const ArrivalAnimation = ({ onComplete }: ArrivalAnimationProps) => {
                 </motion.p>
               )}
             </motion.div>
-          ) : null}
+          )}
         </motion.div>
       )}
 
-      {/* Soft ripple rings (lightweight) */}
-      {stage !== "silence" && (
-        <>
-          {[0, 1].map((i) => (
-            <motion.div
-              key={i}
-              initial={{ scale: 0.4, opacity: 0.4 }}
-              animate={{ scale: 2.8, opacity: 0 }}
-              transition={{
-                duration: 1.8,
-                delay: i * 0.35,
-                ease: "easeOut",
-              }}
-              className="absolute w-48 h-48 md:w-64 md:h-64 border border-cyan-400/25 rounded-full"
-              style={{ top: "50%", left: "50%", transform: "translate(-50%, -50%)" }}
-            />
-          ))}
-        </>
-      )}
+      {stage !== "silence" &&
+        [0, 1].map((i) => (
+          <motion.div
+            key={i}
+            initial={{ scale: 0.4, opacity: 0.4 }}
+            animate={{ scale: 2.8, opacity: 0 }}
+            transition={{ duration: 1.8, delay: i * 0.35, ease: "easeOut" }}
+            className="absolute w-48 h-48 md:w-64 md:h-64 border border-cyan-400/25 rounded-full"
+            style={{ top: "50%", left: "50%", marginLeft: -96, marginTop: -96 }}
+          />
+        ))}
     </div>
   );
 };
