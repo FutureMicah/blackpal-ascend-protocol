@@ -22,7 +22,7 @@ export const ContestGlassEntry = () => {
   }, []);
 
   return (
-    <section className="relative mb-4 overflow-hidden" style={{ minHeight: 132 }}>
+    <section className="relative mb-4" style={{ minHeight: 132 }}>
       <svg
         className="absolute inset-0 h-full w-full"
         viewBox="0 0 400 140"
@@ -58,7 +58,7 @@ export const ContestGlassEntry = () => {
           </h2>
           <p className="text-[11px] text-white/60 mt-1">
             {live === null
-              ? "Checking who is in…"
+              ? "Checking who is in\u2026"
               : live === 0
               ? "No live contest right now. The next one lands here."
               : `${live} live ${live === 1 ? "contest" : "contests"}. Trade it. Climb it.`}
@@ -67,15 +67,11 @@ export const ContestGlassEntry = () => {
         <button
           type="button"
           onClick={() => navigate("/contest")}
-          className="shrink-0 h-9 px-3 text-xs font-semibold text-black bg-cyan-300 hover:bg-cyan-200 transition-colors"
-          style={{
-            borderRadius: "999px 999px 999px 28px",
-            clipPath: "path('M8 4 C40 0 92 2 108 16 C120 28 112 36 96 38 L18 40 C6 40 0 32 2 20 C4 10 4 6 8 4 Z')",
-          }}
+          className="shrink-0 h-9 px-4 text-xs font-semibold text-black bg-cyan-300 hover:bg-cyan-200 transition-colors rounded-full"
         >
           Enter
         </button>
       </div>
     </section>
   );
-};
+}
