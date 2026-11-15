@@ -1,7 +1,9 @@
-import { lazy, Suspense } from "react";
+import { Component, lazy, Suspense, type ComponentType, type ErrorInfo, type ReactNode } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
@@ -47,7 +49,7 @@ const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const NairaTopUp = lazy(() => import("./pages/NairaTopUp"));
 const A11yChecklist = lazy(() => import("./pages/A11yChecklist"));
 const Terms = lazy(() => import("./pages/Terms"));
-const Contest = lazy(() => import("./pages/Contest"));
+const Contest = lazyWithRetry(() => import("./pages/Contest"));
 const ReferralLanding = lazy(() => import("./pages/ReferralLanding"));
 const Marketplace = lazy(() => import("./pages/Marketplace"));
 const Classes = lazy(() => import("./pages/Classes"));
@@ -60,6 +62,23 @@ import { EnergyModeProvider } from "./contexts/EnergyModeContext";
 import { AccessGrantedSeal } from "./components/AccessGrantedSeal";
 import { LevelUpCelebration } from "./components/xp/LevelUpCelebration";
 
+function isModuleLoadError(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error);
+  return /failed to fetch dynamically imported module|importing a module script failed|chunkloaderror|unable to preload css/i.test(message);
+}
+
+function lazyWithRetry<T extends ComponentType<any>>(load: () => Promise<{ default: T }>) {
+  return lazy(async () => {
+    try {
+      return await load();
+    } catch (error) {
+      if (!isModuleLoadError(error)) throw error;
+      await new Promise((resolve) => window.setTimeout(resolve, 250));
+      return load();
+    }
+  });
+}
+
 const queryClient = new QueryClient();
 
 const RouteFallback = () => (
@@ -67,6 +86,59 @@ const RouteFallback = () => (
     <Loader2 className="w-6 h-6 animate-spin text-primary" />
   </div>
 );
+
+class RouteErrorBoundary extends Component<
+  { children: ReactNode },
+  { hasError: boolean }
+> {
+  state = { hasError: false };
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, _info: ErrorInfo) {
+    if (!isModuleLoadError(error)) return;
+
+    try {
+      const key = `route-module-reload-at:${window.location.pathname}`;
+      const previousAttempt = Number(sessionStorage.getItem(key) || 0);
+      if (Date.now() - previousAttempt > 30_000) {
+        sessionStorage.setItem(key, String(Date.now()));
+        window.location.reload();
+      }
+    } catch {
+      // Keep the recovery screen available if browser storage is disabled.
+    }
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <main className="min-h-screen flex items-center justify-center bg-background p-4">
+          <Card className="w-full max-w-md space-y-3 p-6 text-center">
+            <h1 className="text-lg font-semibold">This page couldn’t load</h1>
+            <p className="text-sm text-muted-foreground">Refresh the page to try again.</p>
+            <Button
+              className="w-full"
+              onClick={() => {
+                try {
+                  sessionStorage.removeItem(`route-module-reload-at:${window.location.pathname}`);
+                } finally {
+                  window.location.reload();
+                }
+              }}
+            >
+              Reload page
+            </Button>
+          </Card>
+        </main>
+      );
+    }
+
+    return this.props.children;
+  }
+}
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -82,8 +154,9 @@ const App = () => (
           <AccessGrantedSeal />
           <LevelUpCelebration />
 
-          <Suspense fallback={<RouteFallback />}>
-            <Routes>
+          <RouteErrorBoundary>
+            <Suspense fallback={<RouteFallback />}>
+              <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/dashboard" element={<Dashboard />} />
@@ -130,8 +203,9 @@ const App = () => (
               <Route path="/marketplace" element={<Marketplace />} />
               <Route path="/classes" element={<Classes />} />
               <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Suspense>
+              </Routes>
+            </Suspense>
+          </RouteErrorBoundary>
         </EnergyModeProvider>
       </BrowserRouter>
     </TooltipProvider>
