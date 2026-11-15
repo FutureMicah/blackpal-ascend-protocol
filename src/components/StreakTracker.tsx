@@ -9,64 +9,124 @@ interface StreakTrackerProps {
   userId: string;
 }
 
+/** Returns YYYY-MM-DD in UTC so day boundaries are consistent across timezones. */
+function toUTCDateString(date: Date | string): string {
+  const d = typeof date === "string" ? new Date(date) : date;
+  return d.toISOString().slice(0, 10);
+}
+
+/** Difference in whole calendar days (UTC) between two dates. Positive = a is after b. */
+function daysBetweenUTC(a: Date | string, b: Date | string): number {
+  const msPerDay = 24 * 60 * 60 * 1000;
+  const da = new Date(toUTCDateString(a) + "T00:00:00.000Z");
+  const db = new Date(toUTCDateString(b) + "T00:00:00.000Z");
+  return Math.round((da.getTime() - db.getTime()) / msPerDay);
+}
+
 export const StreakTracker = ({ userId }: StreakTrackerProps) => {
   const [currentStreak, setCurrentStreak] = useState(0);
   const [bestStreak, setBestStreak] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadStreakData();
-    trackLogin();
-  }, [userId]);
+    if (!userId) return;
 
-  const loadStreakData = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("achievement_streak, best_achievement_streak")
-        .eq("id", userId)
-        .single();
+    let cancelled = false;
 
-      if (error) throw error;
+    const run = async () => {
+      try {
+        // 1. Load current profile state first (no race)
+        const { data: profile, error: loadError } = await supabase
+          .from("profiles")
+          .select(
+            "achievement_streak, best_achievement_streak, streak_days, last_login_at"
+          )
+          .eq("id", userId)
+          .single();
 
-      setCurrentStreak(data?.achievement_streak || 0);
-      setBestStreak(data?.best_achievement_streak || 0);
-    } catch (error) {
-      console.error("Error loading streak data:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+        if (loadError) throw loadError;
+        if (cancelled) return;
 
-  const trackLogin = async () => {
-    try {
-      // Update last login timestamp
-      const { error } = await supabase
-        .from("profiles")
-        .update({ last_login_at: new Date().toISOString() })
-        .eq("id", userId);
+        const previousStreak =
+          profile?.achievement_streak ?? profile?.streak_days ?? 0;
+        const previousBest = profile?.best_achievement_streak ?? 0;
+        const lastLoginAt = profile?.last_login_at;
 
-      if (error) throw error;
+        const now = new Date();
+        let nextStreak = previousStreak;
+        let shouldWrite = false;
 
-      // Check for streak milestones and award achievements
-      const milestones = [7, 30, 100, 365];
-      for (const milestone of milestones) {
-        if (currentStreak === milestone) {
-          await supabase.functions.invoke('award-achievement', {
-            body: {
-              user_id: userId,
-              event_type: 'streak_milestone',
-              event_data: {
-                streak_days: milestone
-              }
-            }
-          });
+        if (!lastLoginAt) {
+          // First ever login
+          nextStreak = 1;
+          shouldWrite = true;
+        } else {
+          const gap = daysBetweenUTC(now, lastLoginAt);
+
+          if (gap === 0) {
+            // Already counted today — keep current streak, only refresh timestamp if needed
+            nextStreak = Math.max(previousStreak, 1);
+            // Still update last_login_at so "last seen" stays fresh, but no streak change
+            shouldWrite = true;
+          } else if (gap === 1) {
+            // Consecutive day → increment
+            nextStreak = previousStreak + 1;
+            shouldWrite = true;
+          } else {
+            // Missed one or more days → reset
+            nextStreak = 1;
+            shouldWrite = true;
+          }
         }
+
+        const nextBest = Math.max(previousBest, nextStreak);
+
+        if (shouldWrite) {
+          const { error: updateError } = await supabase
+            .from("profiles")
+            .update({
+              last_login_at: now.toISOString(),
+              achievement_streak: nextStreak,
+              streak_days: nextStreak, // keep both fields in sync for XPReactor + others
+              best_achievement_streak: nextBest,
+            })
+            .eq("id", userId);
+
+          if (updateError) throw updateError;
+        }
+
+        if (cancelled) return;
+
+        setCurrentStreak(nextStreak);
+        setBestStreak(nextBest);
+
+        // 2. Award milestone achievements only when we just hit the number
+        const milestones = [7, 30, 100, 365];
+        if (shouldWrite && milestones.includes(nextStreak)) {
+          try {
+            await supabase.functions.invoke("award-achievement", {
+              body: {
+                event_type: "streak_milestone",
+                event_data: { streak_days: nextStreak },
+              },
+            });
+          } catch (awardErr) {
+            console.error("Failed to award streak milestone:", awardErr);
+          }
+        }
+      } catch (error) {
+        console.error("Error processing daily login streak:", error);
+      } finally {
+        if (!cancelled) setLoading(false);
       }
-    } catch (error) {
-      console.error("Error tracking login:", error);
-    }
-  };
+    };
+
+    run();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
 
   if (loading) {
     return (
@@ -80,10 +140,14 @@ export const StreakTracker = ({ userId }: StreakTrackerProps) => {
   }
 
   const getStreakLevel = (streak: number) => {
-    if (streak >= 365) return { label: "Legendary", color: "from-amber-500 to-orange-600" };
-    if (streak >= 100) return { label: "Epic", color: "from-purple-500 to-pink-600" };
-    if (streak >= 30) return { label: "Rare", color: "from-blue-500 to-cyan-600" };
-    if (streak >= 7) return { label: "Uncommon", color: "from-green-500 to-emerald-600" };
+    if (streak >= 365)
+      return { label: "Legendary", color: "from-amber-500 to-orange-600" };
+    if (streak >= 100)
+      return { label: "Epic", color: "from-purple-500 to-pink-600" };
+    if (streak >= 30)
+      return { label: "Rare", color: "from-blue-500 to-cyan-600" };
+    if (streak >= 7)
+      return { label: "Uncommon", color: "from-green-500 to-emerald-600" };
     return { label: "Common", color: "from-gray-500 to-gray-600" };
   };
 
@@ -101,7 +165,7 @@ export const StreakTracker = ({ userId }: StreakTrackerProps) => {
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-bold flex items-center gap-2">
               <Flame className="h-5 w-5 text-orange-500" />
-              Achievement Streak
+              Daily Login Streak
             </h3>
             <Badge className={`bg-gradient-to-r ${streakLevel.color}`}>
               {streakLevel.label}
@@ -123,7 +187,7 @@ export const StreakTracker = ({ userId }: StreakTrackerProps) => {
               <span className="text-lg text-muted-foreground">days</span>
             </div>
             <p className="text-sm text-muted-foreground">
-              Current achievement streak
+              Current daily login streak
             </p>
           </div>
 
@@ -133,7 +197,9 @@ export const StreakTracker = ({ userId }: StreakTrackerProps) => {
               <Award className="h-4 w-4 text-primary" />
               <span className="text-sm font-medium">Best Streak</span>
             </div>
-            <span className="text-lg font-bold text-primary">{bestStreak} days</span>
+            <span className="text-lg font-bold text-primary">
+              {bestStreak} days
+            </span>
           </div>
 
           {/* Milestones */}
@@ -161,9 +227,10 @@ export const StreakTracker = ({ userId }: StreakTrackerProps) => {
 
           {/* Progress to next milestone */}
           {(() => {
-            const nextMilestone = [7, 30, 100, 365].find(m => m > currentStreak) || 365;
+            const nextMilestone =
+              [7, 30, 100, 365].find((m) => m > currentStreak) || 365;
             const progress = Math.min((currentStreak / nextMilestone) * 100, 100);
-            
+
             return (
               <div className="space-y-1">
                 <div className="flex justify-between text-xs text-muted-foreground">
