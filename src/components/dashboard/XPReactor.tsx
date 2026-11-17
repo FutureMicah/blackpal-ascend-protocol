@@ -39,34 +39,17 @@ export const XPReactor = ({ profile }: XPReactorProps) => {
 
       {/* Reactor Orb Visual */}
       <div className="relative h-32 flex items-center justify-center">
-        <motion.div
+        <div
           className="absolute w-24 h-24 rounded-full bg-gradient-to-br from-primary/30 to-secondary/30 blur-xl"
-          animate={{
-            scale: [1, 1.2, 1],
-            opacity: [0.5, 0.8, 0.5],
-          }}
-          transition={{
-            duration: 3,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
         />
-        <motion.div
+        <div
           className="relative w-20 h-20 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg shadow-primary/50"
-          animate={{
-            rotate: 360,
-          }}
-          transition={{
-            duration: 8,
-            repeat: Infinity,
-            ease: "linear",
-          }}
         >
           <div className="text-center">
             <div className="text-xs text-white/70">XP</div>
             <div className="text-sm font-bold text-white">{currentXP}</div>
           </div>
-        </motion.div>
+        </div>
       </div>
 
       {/* Progress Bar */}

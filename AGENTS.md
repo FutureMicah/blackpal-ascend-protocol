@@ -1,0 +1,1 @@
+Daily login streak transitions are pure UTC date logic in `src/lib/daily-streak.ts`; persist changes with a last-login compare-and-set so concurrent dashboard loads cannot double-count a day.

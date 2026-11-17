@@ -1,29 +1,16 @@
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Flame, Award, TrendingUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { calculateDailyStreakUpdate } from "@/lib/daily-streak";
 
 interface StreakTrackerProps {
   userId: string;
+  onStreakUpdate?: (streakDays: number) => void;
 }
 
-/** Returns YYYY-MM-DD in UTC so day boundaries are consistent across timezones. */
-function toUTCDateString(date: Date | string): string {
-  const d = typeof date === "string" ? new Date(date) : date;
-  return d.toISOString().slice(0, 10);
-}
-
-/** Difference in whole calendar days (UTC) between two dates. Positive = a is after b. */
-function daysBetweenUTC(a: Date | string, b: Date | string): number {
-  const msPerDay = 24 * 60 * 60 * 1000;
-  const da = new Date(toUTCDateString(a) + "T00:00:00.000Z");
-  const db = new Date(toUTCDateString(b) + "T00:00:00.000Z");
-  return Math.round((da.getTime() - db.getTime()) / msPerDay);
-}
-
-export const StreakTracker = ({ userId }: StreakTrackerProps) => {
+export const StreakTracker = ({ userId, onStreakUpdate }: StreakTrackerProps) => {
   const [currentStreak, setCurrentStreak] = useState(0);
   const [bestStreak, setBestStreak] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -53,36 +40,17 @@ export const StreakTracker = ({ userId }: StreakTrackerProps) => {
         const lastLoginAt = profile?.last_login_at;
 
         const now = new Date();
-        let nextStreak = previousStreak;
-        let shouldWrite = false;
+        const next = calculateDailyStreakUpdate(
+          lastLoginAt,
+          previousStreak,
+          previousBest,
+          now,
+        );
+        let { currentStreak: nextStreak, bestStreak: nextBest } = next;
+        let streakWasUpdated = false;
 
-        if (!lastLoginAt) {
-          // First ever login
-          nextStreak = 1;
-          shouldWrite = true;
-        } else {
-          const gap = daysBetweenUTC(now, lastLoginAt);
-
-          if (gap === 0) {
-            // Already counted today — keep current streak, only refresh timestamp if needed
-            nextStreak = Math.max(previousStreak, 1);
-            // Still update last_login_at so "last seen" stays fresh, but no streak change
-            shouldWrite = true;
-          } else if (gap === 1) {
-            // Consecutive day → increment
-            nextStreak = previousStreak + 1;
-            shouldWrite = true;
-          } else {
-            // Missed one or more days → reset
-            nextStreak = 1;
-            shouldWrite = true;
-          }
-        }
-
-        const nextBest = Math.max(previousBest, nextStreak);
-
-        if (shouldWrite) {
-          const { error: updateError } = await supabase
+        if (next.shouldWrite) {
+          let update = supabase
             .from("profiles")
             .update({
               last_login_at: now.toISOString(),
@@ -92,17 +60,41 @@ export const StreakTracker = ({ userId }: StreakTrackerProps) => {
             })
             .eq("id", userId);
 
+          update = lastLoginAt
+            ? update.eq("last_login_at", lastLoginAt)
+            : update.is("last_login_at", null);
+
+          const { data: updatedProfile, error: updateError } = await update
+            .select("achievement_streak, best_achievement_streak, streak_days")
+            .maybeSingle();
+
           if (updateError) throw updateError;
+
+          if (updatedProfile) {
+            streakWasUpdated = true;
+          } else {
+            // Another tab/session updated the same login day first; use its saved value.
+            const { data: currentProfile, error: refreshError } = await supabase
+              .from("profiles")
+              .select("achievement_streak, best_achievement_streak, streak_days")
+              .eq("id", userId)
+              .single();
+
+            if (refreshError) throw refreshError;
+            nextStreak = currentProfile.achievement_streak ?? currentProfile.streak_days ?? 0;
+            nextBest = currentProfile.best_achievement_streak ?? 0;
+          }
         }
 
         if (cancelled) return;
 
         setCurrentStreak(nextStreak);
         setBestStreak(nextBest);
+        onStreakUpdate?.(nextStreak);
 
         // 2. Award milestone achievements only when we just hit the number
         const milestones = [7, 30, 100, 365];
-        if (shouldWrite && milestones.includes(nextStreak)) {
+        if (streakWasUpdated && milestones.includes(nextStreak)) {
           try {
             await supabase.functions.invoke("award-achievement", {
               body: {
@@ -126,7 +118,7 @@ export const StreakTracker = ({ userId }: StreakTrackerProps) => {
     return () => {
       cancelled = true;
     };
-  }, [userId]);
+  }, [userId, onStreakUpdate]);
 
   if (loading) {
     return (
@@ -154,11 +146,7 @@ export const StreakTracker = ({ userId }: StreakTrackerProps) => {
   const streakLevel = getStreakLevel(currentStreak);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.3 }}
-    >
+    <div>
       <Card className="p-6 bg-gradient-to-br from-card to-card/50 border-primary/20 rebrand-streaks">
         <div className="space-y-4">
           {/* Header */}
@@ -175,15 +163,9 @@ export const StreakTracker = ({ userId }: StreakTrackerProps) => {
           {/* Current Streak */}
           <div className="space-y-2">
             <div className="flex items-baseline gap-2">
-              <motion.span
-                className="text-5xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent"
-                key={currentStreak}
-                initial={{ scale: 1.2 }}
-                animate={{ scale: 1 }}
-                transition={{ type: "spring", stiffness: 300 }}
-              >
+              <span className="text-5xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                 {currentStreak}
-              </motion.span>
+              </span>
               <span className="text-lg text-muted-foreground">days</span>
             </div>
             <p className="text-sm text-muted-foreground">
@@ -238,11 +220,9 @@ export const StreakTracker = ({ userId }: StreakTrackerProps) => {
                   <span>{Math.round(progress)}%</span>
                 </div>
                 <div className="h-2 bg-muted rounded-full overflow-hidden">
-                  <motion.div
+                  <div
                     className="h-full bg-gradient-to-r from-primary to-accent"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${progress}%` }}
-                    transition={{ duration: 1, ease: "easeOut" }}
+                    style={{ width: `${progress}%` }}
                   />
                 </div>
               </div>
@@ -250,6 +230,6 @@ export const StreakTracker = ({ userId }: StreakTrackerProps) => {
           })()}
         </div>
       </Card>
-    </motion.div>
+    </div>
   );
 };

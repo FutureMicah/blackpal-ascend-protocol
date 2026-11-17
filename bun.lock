@@ -76,6 +76,8 @@
       },
       "devDependencies": {
         "@eslint/js": "^9.32.0",
+        "@lovable.dev/vite-plugin-dev-server-bridge": "^1.0.2",
+        "@lovable.dev/vite-plugin-hmr-gate": "^1.8.3",
         "@tailwindcss/typography": "^0.5.16",
         "@testing-library/jest-dom": "^6.6.0",
         "@testing-library/react": "^16.0.0",
@@ -229,6 +231,10 @@
     "@jridgewell/trace-mapping": ["@jridgewell/trace-mapping@0.3.25", "", { "dependencies": { "@jridgewell/resolve-uri": "^3.1.0", "@jridgewell/sourcemap-codec": "^1.4.14" } }, "sha512-vNk6aEwybGtawWmy/PzwnGDOjCkLWSD2wqvjGGAgOAwCGWySYXfYoxt00IJkTF+8Lb57DwOb3Aa0o9CApepiYQ=="],
 
     "@lovable.dev/cloud-auth-js": ["@lovable.dev/cloud-auth-js@1.2.1", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@lovable.dev/cloud-auth-js/-/cloud-auth-js-1.2.1.tgz", {}, "sha512-BetMp9TvV/QgZ54KBr0yhPNqcB2Z6VqrF3H54sNgsKpKeSQO0CFDtPNtSmtKW9cCsHAp7yXCl04X82Zfdjo0CA=="],
+
+    "@lovable.dev/vite-plugin-dev-server-bridge": ["@lovable.dev/vite-plugin-dev-server-bridge@1.3.3", "", { "peerDependencies": { "vite": ">=5.0.0 <9.0.0" } }, "sha512-idfu4sQOGXRsyngvs9Ukqa0TwBSVQ7QDIkJ/fU7qXbP6xwZOXulIVYU2gias4CYF6cjoR41jDIQerPstWf+0ZQ=="],
+
+    "@lovable.dev/vite-plugin-hmr-gate": ["@lovable.dev/vite-plugin-hmr-gate@1.8.3", "", { "peerDependencies": { "vite": ">=5.0.0 <9.0.0" } }, "sha512-ZStXdVh9dLaSzJG4CZ3u72D/CDruUDzzAuAPs+XsRObAjhLyeF+358FlxQeMpity9yO13IDau0QoVzZ2YPjjTA=="],
 
     "@mapbox/geojson-rewind": ["@mapbox/geojson-rewind@0.5.2", "https://europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@mapbox/geojson-rewind/-/geojson-rewind-0.5.2.tgz", { "dependencies": { "get-stream": "^6.0.1", "minimist": "^1.2.6" }, "bin": { "geojson-rewind": "geojson-rewind" } }, "sha512-tJaT+RbYGJYStt7wI3cq4Nl4SXxG8W7JDG5DMJu97V25RnbNg3QtQtf+KD+VLjNpWKYsRvXDNmNrBgEETr1ifA=="],
 

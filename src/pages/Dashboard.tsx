@@ -285,7 +285,16 @@ export default function Dashboard() {
           </div>
 
           <div className="lg:col-span-3 space-y-3 sm:space-y-6 order-2 lg:order-3">
-            <StreakTracker userId={profile.id} />
+            <StreakTracker
+              userId={profile.id}
+              onStreakUpdate={(streakDays) =>
+                setProfile((current: any) =>
+                  current
+                    ? { ...current, achievement_streak: streakDays, streak_days: streakDays }
+                    : current,
+                )
+              }
+            />
             <FriendActivityFeed userId={profile.id} maxItems={10} />
             <WalletSnapshot userId={profile.id} />
             <BtaxWalletOverview userId={profile.id} />
