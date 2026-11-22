@@ -51,13 +51,16 @@ const ReferralLanding = lazy(() => import("./pages/ReferralLanding"));
 const Marketplace = lazy(() => import("./pages/Marketplace"));
 const Classes = lazy(() => import("./pages/Classes"));
 
-import { AnnouncementPopup } from "./components/AnnouncementPopup";
-import { NotificationsProvider } from "./components/NotificationsProvider";
+// Non-critical global overlays are deferred so framer-motion + dialog code
+// stay out of the first-load bundle on 4G. Each renders nothing until loaded.
+const AnnouncementPopup = lazy(() => import("./components/AnnouncementPopup").then(m => ({ default: m.AnnouncementPopup })));
+const AccessGrantedSeal = lazy(() => import("./components/AccessGrantedSeal").then(m => ({ default: m.AccessGrantedSeal })));
+const LevelUpCelebration = lazy(() => import("./components/xp/LevelUpCelebration").then(m => ({ default: m.LevelUpCelebration })));
+const NotificationsProvider = lazy(() => import("./components/NotificationsProvider").then(m => ({ default: m.NotificationsProvider })));
+
 import { GlobalThemeProvider } from "./components/GlobalThemeProvider";
 import { PresenceProvider } from "./components/PresenceProvider";
 import { EnergyModeProvider } from "./contexts/EnergyModeContext";
-import { AccessGrantedSeal } from "./components/AccessGrantedSeal";
-import { LevelUpCelebration } from "./components/xp/LevelUpCelebration";
 
 const queryClient = new QueryClient();
 
@@ -76,10 +79,12 @@ const App = () => (
         <EnergyModeProvider>
           <GlobalThemeProvider />
           <PresenceProvider />
-          <NotificationsProvider />
-          <AnnouncementPopup />
-          <AccessGrantedSeal />
-          <LevelUpCelebration />
+          <Suspense fallback={null}>
+            <NotificationsProvider />
+            <AnnouncementPopup />
+            <AccessGrantedSeal />
+            <LevelUpCelebration />
+          </Suspense>
 
           <Suspense fallback={<RouteFallback />}>
             <Routes>
