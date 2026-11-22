@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Flame, Award, TrendingUp } from "lucide-react";
@@ -14,6 +14,9 @@ export const StreakTracker = ({ userId, onStreakUpdate }: StreakTrackerProps) =>
   const [currentStreak, setCurrentStreak] = useState(0);
   const [bestStreak, setBestStreak] = useState(0);
   const [loading, setLoading] = useState(true);
+  // Stable callback ref — prevents re-running streak logic every parent render
+  const onUpdateRef = useRef(onStreakUpdate);
+  onUpdateRef.current = onStreakUpdate;
 
   useEffect(() => {
     if (!userId) return;
@@ -22,30 +25,26 @@ export const StreakTracker = ({ userId, onStreakUpdate }: StreakTrackerProps) =>
 
     const run = async () => {
       try {
-        // 1. Load current profile state first (no race)
         const { data: profile, error: loadError } = await supabase
           .from("profiles")
-          .select(
-            "achievement_streak, best_achievement_streak, streak_days, last_login_at"
-          )
+          .select("achievement_streak, best_achievement_streak, streak_days, last_login_at")
           .eq("id", userId)
           .single();
 
         if (loadError) throw loadError;
         if (cancelled) return;
 
-        const previousStreak =
-          profile?.achievement_streak ?? profile?.streak_days ?? 0;
+        const previousStreak = profile?.achievement_streak ?? profile?.streak_days ?? 0;
         const previousBest = profile?.best_achievement_streak ?? 0;
         const lastLoginAt = profile?.last_login_at;
 
+        // Show saved values immediately so UI does not flicker to 0
+        setCurrentStreak(previousStreak);
+        setBestStreak(previousBest);
+        setLoading(false);
+
         const now = new Date();
-        const next = calculateDailyStreakUpdate(
-          lastLoginAt,
-          previousStreak,
-          previousBest,
-          now,
-        );
+        const next = calculateDailyStreakUpdate(lastLoginAt, previousStreak, previousBest, now);
         let { currentStreak: nextStreak, bestStreak: nextBest } = next;
         let streakWasUpdated = false;
 
@@ -55,11 +54,12 @@ export const StreakTracker = ({ userId, onStreakUpdate }: StreakTrackerProps) =>
             .update({
               last_login_at: now.toISOString(),
               achievement_streak: nextStreak,
-              streak_days: nextStreak, // keep both fields in sync for XPReactor + others
+              streak_days: nextStreak,
               best_achievement_streak: nextBest,
             })
             .eq("id", userId);
 
+          // Optimistic concurrency: only write if last_login_at unchanged
           update = lastLoginAt
             ? update.eq("last_login_at", lastLoginAt)
             : update.is("last_login_at", null);
@@ -72,14 +72,15 @@ export const StreakTracker = ({ userId, onStreakUpdate }: StreakTrackerProps) =>
 
           if (updatedProfile) {
             streakWasUpdated = true;
+            nextStreak = updatedProfile.achievement_streak ?? updatedProfile.streak_days ?? nextStreak;
+            nextBest = updatedProfile.best_achievement_streak ?? nextBest;
           } else {
-            // Another tab/session updated the same login day first; use its saved value.
+            // Another session already wrote today — re-read
             const { data: currentProfile, error: refreshError } = await supabase
               .from("profiles")
               .select("achievement_streak, best_achievement_streak, streak_days")
               .eq("id", userId)
               .single();
-
             if (refreshError) throw refreshError;
             nextStreak = currentProfile.achievement_streak ?? currentProfile.streak_days ?? 0;
             nextBest = currentProfile.best_achievement_streak ?? 0;
@@ -90,9 +91,8 @@ export const StreakTracker = ({ userId, onStreakUpdate }: StreakTrackerProps) =>
 
         setCurrentStreak(nextStreak);
         setBestStreak(nextBest);
-        onStreakUpdate?.(nextStreak);
+        onUpdateRef.current?.(nextStreak);
 
-        // 2. Award milestone achievements only when we just hit the number
         const milestones = [7, 30, 100, 365];
         if (streakWasUpdated && milestones.includes(nextStreak)) {
           try {
@@ -118,7 +118,8 @@ export const StreakTracker = ({ userId, onStreakUpdate }: StreakTrackerProps) =>
     return () => {
       cancelled = true;
     };
-  }, [userId, onStreakUpdate]);
+    // Only re-run when userId changes — NOT when parent passes a new callback
+  }, [userId]);
 
   if (loading) {
     return (
@@ -132,104 +133,49 @@ export const StreakTracker = ({ userId, onStreakUpdate }: StreakTrackerProps) =>
   }
 
   const getStreakLevel = (streak: number) => {
-    if (streak >= 365)
-      return { label: "Legendary", color: "from-amber-500 to-orange-600" };
-    if (streak >= 100)
-      return { label: "Epic", color: "from-purple-500 to-pink-600" };
-    if (streak >= 30)
-      return { label: "Rare", color: "from-blue-500 to-cyan-600" };
-    if (streak >= 7)
-      return { label: "Uncommon", color: "from-green-500 to-emerald-600" };
-    return { label: "Common", color: "from-gray-500 to-gray-600" };
+    if (streak >= 365) return { label: "Legendary", color: "from-amber-400 to-yellow-600" };
+    if (streak >= 100) return { label: "Master", color: "from-purple-400 to-fuchsia-600" };
+    if (streak >= 30) return { label: "Dedicated", color: "from-blue-400 to-cyan-600" };
+    if (streak >= 7) return { label: "Consistent", color: "from-emerald-400 to-green-600" };
+    return { label: "Building", color: "from-slate-400 to-slate-600" };
   };
 
   const streakLevel = getStreakLevel(currentStreak);
 
   return (
-    <div>
-      <Card className="p-6 bg-gradient-to-br from-card to-card/50 border-primary/20 rebrand-streaks">
-        <div className="space-y-4">
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-bold flex items-center gap-2">
-              <Flame className="h-5 w-5 text-orange-500" />
-              Daily Login Streak
-            </h3>
-            <Badge className={`bg-gradient-to-r ${streakLevel.color}`}>
-              {streakLevel.label}
-            </Badge>
-          </div>
-
-          {/* Current Streak */}
-          <div className="space-y-2">
-            <div className="flex items-baseline gap-2">
-              <span className="text-5xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                {currentStreak}
-              </span>
-              <span className="text-lg text-muted-foreground">days</span>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Current daily login streak
-            </p>
-          </div>
-
-          {/* Best Streak */}
-          <div className="flex items-center justify-between p-3 bg-card/50 rounded-lg border border-primary/10">
-            <div className="flex items-center gap-2">
-              <Award className="h-4 w-4 text-primary" />
-              <span className="text-sm font-medium">Best Streak</span>
-            </div>
-            <span className="text-lg font-bold text-primary">
-              {bestStreak} days
-            </span>
-          </div>
-
-          {/* Milestones */}
-          <div className="space-y-2">
-            <p className="text-xs text-muted-foreground flex items-center gap-1">
-              <TrendingUp className="h-3 w-3" />
-              Next Milestones
-            </p>
-            <div className="grid grid-cols-4 gap-2">
-              {[7, 30, 100, 365].map((milestone) => (
-                <div
-                  key={milestone}
-                  className={`p-2 rounded-lg border text-center transition-all ${
-                    currentStreak >= milestone
-                      ? "bg-primary/20 border-primary/50"
-                      : "bg-card/50 border-border"
-                  }`}
-                >
-                  <p className="text-xs font-bold">{milestone}</p>
-                  <p className="text-[10px] text-muted-foreground">days</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Progress to next milestone */}
-          {(() => {
-            const nextMilestone =
-              [7, 30, 100, 365].find((m) => m > currentStreak) || 365;
-            const progress = Math.min((currentStreak / nextMilestone) * 100, 100);
-
-            return (
-              <div className="space-y-1">
-                <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>Progress to {nextMilestone} days</span>
-                  <span>{Math.round(progress)}%</span>
-                </div>
-                <div className="h-2 bg-muted rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-gradient-to-r from-primary to-accent"
-                    style={{ width: `${progress}%` }}
-                  />
-                </div>
-              </div>
-            );
-          })()}
+    <Card className="p-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Flame className="w-4 h-4 text-orange-500" />
+          <span className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+            Daily Login
+          </span>
         </div>
-      </Card>
-    </div>
+        <Badge className={`bg-gradient-to-r ${streakLevel.color} text-white border-0 text-[10px] font-bold`}>
+          {streakLevel.label}
+        </Badge>
+      </div>
+
+      <div className="flex items-end gap-4">
+        <div>
+          <div className="text-2xl font-extrabold tabular-nums leading-none">{currentStreak}</div>
+          <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mt-1">
+            Day streak
+          </div>
+        </div>
+        <div className="flex-1 space-y-1">
+          <div className="flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground">
+            <Award className="w-3 h-3" />
+            Best: <span className="text-foreground tabular-nums">{bestStreak}</span>
+          </div>
+          <div className="flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground">
+            <TrendingUp className="w-3 h-3" />
+            Keep logging in daily
+          </div>
+        </div>
+      </div>
+    </Card>
   );
 };
+
+export default StreakTracker;
