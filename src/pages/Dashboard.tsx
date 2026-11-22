@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
@@ -35,6 +35,7 @@ export default function Dashboard() {
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [notification, setNotification] = useState<AwardedAchievement | null>(null);
   const [showComparison, setShowComparison] = useState(false);
   const [showSecurityPanel, setShowSecurityPanel] = useState(false);
@@ -42,8 +43,10 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { checkAndAwardAchievements } = useAchievements();
+  const achievementsChecked = useRef(false);
   useRealtimeNotifications(user?.id ?? null);
 
+  // Paystack return handler (once)
   useEffect(() => {
     const url = new URL(window.location.href);
     const ref = url.searchParams.get("reference") || url.searchParams.get("trxref");
@@ -68,43 +71,81 @@ export default function Dashboard() {
     })();
   }, [toast]);
 
-  const loadUserStats = async (userId: string) => {
-    try {
-      const { data: achievementsData } = await supabase
-        .from("user_achievements")
-        .select(
-          `
-          achievement_id,
-          achievements (id, rarity)
-        `
-        )
-        .eq("user_id", userId);
+  const loadProfile = useCallback(
+    async (userId: string, opts?: { silent?: boolean }) => {
+      try {
+        setLoadError(null);
+        const { data, error } = await supabase.from("profiles").select("*").eq("id", userId).single();
 
-      const achievements = achievementsData?.map((ua: any) => ua.achievements).filter(Boolean) || [];
-      const totalAchievements = achievements.length;
-      const rareAchievements = achievements.filter(
-        (a: any) => a.rarity === "rare" || a.rarity === "epic" || a.rarity === "legendary"
-      ).length;
+        if (error) throw error;
+        if (!data) throw new Error("Profile row missing");
 
-      setUserStats({
-        totalXP: profile?.xp_points || 0,
-        totalAchievements,
-        rareAchievements,
-      });
-    } catch (error) {
-      console.error("Error loading user stats:", error);
-    }
-  };
+        if (!data.payment_completed) {
+          toast({
+            variant: "destructive",
+            title: "Payment Required",
+            description: "You must complete payment to access the dashboard.",
+          });
+          navigate("/");
+          return;
+        }
+
+        setProfile(data);
+
+        // Award checks only once per session — avoids extra re-renders / toasts
+        if (!achievementsChecked.current) {
+          achievementsChecked.current = true;
+          try {
+            const levelAchievements = await checkAndAwardAchievements({
+              user_id: userId,
+              event_type: "level_reach",
+              event_data: {
+                level: data.rank_level || 1,
+                xp_total: data.xp_points || 0,
+              },
+            });
+            if (levelAchievements.length > 0) {
+              setNotification(levelAchievements[0]);
+            } else {
+              const xpAchievements = await checkAndAwardAchievements({
+                user_id: userId,
+                event_type: "xp_total",
+                event_data: { xp_total: data.xp_points || 0 },
+              });
+              if (xpAchievements.length > 0) {
+                setNotification(xpAchievements[0]);
+              }
+            }
+          } catch {
+            /* non-blocking */
+          }
+        }
+      } catch (error: any) {
+        console.error("loadProfile", error);
+        setLoadError(error?.message || "Failed to load profile");
+        if (!opts?.silent) {
+          toast({
+            variant: "destructive",
+            title: "Error loading profile",
+            description: error?.message || "Please refresh",
+          });
+        }
+      } finally {
+        setLoading(false);
+      }
+    },
+    [navigate, toast, checkAndAwardAchievements]
+  );
 
   useEffect(() => {
-    if (profile) loadUserStats(profile.id);
-  }, [profile]);
+    let cancelled = false;
 
-  useEffect(() => {
-    const initAuth = async () => {
+    const init = async () => {
       const {
         data: { session },
       } = await supabase.auth.getSession();
+
+      if (cancelled) return;
 
       if (!session) {
         navigate("/");
@@ -115,76 +156,68 @@ export default function Dashboard() {
       await loadProfile(session.user.id);
     };
 
-    initAuth();
+    init();
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session) {
-        navigate("/");
-      } else {
-        setUser(session.user);
-        loadProfile(session.user.id);
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [navigate]);
-
-  const loadProfile = async (userId: string) => {
-    try {
-      const { data, error } = await supabase.from("profiles").select("*").eq("id", userId).single();
-
-      if (error) throw error;
-
-      if (!data?.payment_completed) {
-        toast({
-          variant: "destructive",
-          title: "Payment Required",
-          description: "You must complete payment to access the dashboard.",
-        });
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      // Only react to real sign-in/out — ignore TOKEN_REFRESHED (causes reload loops)
+      if (event === "SIGNED_OUT" || !session) {
         navigate("/");
         return;
       }
-
-      setProfile(data);
-
-      if (data) {
-        const levelAchievements = await checkAndAwardAchievements({
-          user_id: userId,
-          event_type: "level_reach",
-          event_data: {
-            level: data.rank_level || 1,
-            xp_total: data.xp_points || 0,
-          },
-        });
-
-        if (levelAchievements.length > 0) {
-          setNotification(levelAchievements[0]);
-        }
-
-        const xpAchievements = await checkAndAwardAchievements({
-          user_id: userId,
-          event_type: "xp_total",
-          event_data: {
-            xp_total: data.xp_points || 0,
-          },
-        });
-
-        if (xpAchievements.length > 0 && !notification) {
-          setNotification(xpAchievements[0]);
-        }
+      if (event === "SIGNED_IN") {
+        setUser(session.user);
+        loadProfile(session.user.id, { silent: true });
       }
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error loading profile",
-        description: error.message,
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+    });
+
+    return () => {
+      cancelled = true;
+      subscription.unsubscribe();
+    };
+  }, [navigate, loadProfile]);
+
+  useEffect(() => {
+    if (!profile?.id) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data: achievementsData } = await supabase
+          .from("user_achievements")
+          .select("achievement_id, achievements (id, rarity)")
+          .eq("user_id", profile.id);
+
+        if (cancelled) return;
+        const achievements = achievementsData?.map((ua: any) => ua.achievements).filter(Boolean) || [];
+        setUserStats({
+          totalXP: profile.xp_points || 0,
+          totalAchievements: achievements.length,
+          rareAchievements: achievements.filter(
+            (a: any) => a.rarity === "rare" || a.rarity === "epic" || a.rarity === "legendary"
+          ).length,
+        });
+      } catch {
+        /* ignore */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [profile?.id, profile?.xp_points]);
+
+  const handleStreakUpdate = useCallback((streakDays: number) => {
+    setProfile((current: any) => {
+      if (!current) return current;
+      if (
+        current.achievement_streak === streakDays &&
+        current.streak_days === streakDays
+      ) {
+        return current; // no change — skip re-render
+      }
+      return { ...current, achievement_streak: streakDays, streak_days: streakDays };
+    });
+  }, []);
 
   if (loading) {
     return (
@@ -196,8 +229,21 @@ export default function Dashboard() {
 
   if (!profile) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <p className="text-sm font-semibold text-muted-foreground">Profile not found</p>
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-3 px-4">
+        <p className="text-sm font-semibold text-muted-foreground">
+          {loadError || "Profile not found"}
+        </p>
+        <Button
+          size="sm"
+          className="text-xs font-bold"
+          onClick={() => {
+            setLoading(true);
+            if (user?.id) loadProfile(user.id);
+            else navigate("/");
+          }}
+        >
+          Retry
+        </Button>
       </div>
     );
   }
@@ -221,14 +267,19 @@ export default function Dashboard() {
       <FloatingNav />
 
       <div className="relative max-w-[1400px] mx-auto px-3 sm:px-6 lg:px-8 py-8 sm:py-16">
-        {/* Header — smaller bold type on mobile */}
         <div className="flex items-end justify-between gap-2 mb-3">
           <div className="min-w-0">
             <p className="text-[8px] sm:text-[9px] font-bold uppercase tracking-[0.22em] text-white/50">
-              {new Date().toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" })}
+              {new Date().toLocaleDateString(undefined, {
+                weekday: "long",
+                month: "short",
+                day: "numeric",
+              })}
             </p>
             <h1 className="text-base sm:text-2xl font-extrabold tracking-tight text-white truncate leading-tight">
-              {profile?.display_name ? `Hello, ${profile.display_name.split(" ")[0]}` : "Welcome back"}
+              {profile?.display_name
+                ? `Hello, ${profile.display_name.split(" ")[0]}`
+                : "Welcome back"}
             </h1>
             <p className="text-[10px] sm:text-[11px] font-bold text-cyan-300/80">
               Level {profile.rank_level || 1} · {Number(profile.xp_points || 0).toLocaleString()} XP
@@ -269,7 +320,11 @@ export default function Dashboard() {
           </div>
         )}
 
-        <WalletHero userId={profile.id} displayName={profile.display_name} avatarUrl={profile.avatar_url} />
+        <WalletHero
+          userId={profile.id}
+          displayName={profile.display_name}
+          avatarUrl={profile.avatar_url}
+        />
 
         {showComparison && profile && (
           <ProfileComparison
@@ -279,14 +334,13 @@ export default function Dashboard() {
           />
         )}
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-6 mt-3 sm:mt-4"
-        >
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-6 mt-3 sm:mt-4">
           <div className="lg:col-span-3 order-1">
-            <ProfileHeroCard profile={profile} user={user} onProfileUpdate={() => loadProfile(user.id)} />
+            <ProfileHeroCard
+              profile={profile}
+              user={user}
+              onProfileUpdate={() => user?.id && loadProfile(user.id, { silent: true })}
+            />
           </div>
 
           <div className="lg:col-span-6 space-y-3 sm:space-y-6 order-3 lg:order-2">
@@ -298,16 +352,7 @@ export default function Dashboard() {
           </div>
 
           <div className="lg:col-span-3 space-y-3 sm:space-y-6 order-2 lg:order-3">
-            <StreakTracker
-              userId={profile.id}
-              onStreakUpdate={(streakDays) =>
-                setProfile((current: any) =>
-                  current
-                    ? { ...current, achievement_streak: streakDays, streak_days: streakDays }
-                    : current
-                )
-              }
-            />
+            <StreakTracker userId={profile.id} onStreakUpdate={handleStreakUpdate} />
             <FriendActivityFeed userId={profile.id} maxItems={10} />
             <WalletSnapshot userId={profile.id} />
             <BtaxWalletOverview userId={profile.id} />
@@ -321,14 +366,16 @@ export default function Dashboard() {
               </div>
             )}
 
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-              <Button onClick={() => navigate("/achievements/hub")} className="w-full h-8 text-[11px] font-bold" size="sm">
-                <Trophy className="mr-1.5 h-3.5 w-3.5" />
-                Achievement Hub
-              </Button>
-            </motion.div>
+            <Button
+              onClick={() => navigate("/achievements/hub")}
+              className="w-full h-8 text-[11px] font-bold"
+              size="sm"
+            >
+              <Trophy className="mr-1.5 h-3.5 w-3.5" />
+              Achievement Hub
+            </Button>
           </div>
-        </motion.div>
+        </div>
       </div>
     </div>
   );
