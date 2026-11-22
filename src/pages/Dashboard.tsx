@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { usePrefersReducedMotion } from "@/hooks/use-reduced-motion";
@@ -22,17 +22,37 @@ import { NotificationCenter } from "@/components/NotificationCenter";
 import { StreakTracker } from "@/components/StreakTracker";
 import { useAchievements, AwardedAchievement } from "@/hooks/use-achievements";
 import { FriendActivityFeed } from "@/components/social/FriendActivityFeed";
-import { ProfileComparison } from "@/components/ProfileComparison";
 import { OnboardingTour } from "@/components/OnboardingTour";
 import { useRealtimeNotifications } from "@/hooks/use-realtime-notifications";
 import { SessionLockScreen } from "@/components/security/SessionLockScreen";
-import { SecurityPanel } from "@/components/security/SecurityPanel";
-import { SupportChat } from "@/components/SupportChat";
-import { CurrencyConverter } from "@/components/CurrencyConverter";
-import { PropAccountLadder } from "@/components/PropAccountLadder";
-import { QuestsPanel } from "@/components/xp/QuestsPanel";
-import { XpTimeline } from "@/components/xp/XpTimeline";
-import { QuestClaimHistory } from "@/components/xp/QuestClaimHistory";
+
+// Below-fold / on-demand panels: split out of the dashboard first-paint
+// chunk. Mounting order unchanged; Suspense fallback renders nothing so
+// no layout shift. Animations on the page itself are untouched.
+const SecurityPanel = lazy(() =>
+  import("@/components/security/SecurityPanel").then((m) => ({ default: m.SecurityPanel }))
+);
+const ProfileComparison = lazy(() =>
+  import("@/components/ProfileComparison").then((m) => ({ default: m.ProfileComparison }))
+);
+const SupportChat = lazy(() =>
+  import("@/components/SupportChat").then((m) => ({ default: m.SupportChat }))
+);
+const CurrencyConverter = lazy(() =>
+  import("@/components/CurrencyConverter").then((m) => ({ default: m.CurrencyConverter }))
+);
+const PropAccountLadder = lazy(() =>
+  import("@/components/PropAccountLadder").then((m) => ({ default: m.PropAccountLadder }))
+);
+const QuestsPanel = lazy(() =>
+  import("@/components/xp/QuestsPanel").then((m) => ({ default: m.QuestsPanel }))
+);
+const XpTimeline = lazy(() =>
+  import("@/components/xp/XpTimeline").then((m) => ({ default: m.XpTimeline }))
+);
+const QuestClaimHistory = lazy(() =>
+  import("@/components/xp/QuestClaimHistory").then((m) => ({ default: m.QuestClaimHistory }))
+);
 
 
 export default function Dashboard() {
@@ -72,7 +92,7 @@ export default function Dashboard() {
   }, [toast]);
 
   // Load user stats for comparison
-  const loadUserStats = async (userId: string) => {
+  const loadUserStats = async (userId: string, xpPoints?: number) => {
     try {
       const { data: achievementsData } = await supabase
         .from("user_achievements")
@@ -89,7 +109,7 @@ export default function Dashboard() {
       ).length;
 
       setUserStats({
-        totalXP: profile?.xp_points || 0,
+        totalXP: xpPoints ?? profile?.xp_points ?? 0,
         totalAchievements,
         rareAchievements,
       });
@@ -100,19 +120,26 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (profile) {
-      loadUserStats(profile.id);
+      void loadUserStats(profile.id, profile.xp_points);
     }
-  }, [profile]);
+  }, [profile?.id]);
 
   useEffect(() => {
     cancelledRef.current = false;
 
+    let lastLoadedUserId: string | null = null;
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (cancelledRef.current) return;
       if (!session) {
         navigate("/");
       } else {
+        // Skip duplicate loads — the initial getSession below already
+        // kicks this off; INITIAL_SESSION fires again on mount.
+        if (lastLoadedUserId === session.user.id) return;
+        lastLoadedUserId = session.user.id;
         setUser(session.user);
-        loadProfile(session.user.id);
+        void loadProfile(session.user.id);
       }
     });
 
@@ -123,6 +150,8 @@ export default function Dashboard() {
         navigate("/");
         return;
       }
+      if (lastLoadedUserId === session.user.id) return;
+      lastLoadedUserId = session.user.id;
       setUser(session.user);
       await loadProfile(session.user.id);
     })();
@@ -156,32 +185,38 @@ export default function Dashboard() {
 
       setProfile(data);
 
-      // Check for level and XP achievements
+      // Check for level and XP achievements. Fire-and-forget: these are
+      // notification side-effects, not needed for first paint. Running
+      // them serially before setLoading(false) was delaying the spinner.
       if (data) {
-        const levelAchievements = await checkAndAwardAchievements({
-          user_id: userId,
-          event_type: 'level_reach',
-          event_data: {
-            level: data.rank_level || 1,
-            xp_total: data.xp_points || 0
+        void (async () => {
+          try {
+            const [levelAchievements, xpAchievements] = await Promise.all([
+              checkAndAwardAchievements({
+                user_id: userId,
+                event_type: 'level_reach',
+                event_data: {
+                  level: data.rank_level || 1,
+                  xp_total: data.xp_points || 0
+                }
+              }),
+              checkAndAwardAchievements({
+                user_id: userId,
+                event_type: 'xp_total',
+                event_data: {
+                  xp_total: data.xp_points || 0
+                }
+              }),
+            ]);
+
+            const awarded = levelAchievements[0] ?? xpAchievements[0];
+            if (awarded && !cancelledRef.current) {
+              setNotification(awarded);
+            }
+          } catch (error) {
+            console.error("Error checking achievements:", error);
           }
-        });
-
-        if (levelAchievements.length > 0) {
-          setNotification(levelAchievements[0]);
-        }
-
-        const xpAchievements = await checkAndAwardAchievements({
-          user_id: userId,
-          event_type: 'xp_total',
-          event_data: {
-            xp_total: data.xp_points || 0
-          }
-        });
-
-        if (xpAchievements.length > 0 && !notification) {
-          setNotification(xpAchievements[0]);
-        }
+        })();
       }
     } catch (error: any) {
       toast({
@@ -190,7 +225,7 @@ export default function Dashboard() {
         description: error.message,
       });
     } finally {
-      setLoading(false);
+      if (!cancelledRef.current) setLoading(false);
     }
   };
 
@@ -215,13 +250,15 @@ export default function Dashboard() {
       {/* Session Lock */}
       <SessionLockScreen timeoutMinutes={5} />
 
-      {/* Security Panel */}
-      <SecurityPanel
-        userId={user?.id}
-        userEmail={user?.email}
-        isOpen={showSecurityPanel}
-        onClose={() => setShowSecurityPanel(false)}
-      />
+      {/* Security Panel (on-demand, split chunk) */}
+      <Suspense fallback={null}>
+        <SecurityPanel
+          userId={user?.id}
+          userEmail={user?.email}
+          isOpen={showSecurityPanel}
+          onClose={() => setShowSecurityPanel(false)}
+        />
+      </Suspense>
 
       {/* Onboarding Tour */}
       <OnboardingTour />
@@ -291,11 +328,13 @@ export default function Dashboard() {
 
         {/* Profile Comparison Modal */}
         {showComparison && profile && (
-          <ProfileComparison
-            currentProfile={profile}
-            currentStats={userStats}
-            onClose={() => setShowComparison(false)}
-          />
+          <Suspense fallback={null}>
+            <ProfileComparison
+              currentProfile={profile}
+              currentStats={userStats}
+              onClose={() => setShowComparison(false)}
+            />
+          </Suspense>
         )}
         <motion.div
           initial={reduceMotion ? false : { opacity: 0, y: 20 }}
@@ -315,9 +354,11 @@ export default function Dashboard() {
           {/* Middle Column - Main Content */}
           <div className="lg:col-span-6 space-y-3 sm:space-y-6 order-3 lg:order-2">
             <XPReactor profile={profile} />
-            <QuestsPanel userId={profile.id} />
-            <XpTimeline userId={profile.id} />
-            <QuestClaimHistory userId={profile.id} />
+            <Suspense fallback={null}>
+              <QuestsPanel userId={profile.id} />
+              <XpTimeline userId={profile.id} />
+              <QuestClaimHistory userId={profile.id} />
+            </Suspense>
             <ActivityFeed userId={profile.id} />
 
           </div>
@@ -329,13 +370,17 @@ export default function Dashboard() {
             <WalletSnapshot userId={profile.id} />
             <BtaxWalletOverview userId={profile.id} />
             <PaymentHistoryPanel userId={profile.id} />
-            <PropAccountLadder userId={profile.id} />
-            <CurrencyConverter compact />
+            <Suspense fallback={null}>
+              <PropAccountLadder userId={profile.id} />
+              <CurrencyConverter compact />
+            </Suspense>
             
             {/* Support Chat */}
             {user && (
               <div className="rounded-xl border border-border bg-card/50 p-3">
-                <SupportChat userId={user.id} />
+                <Suspense fallback={null}>
+                  <SupportChat userId={user.id} />
+                </Suspense>
               </div>
             )}
             

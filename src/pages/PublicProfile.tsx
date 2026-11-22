@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, lazy, Suspense } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import heritageFrostBg from "@/assets/theme-heritage-frost.jpg";
 import liquidGlassBg from "@/assets/theme-liquid-glass.jpg";
@@ -12,12 +12,20 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FloatingNav } from "@/components/FloatingNav";
 import { PremiumBadges } from "@/components/PremiumBadges";
-import { ProfileMilestoneBadges } from "@/components/ProfileMilestoneBadges";
-import { ProfileShowcaseDisplay } from "@/components/ProfileShowcaseDisplay";
+import { PUBLIC_PROFILE_FIELDS } from "@/lib/profile-fields";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { QRCodeSVG } from "qrcode.react";
 import { Input } from "@/components/ui/input";
 import { useThemePreview } from "@/hooks/use-theme-preview";
+
+// Below-the-fold profile sections: split out of the first-paint chunk.
+// Entrance/motion animations on the page itself are untouched.
+const ProfileMilestoneBadges = lazy(() =>
+  import("@/components/ProfileMilestoneBadges").then((m) => ({ default: m.ProfileMilestoneBadges }))
+);
+const ProfileShowcaseDisplay = lazy(() =>
+  import("@/components/ProfileShowcaseDisplay").then((m) => ({ default: m.ProfileShowcaseDisplay }))
+);
 
 export default function PublicProfile() {
   const { userId } = useParams<{ userId: string }>();
@@ -33,139 +41,155 @@ export default function PublicProfile() {
     rareAchievements: 0,
     totalXP: 0,
   });
+  const [copied, setCopied] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const mountedRef = useRef(true);
 
   useEffect(() => {
-    loadProfile();
-    getCurrentUser();
-  }, [userId]);
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
-  const getCurrentUser = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    setCurrentUserId(user?.id || null);
-  };
-
-  const loadProfile = async () => {
+  useEffect(() => {
     if (!userId) {
       navigate("/dashboard");
       return;
     }
 
-    try {
-      setLoading(true);
+    let cancelled = false;
 
-      // Get current user to check relationship
-      const { data: { user } } = await supabase.auth.getUser();
+    const loadProfile = async () => {
+      try {
+        setLoading(true);
 
-      // Fetch profile — owner gets all columns, others only safe public fields.
-      const { PUBLIC_PROFILE_FIELDS } = await import("@/lib/profile-fields");
-      const isOwner = user?.id === userId;
-      const { data: profileData, error: profileError } = await (supabase
-        .from("profiles") as any)
-        .select(isOwner ? "*" : PUBLIC_PROFILE_FIELDS)
-        .eq("id", userId)
-        .single();
+        // Single session read covers auth check + ownership + currentUserId.
+        const { data: { session } } = await supabase.auth.getSession();
+        const viewerId = session?.user?.id ?? null;
+        if (cancelled) return;
+        setCurrentUserId(viewerId);
 
-      if (profileError) throw profileError;
-
-      // Check visibility permissions
-      const visibility = profileData.profile_visibility || "public";
-      
-      if (visibility === "private" && user?.id !== userId) {
-        toast({
-          title: "Private Profile",
-          description: "This profile is private and cannot be viewed.",
-          variant: "destructive",
-        });
-        navigate("/dashboard");
-        return;
-      }
-
-      if (visibility === "friends_only" && user?.id !== userId) {
-        // Check if they are friends
-        const { data: friendData } = await supabase
-          .from("friend_connections")
-          .select("*")
-          .or(`and(user_id.eq.${user?.id},friend_id.eq.${userId}),and(user_id.eq.${userId},friend_id.eq.${user?.id})`)
-          .eq("status", "accepted")
+        // Fetch profile — owner gets all columns, others only safe public fields.
+        const isOwner = viewerId === userId;
+        const { data: profileData, error: profileError } = await (supabase
+          .from("profiles") as any)
+          .select(isOwner ? "*" : PUBLIC_PROFILE_FIELDS)
+          .eq("id", userId)
           .single();
 
-        if (!friendData) {
+        if (cancelled) return;
+        if (profileError) throw profileError;
+
+        // Check visibility permissions
+        const visibility = profileData.profile_visibility || "public";
+
+        if (visibility === "private" && viewerId !== userId) {
           toast({
-            title: "Friends Only",
-            description: "This profile is only visible to friends.",
+            title: "Private Profile",
+            description: "This profile is private and cannot be viewed.",
             variant: "destructive",
           });
           navigate("/dashboard");
           return;
         }
-      }
 
-      setProfile(profileData);
+        if (visibility === "friends_only" && viewerId !== userId) {
+          const { data: friendData } = await supabase
+            .from("friend_connections")
+            .select("id")
+            .or(`and(user_id.eq.${viewerId},friend_id.eq.${userId}),and(user_id.eq.${userId},friend_id.eq.${viewerId})`)
+            .eq("status", "accepted")
+            .single();
 
-      // Track profile view (only if not viewing own profile)
-      if (user?.id !== userId) {
-        try {
-          // Detect viewer's geo data
-          const geoResponse = await fetch("https://ipapi.co/json/");
-          const geoData = await geoResponse.json();
-
-          await supabase.from("profile_views").insert({
-            profile_id: userId,
-            viewer_id: user?.id || null,
-            viewer_country: geoData.country_name || null,
-            viewer_continent: geoData.continent_code || null,
-            viewer_city: geoData.city || null,
-            referrer: document.referrer || null,
-            user_agent: navigator.userAgent,
-          });
-        } catch (viewError) {
-          console.error("Error tracking view:", viewError);
-          // Don't fail the page load if tracking fails
+          if (!friendData) {
+            toast({
+              title: "Friends Only",
+              description: "This profile is only visible to friends.",
+              variant: "destructive",
+            });
+            navigate("/dashboard");
+            return;
+          }
         }
+
+        if (cancelled) return;
+        setProfile(profileData);
+
+        // Track profile view in the background — never block first paint on
+        // the external ipapi.co call or the insert.
+        if (viewerId !== userId) {
+          void (async () => {
+            try {
+              const geoResponse = await fetch("https://ipapi.co/json/");
+              const geoData = await geoResponse.json();
+              await supabase.from("profile_views").insert({
+                profile_id: userId,
+                viewer_id: viewerId,
+                viewer_country: geoData.country_name || null,
+                viewer_continent: geoData.continent_code || null,
+                viewer_city: geoData.city || null,
+                referrer: document.referrer || null,
+                user_agent: navigator.userAgent,
+              });
+            } catch (viewError) {
+              console.error("Error tracking view:", viewError);
+              // Don't fail the page load if tracking fails
+            }
+          })();
+        }
+
+        // Load achievements (non-blocking for the profile itself)
+        const { data: achievementsData } = await supabase
+          .from("user_achievements")
+          .select(`
+            achievement_id,
+            achievements (
+              id,
+              name,
+              icon,
+              rarity,
+              description
+            )
+          `)
+          .eq("user_id", userId)
+          .limit(12);
+
+        if (cancelled) return;
+        const userAchievements = achievementsData?.map((ua: any) => ua.achievements).filter(Boolean) || [];
+        setAchievements(userAchievements);
+
+        // Calculate stats
+        const totalXP = profileData.xp_points || 0;
+        const totalAchievements = achievementsData?.length || 0;
+        const rareAchievements = userAchievements.filter(
+          (a: any) => a.rarity === "rare" || a.rarity === "epic" || a.rarity === "legendary"
+        ).length;
+
+        setStats({
+          totalAchievements,
+          rareAchievements,
+          totalXP,
+        });
+      } catch (error: any) {
+        if (cancelled) return;
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+        navigate("/dashboard");
+      } finally {
+        if (!cancelled) setLoading(false);
       }
+    };
 
-      // Load achievements
-      const { data: achievementsData } = await supabase
-        .from("user_achievements")
-        .select(`
-          achievement_id,
-          achievements (
-            id,
-            name,
-            icon,
-            rarity,
-            description
-          )
-        `)
-        .eq("user_id", userId)
-        .limit(12);
+    void loadProfile();
 
-      const userAchievements = achievementsData?.map((ua: any) => ua.achievements).filter(Boolean) || [];
-      setAchievements(userAchievements);
-
-      // Calculate stats
-      const totalXP = profileData.xp_points || 0;
-      const totalAchievements = achievementsData?.length || 0;
-      const rareAchievements = userAchievements.filter(
-        (a: any) => a.rarity === "rare" || a.rarity === "epic" || a.rarity === "legendary"
-      ).length;
-
-      setStats({
-        totalAchievements,
-        rareAchievements,
-        totalXP,
-      });
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-      navigate("/dashboard");
-    } finally {
-      setLoading(false);
-    }
-  };
+    return () => {
+      cancelled = true;
+    };
+  }, [userId, navigate, toast]);
 
   const getRankColor = (tier: string) => {
     if (!tier) return "from-violet-500 to-purple-500";
@@ -198,8 +222,6 @@ export default function PublicProfile() {
   }
 
   const isOwnProfile = currentUserId === userId;
-  const [copied, setCopied] = useState(false);
-  const [showShareModal, setShowShareModal] = useState(false);
   const profileUrl = `${window.location.origin}/profile/${userId}`;
 
   const handleCopyLink = async () => {
@@ -406,7 +428,9 @@ export default function PublicProfile() {
 
                 {/* Profile Milestone Badges */}
                 <div className="flex justify-center">
-                  <ProfileMilestoneBadges profile={profile} size="sm" />
+                  <Suspense fallback={null}>
+                    <ProfileMilestoneBadges profile={profile} size="sm" />
+                  </Suspense>
                 </div>
 
                 {/* Visibility Badge */}
@@ -569,7 +593,9 @@ export default function PublicProfile() {
             </Card>
 
             {/* Pinned Achievement Showcase */}
-            <ProfileShowcaseDisplay profile={profile} />
+            <Suspense fallback={null}>
+              <ProfileShowcaseDisplay profile={profile} />
+            </Suspense>
           </motion.div>
         </div>
       </div>
