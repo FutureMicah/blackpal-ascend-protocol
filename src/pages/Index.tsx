@@ -2,10 +2,18 @@ import { useState, useEffect, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrivalAnimation } from "@/components/ArrivalAnimation";
 import { GlassPortal } from "@/components/GlassPortal";
-const ProfileSetupEnhanced = lazy(() => import("@/components/ProfileSetupEnhanced").then(m => ({ default: m.ProfileSetupEnhanced })));
-const WelcomeScene = lazy(() => import("@/components/WelcomeScene").then(m => ({ default: m.WelcomeScene })));
-const PaymentTierCard = lazy(() => import("@/components/PaymentTierCard").then(m => ({ default: m.PaymentTierCard })));
-const PaymentGateway = lazy(() => import("@/pages/PaymentGateway").then(m => ({ default: m.PaymentGateway })));
+const ProfileSetupEnhanced = lazy(() =>
+  import("@/components/ProfileSetupEnhanced").then((m) => ({ default: m.ProfileSetupEnhanced }))
+);
+const WelcomeScene = lazy(() =>
+  import("@/components/WelcomeScene").then((m) => ({ default: m.WelcomeScene }))
+);
+const PaymentTierCard = lazy(() =>
+  import("@/components/PaymentTierCard").then((m) => ({ default: m.PaymentTierCard }))
+);
+const PaymentGateway = lazy(() =>
+  import("@/pages/PaymentGateway").then((m) => ({ default: m.PaymentGateway }))
+);
 import { ParticleField } from "@/components/ParticleField";
 import { CursorTrail } from "@/components/CursorTrail";
 import { supabase } from "@/integrations/supabase/client";
@@ -31,10 +39,46 @@ const Index = () => {
   const [paymentComplete, setPaymentComplete] = useState(false);
   const [arrivalComplete, setArrivalComplete] = useState(false);
   const [existingProfile, setExistingProfile] = useState<Partial<Profile> | null>(null);
+  const [bootstrapping, setBootstrapping] = useState(true);
 
-  // Auth state listener - only starts after arrival animation
+  // Returning paid users: skip arrival + welcome entirely
   useEffect(() => {
-    if (!arrivalComplete) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        if (cancelled) return;
+        if (session?.user) {
+          const { data } = await supabase
+            .from("profiles")
+            .select("payment_completed, display_name, country")
+            .eq("id", session.user.id)
+            .maybeSingle();
+          if (cancelled) return;
+          if (data?.payment_completed) {
+            try {
+              localStorage.setItem(`blackpal-welcome-seen:${session.user.id}`, "1");
+              localStorage.setItem(`blackpal-profile-100:${session.user.id}`, "1");
+            } catch {}
+            navigate("/dashboard", { replace: true });
+            return;
+          }
+        }
+      } catch {
+        /* fall through to normal flow */
+      } finally {
+        if (!cancelled) setBootstrapping(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [navigate]);
+
+  useEffect(() => {
+    if (!arrivalComplete || bootstrapping) return;
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
@@ -43,7 +87,9 @@ const Index = () => {
       }
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
       if (session?.user) {
         checkProfile(session.user.id);
@@ -51,33 +97,29 @@ const Index = () => {
     });
 
     return () => subscription.unsubscribe();
-  }, [arrivalComplete]);
+  }, [arrivalComplete, bootstrapping]);
 
   const checkProfile = async (userId: string) => {
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", userId)
-      .maybeSingle();
+    const { data, error } = await supabase.from("profiles").select("*").eq("id", userId).maybeSingle();
 
     if (!error && data) {
       setHasProfile(true);
       setExistingProfile(data);
-      setPaymentComplete(data.payment_completed || false);
+      setPaymentComplete(!!data.payment_completed);
+
+      // Paid users never see welcome/confetti again
+      if (data.payment_completed) {
+        try {
+          localStorage.setItem(`blackpal-welcome-seen:${userId}`, "1");
+          localStorage.setItem(`blackpal-profile-100:${userId}`, "1");
+        } catch {}
+        navigate("/dashboard", { replace: true });
+        return;
+      }
 
       const completionStatus = checkProfileCompletion(data);
 
-      // Returning users who already finished onboarding: no welcome/confetti every login
-      if (completionStatus.isComplete && data.payment_completed) {
-        const welcomeKey = `blackpal-welcome-seen:${userId}`;
-        const alreadySeen =
-          typeof localStorage !== "undefined" && localStorage.getItem(welcomeKey) === "1";
-        if (alreadySeen) {
-          navigate("/dashboard");
-        } else {
-          setStage("welcome");
-        }
-      } else if (completionStatus.readyForPayment) {
+      if (completionStatus.readyForPayment) {
         const storedGeo: GeoData = {
           country: data.country || "",
           continent: data.continent || "",
@@ -116,8 +158,13 @@ const Index = () => {
   const handlePaymentMethodSelect = (method: string) => {
     console.log("Selected payment method:", method);
     setPaymentComplete(true);
+    // First-time only after payment
     setStage("welcome");
   };
+
+  if (bootstrapping) {
+    return <div className="min-h-screen bg-background" />;
+  }
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-background">
@@ -166,8 +213,9 @@ const Index = () => {
             onEnter={() => {
               try {
                 localStorage.setItem(`blackpal-welcome-seen:${user.id}`, "1");
+                localStorage.setItem(`blackpal-profile-100:${user.id}`, "1");
               } catch {}
-              navigate("/dashboard");
+              navigate("/dashboard", { replace: true });
             }}
           />
         )}
