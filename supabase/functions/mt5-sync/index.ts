@@ -149,6 +149,21 @@ async function syncOne(admin: ReturnType<typeof createClient>, acct: Account, si
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
+  // Privileged sync: require the shared cron secret (header or query) so any
+  // authenticated user cannot trigger MT5 polling / apply_mt5_snapshot.
+  const cronSecret = Deno.env.get("CRON_SECRET");
+  const provided = req.headers.get("x-cron-secret") || new URL(req.url).searchParams.get("cron_secret");
+  if (cronSecret && provided !== cronSecret) {
+    return new Response(JSON.stringify({ ok: false, error: "Unauthorized" }), {
+      status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+  if (!cronSecret) {
+    return new Response(JSON.stringify({ ok: false, error: "CRON_SECRET not configured" }), {
+      status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
   if (!MT5_API_KEY) {
     return new Response(JSON.stringify({ ok: false, error: "MT5_API_KEY not configured" }), {
       status: 503,

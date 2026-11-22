@@ -140,31 +140,16 @@ export const PaymentGateway = ({ geoData, userId, onMethodSelect, onBack }: Paym
     window.location.href = data.authorization_url;
   };
 
+  // Payment completion is no longer asserted by the client. The profile and
+  // payment status are updated server-side after Paystack verification or
+  // admin review of a bank-transfer receipt. This handler only closes the
+  // method-selection flow and shows the pending-review state.
   const markPaymentComplete = async () => {
     if (!userId) return;
-
-    // Update profile payment status
-    const { error } = await supabase
-      .from('profiles')
-      .update({ payment_completed: true })
-      .eq('id', userId);
-
-    if (error) {
-      console.error('Failed to update payment status:', error);
-      toast({ title: "Error", description: "Payment recorded but profile update failed.", variant: "destructive" });
-      return;
-    }
-
-    // Update payment record
-    await supabase
-      .from('payments')
-      .update({ 
-        payment_status: 'completed' as any,
-        completed_at: new Date().toISOString(),
-      })
-      .eq('user_id', userId)
-      .eq('payment_status', 'pending' as any);
-
+    toast({
+      title: "Payment submitted for review",
+      description: "Your payment is pending verification. Access is granted after confirmation.",
+    });
     onMethodSelect(selectedMethod!);
   };
 

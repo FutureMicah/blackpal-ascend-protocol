@@ -5,15 +5,32 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+
+async function requireUser(req: Request): Promise<boolean> {
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) return false;
+  try {
+    const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2");
+    const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: { user } } = await supabase.auth.getUser();
+    return !!user;
+  } catch { return false; }
+}
+function validHttpsUrl(u: string): boolean {
+  try { const x = new URL(u); return x.protocol === "https:"; } catch { return false; }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    if (!(await requireUser(req))) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     const { imageUrl } = await req.json();
-    
-    if (!imageUrl) {
+    if (!imageUrl || !validHttpsUrl(imageUrl)) {
       return new Response(
         JSON.stringify({ error: "Image URL is required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }

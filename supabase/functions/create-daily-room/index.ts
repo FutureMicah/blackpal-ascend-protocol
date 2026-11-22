@@ -29,7 +29,25 @@ Deno.serve(async (req) => {
     if (!rawRoom || !/^[a-zA-Z0-9_-]{3,60}$/.test(rawRoom)) {
       return json({ error: 'Invalid room_name' }, 400)
     }
-    const isHost = !!body.is_host
+    // Host claim is derived server-side; client is_host is ignored.
+    // A caller is host only if they created the matching class_live_sessions
+    // row (room_name format "blackpal-<session_id>") or are an admin.
+    let isHost = false;
+    {
+      const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+      const userId = claims.claims.sub as string;
+      const { data: role } = await admin.rpc('has_role', { user_id: userId, role: 'admin' });
+      const { data: superRole } = await admin.rpc('has_role', { user_id: userId, role: 'super_admin' });
+      isHost = !!(role || superRole);
+      if (!isHost) {
+        const m = rawRoom.match(/^blackpal-([0-9a-fA-F-]{36})$/);
+        if (m) {
+          const { data: row } = await admin.from('class_live_sessions')
+            .select('created_by').eq('id', m[1]).single();
+          isHost = row?.created_by === userId;
+        }
+      }
+    }
     const userName = String(body.user_name || 'Trader').slice(0, 60)
 
     // Ensure room exists (idempotent) and capture its real URL

@@ -15,6 +15,94 @@ function generateChallenge(): string {
 // In-memory challenge store (short-lived, per-invocation validated via timing)
 const challenges = new Map<string, { challenge: string; timestamp: number }>();
 
+const CHALLENGE_TTL_MS = 5 * 60 * 1000;
+
+function b64urlDecode(input: string): Uint8Array {
+  const b64 = input.replace(/-/g, "+").replace(/_/g, "/");
+  const pad = b64.length % 4;
+  const padded = pad ? b64 + "=".repeat(4 - pad) : b64;
+  const bin = atob(padded);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+function b64urlEncode(bytes: Uint8Array): string {
+  let bin = "";
+  for (const b of bytes) bin += String.fromCharCode(b);
+  return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
+}
+function consumeChallenge(key: string): string | null {
+  const entry = challenges.get(key);
+  if (!entry) return null;
+  challenges.delete(key);
+  if (Date.now() - entry.timestamp > CHALLENGE_TTL_MS) return null;
+  return entry.challenge;
+}
+function derToRawEcdsa(sig: Uint8Array, size: number): Uint8Array {
+  let offset = 0;
+  if (sig[offset++] !== 0x30) throw new Error("invalid DER signature");
+  const lenByte = sig[offset++];
+  if (lenByte & 0x80) offset += (lenByte & 0x7f);
+  if (sig[offset++] !== 0x02) throw new Error("invalid DER signature");
+  const rLen = sig[offset++];
+  const r = sig.slice(offset, offset + rLen); offset += rLen;
+  if (sig[offset++] !== 0x02) throw new Error("invalid DER signature");
+  const sLen = sig[offset++];
+  const sBytes = sig.slice(offset, offset + sLen);
+  const pad = (v: Uint8Array) => {
+    const stripped = v.length > size && v[0] === 0 ? v.slice(1) : v;
+    const out = new Uint8Array(size);
+    out.set(stripped.slice(Math.max(0, stripped.length - size)), size - Math.min(size, stripped.length));
+    return out;
+  };
+  const raw = new Uint8Array(size * 2);
+  raw.set(pad(r), 0); raw.set(pad(sBytes), size);
+  return raw;
+}
+async function verifyAssertion(cred: any, challenge: string, expectedOrigin: string, expectedRpId: string, authDataB64: string, sigB64: string, clientDataB64: string): Promise<number> {
+  const authData = b64urlDecode(authDataB64);
+  const signature = b64urlDecode(sigB64);
+  const clientDataJSON = b64urlDecode(clientDataB64);
+  if (authData.length < 37) throw new Error("authenticatorData too short");
+  const flags = authData[32];
+  if (!(flags & 0x01)) throw new Error("user presence not verified");
+  if (!(flags & 0x04)) throw new Error("user verification not verified");
+  const rpHash = new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(expectedRpId)));
+  if (!rpHash.every((b, i) => b === authData[i])) throw new Error("rpIdHash mismatch");
+  const signCount = new DataView(authData.buffer, authData.byteOffset, authData.byteLength).getUint32(33);
+  if (signCount !== 0 && signCount <= (cred.counter ?? 0)) throw new Error("signature counter did not increase");
+  const clientData = JSON.parse(new TextDecoder().decode(clientDataJSON));
+  if (clientData.type !== "webauthn.get") throw new Error("unexpected clientData type");
+  if (clientData.challenge !== challenge) throw new Error("challenge mismatch");
+  if (clientData.origin !== expectedOrigin) throw new Error("origin mismatch");
+  if (clientData.crossOrigin) throw new Error("cross-origin assertion rejected");
+  const signed = new Uint8Array(authData.length + clientDataJSON.length);
+  signed.set(authData, 0); signed.set(clientDataJSON, authData.length);
+  const pubBytes = b64urlDecode(cred.public_key);
+  const tryVerify = async (key: CryptoKey, alg: string, sig: Uint8Array) => {
+    const params = alg === "ECDSA" ? { name: "ECDSA", hash: "SHA-256" } : { name: "RSASSA-PKCS1-v1_5" };
+    return crypto.subtle.verify(params, key, sig, signed);
+  };
+  if (pubBytes.length === 65) {
+    const withPrefix = pubBytes[0] === 0x04 ? pubBytes : (() => { const a = new Uint8Array(65); a[0] = 0x04; a.set(pubBytes, 1); return a; })();
+    const ecKey = await crypto.subtle.importKey("raw", withPrefix, { name: "ECDSA", namedCurve: "P-256" }, false, ["verify"]);
+    if (await tryVerify(ecKey, "ECDSA", derToRawEcdsa(signature, 32))) return signCount;
+  } else {
+    let key: CryptoKey;
+    try { key = await crypto.subtle.importKey("spki", pubBytes, { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" }, false, ["verify"]); }
+    catch { key = await crypto.subtle.importKey("jwk", { kty: "RSA", n: b64urlEncode(pubBytes), e: "AQAB" }, { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" }, false, ["verify"]); }
+    if (await tryVerify(key, "RSASSA-PKCS1-v1_5", signature)) return signCount;
+  }
+  throw new Error("signature verification failed");
+}
+function rpIdForOrigin(req: Request, fallbackUrl: string): { origin: string; rpId: string } {
+  const rawOrigin = req.headers.get("origin");
+  if (rawOrigin) { try { const u = new URL(rawOrigin); return { origin: u.origin, rpId: u.hostname }; } catch { } }
+  const u = new URL(fallbackUrl);
+  return { origin: u.origin, rpId: u.hostname };
+}
+
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -59,7 +147,8 @@ serve(async (req) => {
 
       const options = {
         challenge,
-        rp: { name: 'BlackPal', id: new URL(req.headers.get('origin') || supabaseUrl).hostname },
+        rp: { name: 'BlackPal', id: rpIdForOrigin(req, supabaseUrl).rpId },
+        sessionId: user.id,
         user: {
           id: btoa(user.id),
           name: user.email || user.id,
@@ -104,7 +193,19 @@ serve(async (req) => {
         });
       }
 
-      const { credentialId, publicKey, deviceName, transports } = body;
+      const { credentialId, publicKey, deviceName, transports, attestation, sessionId } = body;
+      if (sessionId && sessionId !== user.id) {
+        return new Response(JSON.stringify({ error: 'session mismatch' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+      if (!consumeChallenge(user.id)) {
+        return new Response(JSON.stringify({ error: 'challenge expired or already used; request new options' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+      // NOTE: strict attestation (CBOR + attestation signature) verification is not
+      // implemented here; accepting an attestation payload we cannot validate would
+      // fail open, so enrollment is rejected until that check exists.
+      if (attestation) {
+        return new Response(JSON.stringify({ error: 'attestation verification not configured on server; enrollment disabled until verified' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
 
       const adminClient = createClient(supabaseUrl, supabaseServiceKey);
       const { error: insertError } = await adminClient
@@ -161,7 +262,7 @@ serve(async (req) => {
       const options = {
         challenge,
         sessionId,
-        rpId: new URL(req.headers.get('origin') || supabaseUrl).hostname,
+        rpId: rpIdForOrigin(req, supabaseUrl).rpId,
         timeout: 60000,
         userVerification: 'required',
         allowCredentials,
@@ -173,7 +274,14 @@ serve(async (req) => {
     }
 
     if (action === 'auth-verify') {
-      const { credentialId, authenticatorData, signature, clientDataJSON } = body;
+      const { credentialId, authenticatorData, signature, clientDataJSON, sessionId } = body;
+      if (!sessionId || !credentialId || !authenticatorData || !signature || !clientDataJSON) {
+        return new Response(JSON.stringify({ error: 'missing assertion fields' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+      const challenge = consumeChallenge(sessionId);
+      if (!challenge) {
+        return new Response(JSON.stringify({ error: 'challenge expired or already used' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
 
       const adminClient = createClient(supabaseUrl, supabaseServiceKey);
       
@@ -190,13 +298,16 @@ serve(async (req) => {
         });
       }
 
-      // Update last used and counter
+      const { origin: expectedOrigin, rpId: expectedRpId } = rpIdForOrigin(req, supabaseUrl);
+      let newCounter: number;
+      try {
+        newCounter = await verifyAssertion(cred, challenge, expectedOrigin, expectedRpId, authenticatorData, signature, clientDataJSON);
+      } catch (e) {
+        return new Response(JSON.stringify({ error: `verification failed: ${(e as Error)?.message || e}` }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
       await adminClient
         .from('webauthn_credentials')
-        .update({ 
-          last_used_at: new Date().toISOString(),
-          counter: cred.counter + 1
-        })
+        .update({ last_used_at: new Date().toISOString(), counter: newCounter })
         .eq('id', cred.id);
 
       // Get user email to generate a sign-in link

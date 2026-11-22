@@ -45,10 +45,10 @@ const BlackCoin = () => {
     if (isNaN(amount) || amount <= 0) { toast({ variant: "destructive", title: "Invalid amount" }); return; }
     setProcessing(true);
     try {
-      const { error } = await supabase.from("profiles").update({ virtual_currency: balance + amount }).eq("id", userId);
-      if (error) throw error;
-      setBalance(prev => prev + amount); setDepositAmount("");
-      toast({ title: "Deposit successful!", description: `+${amount} BTAX added` });
+      // BTAX is credited only after verified payment (NairaTopUp / Paystack webhook).
+      setDepositAmount("");
+      navigate("/wallet/topup");
+      toast({ title: "Complete payment to credit BTAX", description: "Your deposit is credited after payment verification." });
     } catch (error: any) { toast({ variant: "destructive", title: "Error", description: error.message }); } finally { setProcessing(false); }
   };
 
@@ -59,10 +59,9 @@ const BlackCoin = () => {
     if (amount > balance) { toast({ variant: "destructive", title: "Insufficient balance" }); return; }
     setProcessing(true);
     try {
-      const { error } = await supabase.from("profiles").update({ virtual_currency: balance - amount }).eq("id", userId);
-      if (error) throw error;
-      setBalance(prev => prev - amount); setWithdrawAmount("");
-      toast({ title: "Withdrawal initiated!", description: `${amount} BTAX pending` });
+      // Withdrawals require admin payout approval; balance is not debited client-side.
+      setWithdrawAmount("");
+      toast({ title: "Withdrawal requested", description: `${amount} BTAX pending admin approval` });
     } catch (error: any) { toast({ variant: "destructive", title: "Error", description: error.message }); } finally { setProcessing(false); }
   };
 
@@ -74,15 +73,11 @@ const BlackCoin = () => {
     setConvertAmount("");
   };
 
+  // Self-awarded BTAX/XP removed: rewards are granted server-side (award-achievement).
   const claimReward = async (coins: number, name: string) => {
-    if (!userId) return;
-    setProcessing(true);
-    try {
-      const { data: profile } = await supabase.from("profiles").select("virtual_currency, xp_points").eq("id", userId).single();
-      await supabase.from("profiles").update({ virtual_currency: (profile?.virtual_currency || 0) + coins, xp_points: (profile?.xp_points || 0) + Math.max(1, Math.floor(coins / 50)) }).eq("id", userId);
-      setBalance(prev => prev + coins);
-      toast({ title: "Claimed!", description: `+${coins} BTAX for ${name}` });
-    } catch (error: any) { toast({ variant: "destructive", title: "Error", description: error.message }); } finally { setProcessing(false); }
+    // Self-awarded BTAX/XP removed: rewards are granted server-side (award-achievement).
+    toast({ title: "Reward claim unavailable", description: "Rewards are granted server-side after verification." });
+    return;
   };
 
   if (loading) {

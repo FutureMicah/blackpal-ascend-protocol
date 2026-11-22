@@ -119,6 +119,8 @@ export const BiometricAuth = ({
           publicKey: bufferToBase64url(response.getPublicKey()!),
           deviceName: navigator.platform || 'Device',
           transports: response.getTransports?.() || [],
+          attestation: response.attestation,
+          sessionId: optionsData.sessionId,
         },
       });
 
@@ -175,6 +177,7 @@ export const BiometricAuth = ({
           authenticatorData: bufferToBase64url(response.authenticatorData),
           signature: bufferToBase64url(response.signature),
           clientDataJSON: bufferToBase64url(response.clientDataJSON),
+          sessionId: optionsData.sessionId,
         },
       });
 

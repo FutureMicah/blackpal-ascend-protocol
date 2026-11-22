@@ -6,13 +6,32 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+
+function esc(v: string): string {
+  return String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+async function requireUser(req: Request): Promise<string | null> {
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader?.startsWith('Bearer ')) return null;
+  try {
+    const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, { global: { headers: { Authorization: authHeader } } });
+    const { data: { user } } = await supabase.auth.getUser();
+    return user?.id ?? null;
+  } catch { return null; }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { type, to_user_id, from_user_id, data } = await req.json();
+    const callerId = await requireUser(req);
+    if (!callerId) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    const { type, to_user_id, data } = await req.json();
+    // Sender is always the authenticated caller; any client-supplied from_user_id is ignored.
+    const from_user_id = callerId;
+
     
     console.log('Notification request:', { type, to_user_id, from_user_id, data });
 
@@ -45,16 +64,16 @@ serve(async (req) => {
 
     switch (type) {
       case 'friend_request':
-        subject = `${fromProfile?.display_name || 'Someone'} sent you a friend request on BlackPal`;
-        html = `<div style="font-family: sans-serif; padding: 20px; background: #0a0a0a; color: #fff;"><h2 style="color: #d4af37;">New Friend Request!</h2><p>${fromProfile?.display_name || 'A user'} wants to connect with you.</p></div>`;
+        subject = `${esc(fromProfile?.display_name || 'Someone')} sent you a friend request on BlackPal`;
+        html = `<div style="font-family: sans-serif; padding: 20px; background: #0a0a0a; color: #fff;"><h2 style="color: #d4af37;">New Friend Request!</h2><p>${esc(fromProfile?.display_name || 'A user')} wants to connect with you.</p></div>`;
         break;
       case 'achievement_unlocked':
-        subject = `🏆 Achievement Unlocked: ${data?.achievement_name || 'New Achievement'}`;
-        html = `<div style="font-family: sans-serif; padding: 20px; background: #0a0a0a; color: #fff;"><h2 style="color: #d4af37;">Achievement Unlocked!</h2><p>${data?.achievement_name || 'New Achievement'}</p></div>`;
+        subject = `🏆 Achievement Unlocked: ${esc(data?.achievement_name || 'New Achievement')}`;
+        html = `<div style="font-family: sans-serif; padding: 20px; background: #0a0a0a; color: #fff;"><h2 style="color: #d4af37;">Achievement Unlocked!</h2><p>${esc(data?.achievement_name || 'New Achievement')}</p></div>`;
         break;
       case 'new_message':
-        subject = `💬 New message from ${fromProfile?.display_name || 'Someone'}`;
-        html = `<div style="font-family: sans-serif; padding: 20px; background: #0a0a0a; color: #fff;"><h2 style="color: #d4af37;">New Message!</h2><p>${fromProfile?.display_name || 'A user'} sent you a message.</p></div>`;
+        subject = `💬 New message from ${esc(fromProfile?.display_name || 'Someone')}`;
+        html = `<div style="font-family: sans-serif; padding: 20px; background: #0a0a0a; color: #fff;"><h2 style="color: #d4af37;">New Message!</h2><p>${esc(fromProfile?.display_name || 'A user')} sent you a message.</p></div>`;
         break;
       default:
         return new Response(JSON.stringify({ error: 'Unknown notification type' }), {
