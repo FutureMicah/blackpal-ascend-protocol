@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { usePrefersReducedMotion } from "@/hooks/use-reduced-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Trophy, Users, GitCompare, Fingerprint } from "lucide-react";
@@ -45,6 +46,8 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { checkAndAwardAchievements } = useAchievements();
+  const cancelledRef = useRef(true);
+  const reduceMotion = usePrefersReducedMotion();
   useRealtimeNotifications(user?.id ?? null);
 
   // Verify a returning Paystack checkout (?paystack=1&reference=...)
@@ -102,19 +105,7 @@ export default function Dashboard() {
   }, [profile]);
 
   useEffect(() => {
-    const initAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        navigate("/");
-        return;
-      }
-
-      setUser(session.user);
-      await loadProfile(session.user.id);
-    };
-
-    initAuth();
+    cancelledRef.current = false;
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!session) {
@@ -125,7 +116,21 @@ export default function Dashboard() {
       }
     });
 
-    return () => subscription.unsubscribe();
+    (async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (cancelledRef.current) return;
+      if (!session) {
+        navigate("/");
+        return;
+      }
+      setUser(session.user);
+      await loadProfile(session.user.id);
+    })();
+
+    return () => {
+      cancelledRef.current = true;
+      subscription.unsubscribe();
+    };
   }, [navigate]);
 
   const loadProfile = async (userId: string) => {
@@ -293,8 +298,8 @@ export default function Dashboard() {
           />
         )}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={reduceMotion ? false : { opacity: 0, y: 20 }}
+          animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-6"
         >
@@ -336,8 +341,8 @@ export default function Dashboard() {
             
             {/* Quick Access to Hub */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={reduceMotion ? false : { opacity: 0, y: 20 }}
+              animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
             >
               <Button
