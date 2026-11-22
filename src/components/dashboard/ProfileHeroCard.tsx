@@ -1,14 +1,12 @@
 import { motion } from "framer-motion";
-import { PremiumAvatar } from "@/components/PremiumAvatar";
-import { Badge } from "@/components/ui/badge";
-import { MapPin, Calendar, Share2, Copy, Check, LogOut, ExternalLink } from "lucide-react";
+import { MapPin, Calendar, Share2, Copy, Check, LogOut, ExternalLink, Maximize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import { PremiumBadges } from "@/components/PremiumBadges";
 import { ProfileEdit } from "@/components/ProfileEdit";
-import { useState, useEffect } from "react";
+import { NFTProfileCard } from "@/components/NFTProfileCard";
+import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { QRCodeSVG } from "qrcode.react";
 import { Input } from "@/components/ui/input";
@@ -22,8 +20,8 @@ interface ProfileHeroCardProps {
 export const ProfileHeroCard = ({ profile, user, onProfileUpdate }: ProfileHeroCardProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [featuredAchievements, setFeaturedAchievements] = useState<any[]>([]);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [showNftModal, setShowNftModal] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const profileUrl = `${window.location.origin}/profile/${user.id}`;
@@ -55,117 +53,55 @@ export const ProfileHeroCard = ({ profile, user, onProfileUpdate }: ProfileHeroC
     }
   };
 
-  useEffect(() => {
-    loadFeaturedAchievements();
-  }, [user.id]);
-
-  const loadFeaturedAchievements = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("user_achievements")
-        .select(
-          `
-          achievement_id,
-          achievements (
-            id,
-            name,
-            icon,
-            rarity
-          )
-        `
-        )
-        .eq("user_id", user.id)
-        .limit(5);
-
-      if (error) throw error;
-      const achievements = data?.map((ua: any) => ua.achievements).filter(Boolean) || [];
-      setFeaturedAchievements(achievements);
-    } catch (error) {
-      console.error("Error loading featured achievements:", error);
-    }
-  };
-
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     toast({ title: "Signed out", description: "You have been signed out successfully" });
     navigate("/");
   };
 
-  const getRankColor = (tier: string) => {
-    if (!tier) return "from-violet-500 to-purple-500";
-    if (tier === "NIGERIA") return "from-green-500 to-emerald-500";
-    if (tier === "AFRICA") return "from-orange-500 to-amber-500";
-    return "from-violet-500 to-purple-500";
-  };
-
   return (
     <motion.div
-      className="glass-card p-2.5 sm:p-4 space-y-2.5 sm:space-y-3"
+      className="space-y-2.5 sm:space-y-3"
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: 0.1 }}
     >
-      {/* Avatar */}
-      <div className="flex justify-center">
-        <PremiumAvatar src={profile.avatar_url || undefined} alt={profile.display_name} size={72} />
-      </div>
+      {/* Collectible NFT identity card — always visible */}
+      <button
+        type="button"
+        onClick={() => setShowNftModal(true)}
+        className="w-full text-left rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
+        title="Open full collectible card"
+      >
+        <NFTProfileCard userId={user.id} embedded compact />
+      </button>
 
-      {/* Name & handle — smaller but bold on mobile */}
-      <div className="text-center space-y-0.5 px-1">
-        <h1 className="text-sm sm:text-base font-extrabold tracking-tight text-foreground truncate leading-tight">
-          {profile.display_name}
-        </h1>
-        {profile.username && (
-          <p className="text-[10px] sm:text-[11px] font-semibold text-muted-foreground truncate">
-            @{profile.username}
-          </p>
-        )}
-      </div>
+      <p className="text-[9px] font-bold tracking-wide text-muted-foreground text-center px-1">
+        Your profile card \u00b7 display only \u00b7 tap to expand
+      </p>
 
-      {/* Rank badge */}
-      <div className="flex justify-center">
-        <Badge
-          className={`bg-gradient-to-r ${getRankColor(profile.payment_tier)} text-white border-0 px-2 py-0.5 text-[9px] sm:text-[10px] font-bold tracking-wide`}
-        >
-          {profile.citizenship_rank || "Visitor"} · L{profile.rank_level || 1}
-        </Badge>
-      </div>
-
-      {/* Bio */}
-      {profile.bio && (
-        <p className="text-[10px] sm:text-[11px] font-medium text-muted-foreground text-center line-clamp-2 px-1 leading-snug">
-          {profile.bio}
-        </p>
-      )}
-
-      {/* Achievements strip */}
-      {featuredAchievements.length > 0 && (
-        <div className="overflow-hidden">
-          <PremiumBadges achievements={featuredAchievements} />
-        </div>
-      )}
-
-      {/* Compact icon action bar — one row, no clutter */}
-      <div className="flex items-center justify-center gap-1.5 pt-0.5">
+      {/* Compact action bar */}
+      <div className="glass-card p-2 flex items-center justify-center gap-1.5">
         <ProfileEdit profile={profile} onUpdate={() => onProfileUpdate?.()}>
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-8 px-2.5 text-[10px] sm:text-xs font-bold gap-1"
-          >
+          <Button variant="outline" size="sm" className="h-8 px-2.5 text-[10px] sm:text-xs font-bold gap-1">
             Edit
           </Button>
         </ProfileEdit>
 
+        <Button
+          variant="outline"
+          size="icon"
+          className="h-8 w-8"
+          aria-label="Expand NFT card"
+          title="Full card"
+          onClick={() => setShowNftModal(true)}
+        >
+          <Maximize2 className="w-3.5 h-3.5" />
+        </Button>
+
         <Dialog open={showShareModal} onOpenChange={setShowShareModal}>
           <DialogTrigger asChild>
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-8 w-8"
-              aria-label="Share profile"
-              title="Share"
-            >
+            <Button variant="outline" size="icon" className="h-8 w-8" aria-label="Share profile" title="Share">
               <Share2 className="w-3.5 h-3.5" />
             </Button>
           </DialogTrigger>
@@ -220,8 +156,8 @@ export const ProfileHeroCard = ({ profile, user, onProfileUpdate }: ProfileHeroC
         </Button>
       </div>
 
-      {/* Meta — tight */}
-      <div className="space-y-1 text-[10px] sm:text-[11px] font-semibold px-0.5">
+      {/* Meta */}
+      <div className="glass-card p-2.5 space-y-1 text-[10px] sm:text-[11px] font-semibold">
         {profile.country && (
           <div className="flex items-center gap-1.5 text-muted-foreground">
             <MapPin className="w-3 h-3 shrink-0" />
@@ -234,33 +170,8 @@ export const ProfileHeroCard = ({ profile, user, onProfileUpdate }: ProfileHeroC
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-1 pt-2 border-t border-border">
-        <div className="text-center">
-          <div className="text-xs sm:text-sm font-extrabold text-foreground tabular-nums">
-            {Number(profile.xp_points || 0).toLocaleString()}
-          </div>
-          <div className="text-[8px] sm:text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
-            XP
-          </div>
-        </div>
-        <div className="text-center">
-          <div className="text-xs sm:text-sm font-extrabold text-foreground tabular-nums">
-            {profile.rank_level || 1}
-          </div>
-          <div className="text-[8px] sm:text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
-            Level
-          </div>
-        </div>
-        <div className="text-center">
-          <div className="text-xs sm:text-sm font-extrabold text-foreground tabular-nums">
-            {profile.streak_days || profile.achievement_streak || 0}
-          </div>
-          <div className="text-[8px] sm:text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
-            Streak
-          </div>
-        </div>
-      </div>
+      {/* Full NFT modal */}
+      {showNftModal && <NFTProfileCard userId={user.id} onClose={() => setShowNftModal(false)} />}
     </motion.div>
   );
 };
