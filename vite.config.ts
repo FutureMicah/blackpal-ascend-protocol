@@ -20,13 +20,17 @@ export default defineConfig(({ mode }) => ({
     cssCodeSplit: true,
     rollupOptions: {
       output: {
-        manualChunks: {
-          "vendor-react": ["react", "react-dom", "react-router-dom"],
-          "vendor-supabase": ["@supabase/supabase-js"],
-          "vendor-query": ["@tanstack/react-query"],
-          "vendor-motion": ["framer-motion"],
-          "vendor-charts": ["recharts"],
-          "vendor-three": ["three", "@react-three/fiber", "@react-three/drei"],
+        manualChunks(id) {
+          if (id.includes("commonjsHelpers")) return "vendor-react";
+          if (!id.includes("node_modules")) return undefined;
+          if (/[\\/]node_modules[\\/](react|react-dom|react-router|react-router-dom|scheduler)[\\/]/.test(id)) return "vendor-react";
+          if (/[\\/]node_modules[\\/]@supabase[\\/]/.test(id)) return "vendor-supabase";
+          if (/[\\/]node_modules[\\/]@tanstack[\\/]/.test(id)) return "vendor-query";
+          if (/[\\/]node_modules[\\/]framer-motion[\\/]/.test(id)) return "vendor-motion";
+          if (/[\\/]node_modules[\\/](three|@react-three)[\\/]/.test(id)) return "vendor-three";
+          if (/[\\/]node_modules[\\/](clsx|tailwind-merge|class-variance-authority)[\\/]/.test(id)) return "vendor-ui";
+          if (/[\\/]node_modules[\\/](recharts|recharts-scale|react-smooth|victory-vendor|d3-[^\\/]+|lodash)[\\/]/.test(id)) return "vendor-charts";
+          return undefined;
         },
       },
     },

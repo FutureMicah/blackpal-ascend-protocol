@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,17 +19,37 @@ import { NotificationCenter } from "@/components/NotificationCenter";
 import { StreakTracker } from "@/components/StreakTracker";
 import { useAchievements, AwardedAchievement } from "@/hooks/use-achievements";
 import { FriendActivityFeed } from "@/components/social/FriendActivityFeed";
-import { ProfileComparison } from "@/components/ProfileComparison";
 import { OnboardingTour } from "@/components/OnboardingTour";
 import { useRealtimeNotifications } from "@/hooks/use-realtime-notifications";
 import { SessionLockScreen } from "@/components/security/SessionLockScreen";
-import { SecurityPanel } from "@/components/security/SecurityPanel";
-import { SupportChat } from "@/components/SupportChat";
-import { CurrencyConverter } from "@/components/CurrencyConverter";
-import { PropAccountLadder } from "@/components/PropAccountLadder";
-import { QuestsPanel } from "@/components/xp/QuestsPanel";
-import { XpTimeline } from "@/components/xp/XpTimeline";
-import { QuestClaimHistory } from "@/components/xp/QuestClaimHistory";
+
+// Below-fold / on-demand panels: split out of the dashboard first-paint
+// chunk. Mounting order unchanged; Suspense fallback renders nothing so
+// no layout shift. Animations on the page itself are untouched.
+const SecurityPanel = lazy(() =>
+  import("@/components/security/SecurityPanel").then((m) => ({ default: m.SecurityPanel }))
+);
+const ProfileComparison = lazy(() =>
+  import("@/components/ProfileComparison").then((m) => ({ default: m.ProfileComparison }))
+);
+const SupportChat = lazy(() =>
+  import("@/components/SupportChat").then((m) => ({ default: m.SupportChat }))
+);
+const CurrencyConverter = lazy(() =>
+  import("@/components/CurrencyConverter").then((m) => ({ default: m.CurrencyConverter }))
+);
+const PropAccountLadder = lazy(() =>
+  import("@/components/PropAccountLadder").then((m) => ({ default: m.PropAccountLadder }))
+);
+const QuestsPanel = lazy(() =>
+  import("@/components/xp/QuestsPanel").then((m) => ({ default: m.QuestsPanel }))
+);
+const XpTimeline = lazy(() =>
+  import("@/components/xp/XpTimeline").then((m) => ({ default: m.XpTimeline }))
+);
+const QuestClaimHistory = lazy(() =>
+  import("@/components/xp/QuestClaimHistory").then((m) => ({ default: m.QuestClaimHistory }))
+);
 
 export default function Dashboard() {
   const [user, setUser] = useState<any>(null);
@@ -92,33 +112,34 @@ export default function Dashboard() {
 
         setProfile(data);
 
-        // Award checks only once per session — avoids extra re-renders / toasts
+        // Award checks only once per session — fired in parallel so the
+        // spinner does not wait on two serial edge-function round trips.
+        // They are fire-and-forget: failures never block profile display.
         if (!achievementsChecked.current) {
           achievementsChecked.current = true;
-          try {
-            const levelAchievements = await checkAndAwardAchievements({
-              user_id: userId,
-              event_type: "level_reach",
-              event_data: {
-                level: data.rank_level || 1,
-                xp_total: data.xp_points || 0,
-              },
-            });
-            if (levelAchievements.length > 0) {
-              setNotification(levelAchievements[0]);
-            } else {
-              const xpAchievements = await checkAndAwardAchievements({
-                user_id: userId,
-                event_type: "xp_total",
-                event_data: { xp_total: data.xp_points || 0 },
-              });
-              if (xpAchievements.length > 0) {
-                setNotification(xpAchievements[0]);
-              }
+          (async () => {
+            try {
+              const [levelAchievements, xpAchievements] = await Promise.all([
+                checkAndAwardAchievements({
+                  user_id: userId,
+                  event_type: "level_reach",
+                  event_data: {
+                    level: data.rank_level || 1,
+                    xp_total: data.xp_points || 0,
+                  },
+                }),
+                checkAndAwardAchievements({
+                  user_id: userId,
+                  event_type: "xp_total",
+                  event_data: { xp_total: data.xp_points || 0 },
+                }),
+              ]);
+              const awarded = levelAchievements.length > 0 ? levelAchievements[0] : xpAchievements[0];
+              if (awarded) setNotification(awarded);
+            } catch {
+              /* non-blocking */
             }
-          } catch {
-            /* non-blocking */
-          }
+          })();
         }
       } catch (error: any) {
         console.error("loadProfile", error);
@@ -139,6 +160,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     let cancelled = false;
+    let lastLoadedUserId: string | null = null;
 
     const init = async () => {
       const {
@@ -152,6 +174,7 @@ export default function Dashboard() {
         return;
       }
 
+      lastLoadedUserId = session.user.id;
       setUser(session.user);
       await loadProfile(session.user.id);
     };
@@ -167,6 +190,10 @@ export default function Dashboard() {
         return;
       }
       if (event === "SIGNED_IN") {
+        // Single-flight: getSession already loaded this user on mount;
+        // skip the duplicate profile fetch from the listener.
+        if (session.user.id === lastLoadedUserId) return;
+        lastLoadedUserId = session.user.id;
         setUser(session.user);
         loadProfile(session.user.id, { silent: true });
       }
@@ -252,12 +279,14 @@ export default function Dashboard() {
     <div className="min-h-screen bg-background rebrand-dashboard">
       <SessionLockScreen timeoutMinutes={5} />
 
-      <SecurityPanel
-        userId={user?.id}
-        userEmail={user?.email}
-        isOpen={showSecurityPanel}
-        onClose={() => setShowSecurityPanel(false)}
-      />
+      <Suspense fallback={null}>
+        <SecurityPanel
+          userId={user?.id}
+          userEmail={user?.email}
+          isOpen={showSecurityPanel}
+          onClose={() => setShowSecurityPanel(false)}
+        />
+      </Suspense>
 
       <OnboardingTour />
 
@@ -327,11 +356,13 @@ export default function Dashboard() {
         />
 
         {showComparison && profile && (
-          <ProfileComparison
-            currentProfile={profile}
-            currentStats={userStats}
-            onClose={() => setShowComparison(false)}
-          />
+          <Suspense fallback={null}>
+            <ProfileComparison
+              currentProfile={profile}
+              currentStats={userStats}
+              onClose={() => setShowComparison(false)}
+            />
+          </Suspense>
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-6 mt-3 sm:mt-4">
@@ -345,9 +376,11 @@ export default function Dashboard() {
 
           <div className="lg:col-span-6 space-y-3 sm:space-y-6 order-3 lg:order-2">
             <XPReactor profile={profile} />
-            <QuestsPanel userId={profile.id} />
-            <XpTimeline userId={profile.id} />
-            <QuestClaimHistory userId={profile.id} />
+            <Suspense fallback={null}>
+              <QuestsPanel userId={profile.id} />
+              <XpTimeline userId={profile.id} />
+              <QuestClaimHistory userId={profile.id} />
+            </Suspense>
             <ActivityFeed userId={profile.id} />
           </div>
 
@@ -357,12 +390,16 @@ export default function Dashboard() {
             <WalletSnapshot userId={profile.id} />
             <BtaxWalletOverview userId={profile.id} />
             <PaymentHistoryPanel userId={profile.id} />
-            <PropAccountLadder userId={profile.id} />
-            <CurrencyConverter compact />
+            <Suspense fallback={null}>
+              <PropAccountLadder userId={profile.id} />
+              <CurrencyConverter compact />
+            </Suspense>
 
             {user && (
               <div className="rounded-xl border border-border bg-card/50 p-3">
-                <SupportChat userId={user.id} />
+                <Suspense fallback={null}>
+                  <SupportChat userId={user.id} />
+                </Suspense>
               </div>
             )}
 
