@@ -55,7 +55,11 @@ export default function Dashboard() {
       if (!error && data?.verified) {
         toast({ title: "Payment confirmed", description: "Your account is activated." });
       } else {
-        toast({ title: "Payment not verified", description: data?.message || error?.message || "Try again", variant: "destructive" });
+        toast({
+          title: "Payment not verified",
+          description: data?.message || error?.message || "Try again",
+          variant: "destructive",
+        });
       }
       url.searchParams.delete("paystack");
       url.searchParams.delete("reference");
@@ -68,10 +72,12 @@ export default function Dashboard() {
     try {
       const { data: achievementsData } = await supabase
         .from("user_achievements")
-        .select(`
+        .select(
+          `
           achievement_id,
           achievements (id, rarity)
-        `)
+        `
+        )
         .eq("user_id", userId);
 
       const achievements = achievementsData?.map((ua: any) => ua.achievements).filter(Boolean) || [];
@@ -91,14 +97,14 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
-    if (profile) {
-      loadUserStats(profile.id);
-    }
+    if (profile) loadUserStats(profile.id);
   }, [profile]);
 
   useEffect(() => {
     const initAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
       if (!session) {
         navigate("/");
@@ -111,7 +117,9 @@ export default function Dashboard() {
 
     initAuth();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!session) {
         navigate("/");
       } else {
@@ -125,11 +133,7 @@ export default function Dashboard() {
 
   const loadProfile = async (userId: string) => {
     try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", userId)
-        .single();
+      const { data, error } = await supabase.from("profiles").select("*").eq("id", userId).single();
 
       if (error) throw error;
 
@@ -193,7 +197,7 @@ export default function Dashboard() {
   if (!profile) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <p className="text-muted-foreground">Profile not found</p>
+        <p className="text-sm font-semibold text-muted-foreground">Profile not found</p>
       </div>
     );
   }
@@ -211,43 +215,56 @@ export default function Dashboard() {
 
       <OnboardingTour />
 
-      <AchievementNotification
-        achievement={notification}
-        onClose={() => setNotification(null)}
-      />
+      <AchievementNotification achievement={notification} onClose={() => setNotification(null)} />
 
       <div className="frost-aurora" />
       <FloatingNav />
 
-      <div className="relative max-w-[1400px] mx-auto px-3 sm:px-6 lg:px-8 py-10 sm:py-16">
+      <div className="relative max-w-[1400px] mx-auto px-3 sm:px-6 lg:px-8 py-8 sm:py-16">
+        {/* Header — smaller bold type on mobile */}
         <div className="flex items-end justify-between gap-2 mb-3">
           <div className="min-w-0">
-            <p className="text-[9px] uppercase tracking-[0.22em] text-white/50">
+            <p className="text-[8px] sm:text-[9px] font-bold uppercase tracking-[0.22em] text-white/50">
               {new Date().toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" })}
             </p>
-            <h1 className="text-lg sm:text-2xl font-semibold tracking-tight text-white truncate">
+            <h1 className="text-base sm:text-2xl font-extrabold tracking-tight text-white truncate leading-tight">
               {profile?.display_name ? `Hello, ${profile.display_name.split(" ")[0]}` : "Welcome back"}
             </h1>
-            <p className="text-[11px] text-cyan-300/80">
+            <p className="text-[10px] sm:text-[11px] font-bold text-cyan-300/80">
               Level {profile.rank_level || 1} · {Number(profile.xp_points || 0).toLocaleString()} XP
             </p>
           </div>
-          <div className="flex items-center gap-1.5 shrink-0">
+          <div className="flex items-center gap-1 shrink-0">
             {user && <NotificationCenter userId={user.id} />}
-            <button onClick={() => setShowSecurityPanel(true)} className="frost-fab" aria-label="Security" title="Security">
-              <Fingerprint className="h-4 w-4" />
+            <button
+              onClick={() => setShowSecurityPanel(true)}
+              className="frost-fab"
+              aria-label="Security"
+              title="Security"
+            >
+              <Fingerprint className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </button>
-            <button onClick={() => setShowComparison(true)} className="frost-fab" aria-label="Compare" title="Compare">
-              <GitCompare className="h-4 w-4" />
+            <button
+              onClick={() => setShowComparison(true)}
+              className="frost-fab"
+              aria-label="Compare"
+              title="Compare"
+            >
+              <GitCompare className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </button>
-            <button onClick={() => navigate("/leaderboard")} className="frost-fab" aria-label="Leaderboard" title="Leaderboard">
-              <Trophy className="h-4 w-4" />
+            <button
+              onClick={() => navigate("/leaderboard")}
+              className="frost-fab"
+              aria-label="Leaderboard"
+              title="Leaderboard"
+            >
+              <Trophy className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </button>
           </div>
         </div>
 
         {user && (
-          <div className="mb-4">
+          <div className="mb-3 sm:mb-4">
             <KycStatusBanner userId={user.id} />
           </div>
         )}
@@ -266,14 +283,10 @@ export default function Dashboard() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-6"
+          className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-6 mt-3 sm:mt-4"
         >
           <div className="lg:col-span-3 order-1">
-            <ProfileHeroCard
-              profile={profile}
-              user={user}
-              onProfileUpdate={() => loadProfile(user.id)}
-            />
+            <ProfileHeroCard profile={profile} user={user} onProfileUpdate={() => loadProfile(user.id)} />
           </div>
 
           <div className="lg:col-span-6 space-y-3 sm:space-y-6 order-3 lg:order-2">
@@ -291,7 +304,7 @@ export default function Dashboard() {
                 setProfile((current: any) =>
                   current
                     ? { ...current, achievement_streak: streakDays, streak_days: streakDays }
-                    : current,
+                    : current
                 )
               }
             />
@@ -309,7 +322,7 @@ export default function Dashboard() {
             )}
 
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-              <Button onClick={() => navigate("/achievements/hub")} className="w-full h-8 text-xs" size="sm">
+              <Button onClick={() => navigate("/achievements/hub")} className="w-full h-8 text-[11px] font-bold" size="sm">
                 <Trophy className="mr-1.5 h-3.5 w-3.5" />
                 Achievement Hub
               </Button>
