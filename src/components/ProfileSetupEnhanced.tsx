@@ -1,40 +1,16 @@
 import { motion } from "framer-motion";
-import { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { GeoData, detectGeo, calculatePaymentTier } from "@/lib/geo";
+import { GeoData, detectGeo } from "@/lib/geo";
 import { profileSchema } from "@/lib/validations";
-import { Upload, CheckCircle2, XCircle, Camera, Eye, EyeOff, Download, RotateCcw, Share2, History, Palette, TrendingUp, Users, BarChart3, HelpCircle, Save, Loader2 as LoaderIcon, Diamond, AlertTriangle, Sparkles, Undo2 } from "lucide-react";
-import { NFTProfileCard } from "./NFTProfileCard";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Loader2 as LoaderIcon } from "lucide-react";
 import confetti from "canvas-confetti";
-import { PremiumAvatar } from "./PremiumAvatar";
 import { useAchievements } from "@/hooks/use-achievements";
-import { 
-  Profile, 
-  getProfileCompletionPercentage, 
-  saveProfileBackup, 
-  loadProfileBackup,
-  clearProfileBackup,
-  hasProfileBackup 
-} from "@/lib/profile-utils";
-import { ProfilePreview } from "./ProfilePreview";
-import { ImageEditor } from "./ImageEditor";
-import { ProfileShareModal } from "./ProfileShareModal";
-import { ProfileHistoryTimeline } from "./ProfileHistoryTimeline";
-import { ProfileThemeCustomizer } from "./ProfileThemeCustomizer";
-import { ProfileAnalyticsDashboard } from "./ProfileAnalyticsDashboard";
-import { SocialShare } from "./SocialShare";
-import { ProfileComparison } from "./ProfileComparison";
-import { ProfileCompletion } from "./ProfileCompletion";
-import { ProfileSuggestions } from "./ProfileSuggestions";
-import { ProfileShowcase } from "./ProfileShowcase";
-import { AnimatePresence } from "framer-motion";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Profile } from "@/lib/profile-utils";
 
 interface ProfileSetupEnhancedProps {
   userId: string;
@@ -43,13 +19,12 @@ interface ProfileSetupEnhancedProps {
   onComplete?: (geoData: GeoData) => void;
 }
 
-/**
- * Profile setup — confetti / "Profile Complete" only fires once per user
- * (localStorage key blackpal-profile-100:{userId}).
- * Full UI restored from pre-break version + one-time celebration guard.
- */
-export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeoData, onComplete }: ProfileSetupEnhancedProps) => {
-  const navigate = useNavigate();
+export const ProfileSetupEnhanced = ({
+  userId,
+  existingProfile,
+  geoData: propGeoData,
+  onComplete,
+}: ProfileSetupEnhancedProps) => {
   const [displayName, setDisplayName] = useState(existingProfile?.display_name || "");
   const [bio, setBio] = useState(existingProfile?.bio || "");
   const [country, setCountry] = useState(existingProfile?.country || "");
@@ -87,7 +62,6 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
   };
   const dynamicCompletion = calculateCompletion();
 
-  // One-time confetti only
   useEffect(() => {
     if (dynamicCompletion === 100 && !hasReached100) {
       setHasReached100(true);
@@ -102,8 +76,16 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
         const timeLeft = animationEnd - Date.now();
         if (timeLeft <= 0) return clearInterval(interval);
         const particleCount = 50 * (timeLeft / duration);
-        confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
-        confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
+        confetti({
+          ...defaults,
+          particleCount,
+          origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
+        });
+        confetti({
+          ...defaults,
+          particleCount,
+          origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
+        });
       }, 250);
       toast({
         title: "🎉 Profile Complete!",
@@ -154,7 +136,11 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
 
   const handleSubmit = async () => {
     if (!displayName?.trim() || !country?.trim()) {
-      toast({ variant: "destructive", title: "Missing fields", description: "Display name and country are required." });
+      toast({
+        variant: "destructive",
+        title: "Missing fields",
+        description: "Display name and country are required.",
+      });
       return;
     }
     setUploading(true);
@@ -162,7 +148,9 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
       let avatar_url = existingProfile?.avatar_url || null;
       if (avatarFile) {
         const path = `${userId}/avatar-${Date.now()}`;
-        const { error: upErr } = await supabase.storage.from("avatars").upload(path, avatarFile, { upsert: true });
+        const { error: upErr } = await supabase.storage.from("avatars").upload(path, avatarFile, {
+          upsert: true,
+        });
         if (!upErr) {
           const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
           avatar_url = pub.publicUrl;
@@ -199,24 +187,30 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
         onComplete(g);
       }
     } catch (e: any) {
-      toast({ variant: "destructive", title: "Save failed", description: e?.message || "Try again" });
+      toast({
+        variant: "destructive",
+        title: "Save failed",
+        description: e?.message || "Try again",
+      });
     } finally {
       setUploading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-3 sm:p-4">
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-lg glass-strong rounded-2xl border border-primary/20 p-6 space-y-5"
+        className="w-full max-w-lg glass-strong rounded-2xl border border-primary/20 p-4 sm:p-6 space-y-3.5 sm:space-y-5"
       >
         <div>
-          <h1 className="text-2xl font-bold gradient-text-cyber">Complete your profile</h1>
-          <p className="text-sm text-muted-foreground mt-1">
+          <h1 className="text-lg sm:text-2xl font-extrabold gradient-text-cyber leading-tight">
+            Complete your profile
+          </h1>
+          <p className="text-[11px] sm:text-sm font-semibold text-muted-foreground mt-1">
             {dynamicCompletion}% complete
-            {hasReached100 ? " · celebration already unlocked" : ""}
+            {hasReached100 ? " · celebration unlocked" : ""}
           </p>
           <div className="h-1.5 rounded-full bg-muted mt-2 overflow-hidden">
             <div
@@ -226,57 +220,59 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
           </div>
         </div>
 
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Display name</label>
+        <div className="space-y-1.5">
+          <label className="text-[11px] sm:text-sm font-bold">Display name</label>
           <Input
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
             placeholder="Your trader name"
-            className="h-11"
+            className="h-10 sm:h-11 text-sm font-semibold"
           />
           {validationErrors.display_name && (
-            <p className="text-xs text-destructive">{validationErrors.display_name}</p>
+            <p className="text-[10px] font-semibold text-destructive">{validationErrors.display_name}</p>
           )}
         </div>
 
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Country</label>
+        <div className="space-y-1.5">
+          <label className="text-[11px] sm:text-sm font-bold">Country</label>
           <Input
             value={country}
             onChange={(e) => setCountry(e.target.value)}
             placeholder="Country"
-            className="h-11"
+            className="h-10 sm:h-11 text-sm font-semibold"
           />
           {validationErrors.country && (
-            <p className="text-xs text-destructive">{validationErrors.country}</p>
+            <p className="text-[10px] font-semibold text-destructive">{validationErrors.country}</p>
           )}
         </div>
 
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Bio (optional)</label>
+        <div className="space-y-1.5">
+          <label className="text-[11px] sm:text-sm font-bold">Bio (optional)</label>
           <Textarea
             value={bio}
             onChange={(e) => setBio(e.target.value)}
             placeholder="Short intro"
-            rows={3}
+            rows={2}
+            className="text-sm font-medium"
           />
         </div>
 
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Phone (optional)</label>
+        <div className="space-y-1.5">
+          <label className="text-[11px] sm:text-sm font-bold">Phone (optional)</label>
           <Input
             value={phoneNumber}
             onChange={(e) => setPhoneNumber(e.target.value)}
             placeholder="+234..."
-            className="h-11"
+            className="h-10 sm:h-11 text-sm font-semibold"
           />
         </div>
 
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Avatar (optional)</label>
+        <div className="space-y-1.5">
+          <label className="text-[11px] sm:text-sm font-bold">Avatar (optional)</label>
           <Input
             type="file"
             accept="image/*"
+            className="text-xs font-medium"
             onChange={(e) => {
               const f = e.target.files?.[0];
               if (f) {
@@ -286,12 +282,16 @@ export const ProfileSetupEnhanced = ({ userId, existingProfile, geoData: propGeo
             }}
           />
           {avatarPreview && (
-            <img src={avatarPreview} alt="Preview" className="w-16 h-16 rounded-full object-cover" />
+            <img
+              src={avatarPreview}
+              alt="Preview"
+              className="w-14 h-14 sm:w-16 sm:h-16 rounded-full object-cover"
+            />
           )}
         </div>
 
         <Button
-          className="w-full h-12"
+          className="w-full h-11 text-sm font-extrabold"
           disabled={uploading || dynamicCompletion < 50}
           onClick={handleSubmit}
         >
