@@ -66,7 +66,7 @@ export const ProfileHeroCard = ({ profile, user, onProfileUpdate }: ProfileHeroC
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: 0.1 }}
     >
-      {/* Collectible NFT identity card — always visible */}
+      {/* Collectible NFT identity card - always visible */}
       <button
         type="button"
         onClick={() => setShowNftModal(true)}
@@ -77,7 +77,7 @@ export const ProfileHeroCard = ({ profile, user, onProfileUpdate }: ProfileHeroC
       </button>
 
       <p className="text-[9px] font-bold tracking-wide text-muted-foreground text-center px-1">
-        Your profile card \u00b7 display only \u00b7 tap to expand
+        Your profile card · display only · tap to expand
       </p>
 
       {/* Compact action bar */}
