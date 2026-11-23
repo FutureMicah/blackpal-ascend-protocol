@@ -25,6 +25,11 @@ import { AscendAmbient } from "@/components/ascend/AscendAmbient";
 import { CountUp } from "@/components/ascend/CountUp";
 
 import { ContestRules, ContestStats } from "@/lib/contest-scoring";
+import {
+  capacityInfo,
+  formatCapacity,
+  isCapacityError,
+} from "@/lib/contest-capacity";
 
 interface Contest {
   id: string;
@@ -41,6 +46,8 @@ interface Contest {
   min_trades: number;
   min_active_days: number;
   fail_rate_pct: number;
+  /** null = unlimited. Missing column (migration not applied) also = unlimited. */
+  max_entries?: number | null;
 }
 
 interface Entry extends ContestStats {
@@ -110,6 +117,8 @@ export default function Contest() {
   const [prizePool, setPrizePool] = useState(0);
   const [accountFor, setAccountFor] = useState<string | null>(null);
   const [opened, setOpened] = useState<Record<string, boolean>>({});
+  // Live entrant counts per contest, used for the spots display and full check.
+  const [entrantCounts, setEntrantCounts] = useState<Record<string, number>>({});
 
   const loadEntries = useCallback(async (uid: string) => {
     const { data } = await supabase
@@ -138,6 +147,23 @@ export default function Contest() {
       setContests(list);
       setPrizePool(list.reduce((s, c) => s + Number(c.prize_btax || 0), 0));
 
+      if (list.length) {
+        const { data: entryRows } = await supabase
+          .from("contest_entries")
+          .select("contest_id")
+          .in(
+            "contest_id",
+            list.map((c) => c.id),
+          );
+        const counts: Record<string, number> = {};
+        ((entryRows ?? []) as { contest_id: string }[]).forEach((r) => {
+          counts[r.contest_id] = (counts[r.contest_id] ?? 0) + 1;
+        });
+        setEntrantCounts(counts);
+      } else {
+        setEntrantCounts({});
+      }
+
       if (uid) await loadEntries(uid);
       setLoading(false);
     })();
@@ -158,6 +184,33 @@ export default function Contest() {
       supabase.removeChannel(ch);
     };
   }, [userId, loadEntries]);
+
+  // Keep entrant counts live so spots fill up / free up in real time.
+  useEffect(() => {
+    if (!contests.length) return;
+    const ids = new Set(contests.map((c) => c.id));
+    const ch = supabase
+      .channel("contest-entrant-counts")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "contest_entries" },
+        (payload: { new?: { contest_id?: string }; old?: { contest_id?: string }; eventType?: string }) => {
+          const cid = payload.new?.contest_id ?? payload.old?.contest_id;
+          if (!cid || !ids.has(cid)) return;
+          const delta = payload.eventType === "DELETE" ? -1 : payload.eventType === "INSERT" ? 1 : 0;
+          if (delta !== 0) {
+            setEntrantCounts((prev) => ({
+              ...prev,
+              [cid]: Math.max(0, (prev[cid] ?? 0) + delta),
+            }));
+          }
+        },
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(ch);
+    };
+  }, [contests]);
 
   // "Ending soon" warning based on the user's reminder window
   useEffect(() => {
@@ -192,16 +245,37 @@ export default function Contest() {
       toast.error("Sign in to enter the gauntlet");
       return;
     }
+    const cap = capacityInfo(entrantCounts[c.id] ?? 0, c.max_entries ?? null);
+    if (cap.isFull) {
+      toast.error(
+        cap.status === "over_capacity"
+          ? "This contest is over capacity right now"
+          : "This contest is full",
+        { description: "No new entries are being accepted at the moment." },
+      );
+      return;
+    }
     setJoining(c.id);
     const { error } = await supabase
       .from("contest_entries")
       .insert({ contest_id: c.id, user_id: userId });
     setJoining(null);
     if (error) {
-      toast.error("Could not enter this contest");
+      if (isCapacityError(error)) {
+        toast.error("This contest is full", {
+          description: "It just filled up — no new entries are being accepted.",
+        });
+        setEntrantCounts((prev) => ({
+          ...prev,
+          [c.id]: Math.max(prev[c.id] ?? 0, cap.max ?? (prev[c.id] ?? 0)),
+        }));
+      } else {
+        toast.error("Could not enter this contest");
+      }
       return;
     }
     toast.success(`You're in — ${c.title}`, { description: "Your run is being tracked from now." });
+    setEntrantCounts((prev) => ({ ...prev, [c.id]: (prev[c.id] ?? 0) + 1 }));
     setOpened((o) => ({ ...o, [c.id]: true }));
     loadEntries(userId);
   };
@@ -277,6 +351,8 @@ export default function Contest() {
               const entry = entries[c.id];
               const ended = !!c.ends_at && new Date(c.ends_at).getTime() < Date.now();
               const isOpen = !!opened[c.id];
+              const cap = capacityInfo(entrantCounts[c.id] ?? 0, c.max_entries ?? null);
+              const full = cap.isFull;
               return (
                 <Card key={c.id} className="p-4 space-y-3 tilt-3d neon-border">
                   {c.cover_url && (
@@ -302,18 +378,51 @@ export default function Contest() {
                     <span className="text-muted-foreground">
                       Target {c.target_profit_pct}% · Max DD {c.max_drawdown_pct}%
                     </span>
+                    <span
+                      className={
+                        full
+                          ? "font-semibold text-destructive"
+                          : "text-muted-foreground"
+                      }
+                      aria-label={
+                        cap.max !== null
+                          ? `${cap.entrants} of ${cap.max} spots filled`
+                          : `${cap.entrants} entered, unlimited spots`
+                      }
+                    >
+                      {formatCapacity(cap.entrants, cap.max)}
+                      {cap.max !== null && cap.status === "open" && (
+                        <> · {cap.spotsRemaining} {cap.spotsRemaining === 1 ? "spot" : "spots"} left</>
+                      )}
+                      {cap.status === "full" && " · Full"}
+                      {cap.status === "over_capacity" && " · Over capacity"}
+                    </span>
                     <ContestCountdown endsAt={c.ends_at} />
                     <span className="text-muted-foreground">
                       Official status: {entry ? entry.status.replace(/_/g, " ") : "not entered"}
                     </span>
                   </div>
 
+                  {full && !entry && (
+                    <p className="text-[11px] font-semibold text-destructive" role="status">
+                      {cap.status === "over_capacity"
+                        ? "This contest is over capacity — no new entries are being accepted."
+                        : "This contest is full — no new entries are being accepted."}
+                    </p>
+                  )}
+                  {full && entry && (
+                    <p className="text-[11px] text-muted-foreground">
+                      You&apos;re in — this contest is {cap.status === "over_capacity" ? "over capacity" : "full"} for
+                      new entries, but your spot is safe.
+                    </p>
+                  )}
+
                   {!entry && (
                     <div className="flex items-center gap-2">
                       <Button
                         size="sm"
                         className="h-10 flex-1 text-sm font-bold"
-                        disabled={ended || joining === c.id}
+                        disabled={ended || full || joining === c.id}
                         onClick={() => join(c)}
                       >
                         {joining === c.id ? (
@@ -321,7 +430,13 @@ export default function Contest() {
                         ) : (
                           <>
                             <Swords className="w-4 h-4 mr-1.5" />
-                            {ended ? "Contest closed" : "Enter gauntlet — Free"}
+                            {ended
+                              ? "Contest closed"
+                              : full
+                                ? cap.status === "over_capacity"
+                                  ? "Over capacity"
+                                  : "Contest full"
+                                : "Enter gauntlet — Free"}
                           </>
                         )}
                       </Button>

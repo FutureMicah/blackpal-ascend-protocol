@@ -9,6 +9,11 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, RefreshCw, Save, Plus, Trophy } from "lucide-react";
 import { toast } from "sonner";
+import {
+  capacityInfo,
+  formatCapacity,
+  parseMaxEntriesInput,
+} from "@/lib/contest-capacity";
 
 interface Contest {
   id: string;
@@ -22,6 +27,8 @@ interface Contest {
   min_trades: number;
   min_active_days: number;
   fail_rate_pct: number;
+  /** null = unlimited. Missing column (migration not applied) also = unlimited. */
+  max_entries?: number | null;
   starts_at: string | null;
   ends_at: string | null;
   is_active: boolean;
@@ -36,16 +43,41 @@ export function AdminContestPanel() {
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState<string | null>(null);
   const [recomputing, setRecomputing] = useState<string | null>(null);
+  const [entrantCounts, setEntrantCounts] = useState<Record<string, number>>({});
 
   const load = useCallback(async () => {
-    const { data, error } = await supabase
+    const baseCols =
+      "id,title,description,rules,prize_btax,entry_price_usd,target_profit_pct,max_drawdown_pct,min_trades,min_active_days,fail_rate_pct,starts_at,ends_at,is_active";
+    let { data, error } = await supabase
       .from("contests")
-      .select(
-        "id,title,description,rules,prize_btax,entry_price_usd,target_profit_pct,max_drawdown_pct,min_trades,min_active_days,fail_rate_pct,starts_at,ends_at,is_active",
-      )
+      .select(`${baseCols},max_entries`)
       .order("entry_price_usd", { ascending: true });
+    if (error && /max_entries/i.test(error.message ?? "")) {
+      // Column not live yet (migration not applied): fall back, treat as unlimited.
+      ({ data, error } = await supabase
+        .from("contests")
+        .select(baseCols)
+        .order("entry_price_usd", { ascending: true }));
+    }
     if (error) toast.error("Could not load contests");
-    setContests((data as Contest[]) ?? []);
+    const list = (data as Contest[]) ?? [];
+    setContests(list);
+    if (list.length) {
+      const { data: entryRows } = await supabase
+        .from("contest_entries")
+        .select("contest_id")
+        .in(
+          "contest_id",
+          list.map((c) => c.id),
+        );
+      const counts: Record<string, number> = {};
+      ((entryRows ?? []) as { contest_id: string }[]).forEach((r) => {
+        counts[r.contest_id] = (counts[r.contest_id] ?? 0) + 1;
+      });
+      setEntrantCounts(counts);
+    } else {
+      setEntrantCounts({});
+    }
     setLoading(false);
   }, []);
 
@@ -57,12 +89,49 @@ export function AdminContestPanel() {
     setContests((cs) => cs.map((c) => (c.id === id ? { ...c, [field]: value } : c)));
 
   const save = async (c: Contest) => {
+    // Validate capacity before touching the DB: whole number >= 1, or empty = unlimited.
+    const parsed = parseMaxEntriesInput(
+      c.max_entries === null || c.max_entries === undefined ? "" : String(c.max_entries),
+    );
+    if (parsed.error) {
+      toast.error(parsed.error);
+      return;
+    }
     setSavingId(c.id);
     const { id, ...fields } = c;
-    const { error } = await supabase.from("contests").update(fields).eq("id", id);
+    const payload = { ...fields, max_entries: parsed.value };
+    const { error } = await supabase.from("contests").update(payload).eq("id", id);
     setSavingId(null);
-    if (error) toast.error("Save failed — check your admin permissions");
-    else toast.success(`Saved "${c.title}"`);
+    if (error) {
+      const msg = String((error as { message?: string }).message ?? "");
+      if (/max_entries/i.test(msg) && /could not find|schema cache|column/i.test(msg)) {
+        toast.error(
+          "Capacity column is not live yet — run the max_entries migration, then save again",
+        );
+      } else {
+        toast.error("Save failed — check your admin permissions");
+      }
+      return;
+    }
+    patch(id, "max_entries", parsed.value);
+    if (parsed.value !== null) {
+      const info = capacityInfo(entrantCounts[id] ?? 0, parsed.value);
+      if (info.status === "over_capacity") {
+        toast.success(`Saved "${c.title}"`, {
+          description: `${info.entrants} people are already in — new joins are blocked until the count drops under ${parsed.value}. Nobody was removed.`,
+        });
+      } else if (info.status === "full") {
+        toast.success(`Saved "${c.title}"`, {
+          description: "This contest is now full — no new entries until a spot frees up.",
+        });
+      } else {
+        toast.success(`Saved "${c.title}"`, {
+          description: `Cap set to ${parsed.value} (${info.spotsRemaining} spots left).`,
+        });
+      }
+    } else {
+      toast.success(`Saved "${c.title}"`, { description: "Capacity cleared — entries are unlimited." });
+    }
   };
 
   const create = async () => {
@@ -155,6 +224,77 @@ export function AdminContestPanel() {
           />
 
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            {(() => {
+              const capInfo = capacityInfo(entrantCounts[c.id] ?? 0, c.max_entries ?? null);
+              return (
+                <div className="col-span-2 sm:col-span-3 space-y-1 rounded-md border border-border/60 p-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <Label className="text-[10px] text-muted-foreground">
+                      Max contestants (empty = unlimited)
+                    </Label>
+                    <span
+                      className={
+                        capInfo.isFull
+                          ? "text-[10px] font-semibold text-destructive"
+                          : "text-[10px] text-muted-foreground"
+                      }
+                    >
+                      {formatCapacity(capInfo.entrants, capInfo.max)}
+                      {capInfo.status === "full" && " · Full"}
+                      {capInfo.status === "over_capacity" && " · Over capacity"}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      className="h-8 w-8 shrink-0 px-0 text-sm"
+                      aria-label="Decrease max contestants"
+                      onClick={() => {
+                        const current = c.max_entries ?? capInfo.entrants;
+                        const next = Math.max(1, current - 1);
+                        patch(c.id, "max_entries", next);
+                      }}
+                    >
+                      −
+                    </Button>
+                    <Input
+                      type="number"
+                      min={1}
+                      step={1}
+                      className="h-8 text-[11px]"
+                      placeholder="Unlimited"
+                      value={c.max_entries === null || c.max_entries === undefined ? "" : String(c.max_entries)}
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        patch(c.id, "max_entries", v === "" ? null : Number(v));
+                      }}
+                    />
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      className="h-8 w-8 shrink-0 px-0 text-sm"
+                      aria-label="Increase max contestants"
+                      onClick={() => {
+                        const current = c.max_entries ?? capInfo.entrants;
+                        patch(c.id, "max_entries", current + 1);
+                      }}
+                    >
+                      +
+                    </Button>
+                  </div>
+                  <p className="text-[9px] text-muted-foreground">
+                    {capInfo.status === "over_capacity"
+                      ? `Already over the cap — nobody is removed, new joins stay blocked until entries drop under ${capInfo.max}.`
+                      : capInfo.status === "full"
+                        ? "At the cap — new joins are blocked until a spot frees up."
+                        : "Raise or lower freely. Lowering under the current count blocks new joins but never removes anyone."}
+                  </p>
+                </div>
+              );
+            })()}
             {(
               [
                 ["Entry ($)", "entry_price_usd"],

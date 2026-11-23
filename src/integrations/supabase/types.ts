@@ -2260,6 +2260,7 @@ export type Database = {
           id: string
           is_active: boolean
           max_drawdown_pct: number
+          max_entries: number | null
           min_active_days: number
           min_trades: number
           prize_btax: number
@@ -2278,6 +2279,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           max_drawdown_pct?: number
+          max_entries?: number | null
           min_active_days?: number
           min_trades?: number
           prize_btax?: number
@@ -2296,6 +2298,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           max_drawdown_pct?: number
+          max_entries?: number | null
           min_active_days?: number
           min_trades?: number
           prize_btax?: number
