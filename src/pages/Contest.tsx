@@ -274,6 +274,28 @@ export default function Contest() {
       }
       return;
     }
+    // Participation XP: 20 XP, once per contest per user. The AFTER INSERT
+    // trigger (progression migration) pays it server-side via award_xp_once
+    // keyed to the contest_entries row, and the RPC below is the backstop
+    // for retries: both hit the same xp_ledger unique index, so joining
+    // twice can never pay twice. Fire-and-forget: a missing RPC (migration
+    // not applied yet) must not break the join.
+    void (async () => {
+      try {
+        const { data: xp, error: xpErr } = await (supabase as any).rpc(
+          "award_contest_participation",
+          { p_contest_id: c.id },
+        );
+        if (!xpErr && xp?.xp > 0) {
+          toast.success(`+${xp.xp} XP`, {
+            description: "Contest participation XP",
+          });
+        }
+      } catch {
+        /* participation XP unavailable; join already succeeded */
+      }
+    })();
+
     toast.success(`You're in — ${c.title}`, { description: "Your run is being tracked from now." });
     setEntrantCounts((prev) => ({ ...prev, [c.id]: (prev[c.id] ?? 0) + 1 }));
     setOpened((o) => ({ ...o, [c.id]: true }));

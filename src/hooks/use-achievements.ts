@@ -12,6 +12,7 @@ export interface AwardAchievementParams {
     referrals_count?: number;
     gear_count?: number;
     streak_days?: number;
+    streak?: number;
   };
 }
 

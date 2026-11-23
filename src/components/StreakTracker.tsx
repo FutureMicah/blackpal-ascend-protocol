@@ -13,6 +13,11 @@ interface StreakTrackerProps {
 export const StreakTracker = ({ userId, onStreakUpdate }: StreakTrackerProps) => {
   const [currentStreak, setCurrentStreak] = useState(0);
   const [bestStreak, setBestStreak] = useState(0);
+  // Win streak: consecutive contest passes (profiles.win_streak).
+  // Distinct from the daily-login streak: logging in never moves this,
+  // and contest results never move the login streak.
+  const [winStreak, setWinStreak] = useState(0);
+  const [bestWinStreak, setBestWinStreak] = useState(0);
   const [loading, setLoading] = useState(true);
   // Stable callback ref — prevents re-running streak logic every parent render
   const onUpdateRef = useRef(onStreakUpdate);
@@ -27,7 +32,7 @@ export const StreakTracker = ({ userId, onStreakUpdate }: StreakTrackerProps) =>
       try {
         const { data: profile, error: loadError } = await supabase
           .from("profiles")
-          .select("achievement_streak, best_achievement_streak, streak_days, last_login_at")
+          .select("achievement_streak, best_achievement_streak, streak_days, last_login_at, win_streak, best_win_streak")
           .eq("id", userId)
           .single();
 
@@ -41,6 +46,9 @@ export const StreakTracker = ({ userId, onStreakUpdate }: StreakTrackerProps) =>
         // Show saved values immediately so UI does not flicker to 0
         setCurrentStreak(previousStreak);
         setBestStreak(previousBest);
+        // Pre-migration the columns do not exist and come back undefined.
+        setWinStreak(profile?.win_streak ?? 0);
+        setBestWinStreak(profile?.best_win_streak ?? 0);
         setLoading(false);
 
         const now = new Date();
@@ -161,7 +169,16 @@ export const StreakTracker = ({ userId, onStreakUpdate }: StreakTrackerProps) =>
           </div>
           <div className="flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground">
             <TrendingUp className="w-3 h-3" />
-            Keep logging in daily
+            Keep logging in daily<br />
+            {/* Win streak: the largest XP source. Displayed honestly; the
+                columns appear once the progression migration is applied. */}
+            Win streak: <span className="text-foreground tabular-nums">{winStreak}</span>
+            {bestWinStreak > 0 ? (
+              <span className="text-muted-foreground"> (best {bestWinStreak})</span>
+            ) : null}
+            <span className="block text-[10px] font-normal">
+              Pass contests back to back: 100 XP per pass, win-streak milestones pay 150 to 1000 XP
+            </span>
           </div>
         </div>
       </div>

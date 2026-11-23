@@ -119,7 +119,11 @@ export default function Dashboard() {
           achievementsChecked.current = true;
           (async () => {
             try {
-              const [levelAchievements, xpAchievements] = await Promise.all([
+              const loginStreak = data.streak_days || 0;
+              // Login streak XP: modest milestone awards on top of the daily
+              // claim. The edge function maps the milestone to an idempotent
+              // award_xp_once grant, so repeat dashboard loads never re-pay.
+              const [levelAchievements, xpAchievements, loginStreakXp] = await Promise.all([
                 checkAndAwardAchievements({
                   user_id: userId,
                   event_type: "level_reach",
@@ -133,8 +137,23 @@ export default function Dashboard() {
                   event_type: "xp_total",
                   event_data: { xp_total: data.xp_points || 0 },
                 }),
+                // Login streak milestones (client passes the streak int; the
+                // edge function decides the XP amount server-side, so an
+                // inflated streak cannot print XP).
+                checkAndAwardAchievements({
+                  user_id: userId,
+                  event_type: "streak_milestone",
+                  event_data: { streak: loginStreak },
+                }),
               ]);
-              const awarded = levelAchievements.length > 0 ? levelAchievements[0] : xpAchievements[0];
+              const awarded =
+                levelAchievements.length > 0
+                  ? levelAchievements[0]
+                  : xpAchievements.length > 0
+                    ? xpAchievements[0]
+                    : loginStreakXp.length > 0
+                      ? loginStreakXp[0]
+                      : null;
               if (awarded) setNotification(awarded);
             } catch {
               /* non-blocking */

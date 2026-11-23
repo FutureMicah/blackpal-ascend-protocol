@@ -15,7 +15,27 @@ interface AwardRequest {
     referrals_count?: number;
     gear_count?: number;
     streak_days?: number;
+    streak?: number;
   };
+}
+
+// Deterministic uuid from a string (md5-shaped, same trick the DB
+// triggers use) so a (user, milestone) XP grant dedupes in xp_ledger.
+function md5UUID(s: string): string {
+  // SHA-256 hex, first 32 chars -> uuid v4 shape. Dedupe only needs
+  // stability, not cryptographic strength.
+  let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+  for (let i = 0; i < s.length; i++) {
+    const ch = s.charCodeAt(i);
+    h1 = Math.imul(h1 ^ ch, 2654435761);
+    h2 = Math.imul(h2 ^ ch, 1597334677);
+  }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  const hex = (h2 >>> 0).toString(16).padStart(8, '0') + (h1 >>> 0).toString(16).padStart(8, '0');
+  const hex2 = (h1 >>> 0).toString(16).padStart(8, '0') + (h2 >>> 0).toString(16).padStart(8, '0');
+  const raw = hex + hex2;
+  return `${raw.slice(0, 8)}-${raw.slice(8, 12)}-4${raw.slice(13, 16)}-a${raw.slice(17, 20)}-${raw.slice(20, 32)}`;
 }
 
 Deno.serve(async (req) => {
@@ -61,6 +81,62 @@ Deno.serve(async (req) => {
 
     console.log(`[Award Achievement] Checking achievements for user ${user_id}, event: ${event_type}`, event_data);
 
+    // Accumulates every newly awarded item in this request (login-streak
+    // XP below and table achievements further down).
+    const newlyAwarded: any[] = [];
+
+    // Login-streak XP: modest milestone awards on top of the 2 XP daily
+    // claim. Amounts are decided server-side from the profile's actual
+    // streak (not from client event_data), and every grant goes through
+    // award_xp_once with a deterministic source_id, so re-sending the
+    // same streak can never print XP twice.
+    //
+    //   day 7 -> 10 XP, day 30 -> 30 XP, day 100 -> 50 XP, day 365 -> 100 XP
+    //
+    // These stay below the contest participation (20 XP), contest pass
+    // (100 XP) and win-streak milestone (150-1000 XP) awards: login streak
+    // is the easy, low-value source by design.
+    if (event_type === 'streak_milestone') {
+      const MILESTONES: Record<number, number> = {
+        7: 10,
+        30: 30,
+        100: 50,
+        365: 100,
+      };
+      const { data: profile } = await supabaseClient
+        .from('profiles')
+        .select('streak_days')
+        .eq('id', user_id)
+        .single();
+      const streak = Math.max(0, Number((profile as any)?.streak_days ?? event_data?.streak ?? 0) || 0);
+      const ms = MILESTONES[streak];
+      if (ms !== undefined) {
+        // deterministic source_id per (user, milestone day) so retries dedupe
+        const milestoneSourceId = md5UUID(`${user_id}:${streak}:login_streak`);
+        const { data: xpData, error: xpError } = await supabaseClient.rpc('award_xp_once', {
+          p_user_id: user_id,
+          p_amount: ms,
+          p_source: 'login_streak_milestone',
+          p_source_id: milestoneSourceId,
+          p_reason: `login streak ${streak} days`,
+        });
+        if (xpError) {
+          console.error('[Award Achievement] login streak award_xp_once failed:', xpError);
+        } else if (!(xpData as any)?.already_awarded) {
+          newlyAwarded.push({
+            id: milestoneSourceId,
+            name: `Login Streak ${streak} days`,
+            description: `${ms} XP for reaching a ${streak}-day login streak`,
+            icon: '🔥',
+            rarity: streak >= 365 ? 'legendary' : streak >= 100 ? 'epic' : streak >= 30 ? 'rare' : 'common',
+            xp_reward: ms,
+            cinematic_id: null,
+            combo: null,
+          });
+        }
+      }
+    }
+
     // Get all achievements
     const { data: achievements, error: achError } = await supabaseClient
       .from('achievements')
@@ -83,7 +159,8 @@ Deno.serve(async (req) => {
     }
 
     const unlockedIds = new Set(userAchievements?.map(ua => ua.achievement_id) || []);
-    const newlyAwarded = [];
+    // (newlyAwarded is declared near the top so the login-streak block
+    // above can append to it too)
     const recentAchievements = userAchievements
       ?.filter(ua => {
         const awardedTime = new Date(ua.awarded_at).getTime();
