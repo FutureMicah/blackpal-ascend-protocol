@@ -49,42 +49,33 @@ export const StreakTracker = ({ userId, onStreakUpdate }: StreakTrackerProps) =>
         let streakWasUpdated = false;
 
         if (next.shouldWrite) {
-          let update = supabase
-            .from("profiles")
-            .update({
-              last_login_at: now.toISOString(),
-              achievement_streak: nextStreak,
-              streak_days: nextStreak,
-              best_achievement_streak: nextBest,
-            })
-            .eq("id", userId);
-
-          // Optimistic concurrency: only write if last_login_at unchanged
-          update = lastLoginAt
-            ? update.eq("last_login_at", lastLoginAt)
-            : update.is("last_login_at", null);
-
-          const { data: updatedProfile, error: updateError } = await update
-            .select("achievement_streak, best_achievement_streak, streak_days")
-            .maybeSingle();
-
-          if (updateError) throw updateError;
-
-          if (updatedProfile) {
-            streakWasUpdated = true;
-            nextStreak = updatedProfile.achievement_streak ?? updatedProfile.streak_days ?? nextStreak;
-            nextBest = updatedProfile.best_achievement_streak ?? nextBest;
-          } else {
-            // Another session already wrote today — re-read
-            const { data: currentProfile, error: refreshError } = await supabase
+          // Prefer the atomic server RPC so achievement_streak and
+          // streak_days are written from one value. If the migration
+          // has not been applied yet, fall back to the direct update.
+          // The direct update writes last_login_at together with the
+          // streak, so a concurrent mount then sees gap 0 and does not
+          // double-count.
+          const { error: rpcError } = await (supabase as any).rpc(
+            "sync_login_streak",
+            {
+              p_last_login_at: now.toISOString(),
+              p_current_streak: nextStreak,
+              p_best_streak: nextBest,
+            },
+          );
+          if (rpcError) {
+            const { error: fallbackError } = await supabase
               .from("profiles")
-              .select("achievement_streak, best_achievement_streak, streak_days")
-              .eq("id", userId)
-              .single();
-            if (refreshError) throw refreshError;
-            nextStreak = currentProfile.achievement_streak ?? currentProfile.streak_days ?? 0;
-            nextBest = currentProfile.best_achievement_streak ?? 0;
+              .update({
+                last_login_at: now.toISOString(),
+                achievement_streak: nextStreak,
+                streak_days: nextStreak,
+                best_achievement_streak: nextBest,
+              })
+              .eq("id", userId);
+            if (fallbackError) throw fallbackError;
           }
+          streakWasUpdated = true;
         }
 
         if (cancelled) return;

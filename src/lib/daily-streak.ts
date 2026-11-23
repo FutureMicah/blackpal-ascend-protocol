@@ -24,6 +24,8 @@ export function calculateDailyStreakUpdate(
   previousBest: number,
   now: Date | string,
 ): DailyStreakUpdate {
+  const safeStreak = Math.max(0, Math.floor(previousStreak) || 0);
+  const safeBest = Math.max(0, Math.floor(previousBest) || 0);
   let currentStreak: number;
   let shouldWrite: boolean;
 
@@ -32,11 +34,18 @@ export function calculateDailyStreakUpdate(
     shouldWrite = true;
   } else {
     const gap = daysBetweenUTC(now, lastLoginAt);
+    // A last_login_at in the future (clock skew / bad data) must not be
+    // punished: treat it as "already counted today", never as a break.
+    if (gap < 0) {
+      currentStreak = Math.max(safeStreak, 1);
+      shouldWrite = false;
+      return { currentStreak, bestStreak: Math.max(safeBest, currentStreak), shouldWrite };
+    }
     if (gap === 0) {
-      currentStreak = Math.max(previousStreak, 1);
+      currentStreak = Math.max(safeStreak, 1);
       shouldWrite = false;
     } else if (gap === 1) {
-      currentStreak = previousStreak + 1;
+      currentStreak = safeStreak + 1;
       shouldWrite = true;
     } else {
       currentStreak = 1;
@@ -46,7 +55,7 @@ export function calculateDailyStreakUpdate(
 
   return {
     currentStreak,
-    bestStreak: Math.max(previousBest, currentStreak),
+    bestStreak: Math.max(safeBest, currentStreak),
     shouldWrite,
   };
 }

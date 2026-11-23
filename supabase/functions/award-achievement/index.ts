@@ -189,21 +189,24 @@ Deno.serve(async (req) => {
             console.log(`[Award Achievement] COMBO! ${comboSize}x combo in ${achievement.category}, awarding ${bonusXP} bonus XP`);
           }
 
-          // Award XP if applicable (including bonus)
+          // Award XP if applicable (including bonus). Atomic and
+          // idempotent: award_xp_once writes the xp_ledger row and
+          // increments xp_points together, so concurrent awards cannot
+          // overwrite each other and retries credit nothing extra.
           const totalXP = achievement.xp_reward + bonusXP;
           if (totalXP > 0) {
-            const { data: profile } = await supabaseClient
-              .from('profiles')
-              .select('xp_points')
-              .eq('id', user_id)
-              .single();
-
-            if (profile) {
-              await supabaseClient
-                .from('profiles')
-                .update({ xp_points: (profile.xp_points || 0) + totalXP })
-                .eq('id', user_id);
-
+            const { data: xpData, error: xpError } = await supabaseClient.rpc('award_xp_once', {
+              p_user_id: user_id,
+              p_amount: totalXP,
+              p_source: 'achievement',
+              p_source_id: achievement.id,
+              p_reason: achievement.name,
+            });
+            if (xpError) {
+              console.error('[Award Achievement] award_xp_once failed:', xpError);
+            } else if ((xpData as any)?.already_awarded) {
+              console.log(`[Award Achievement] XP already awarded for ${achievement.id} to ${user_id}, skipping`);
+            } else {
               console.log(`[Award Achievement] Awarded ${totalXP} XP to user ${user_id} (base: ${achievement.xp_reward}, bonus: ${bonusXP})`);
             }
           }

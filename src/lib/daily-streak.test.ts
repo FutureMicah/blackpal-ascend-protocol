@@ -40,4 +40,21 @@ describe("calculateDailyStreakUpdate", () => {
       calculateDailyStreakUpdate(null, 0, 0, "2026-11-17T12:00:00.000Z"),
     ).toEqual({ currentStreak: 1, bestStreak: 1, shouldWrite: true });
   });
+
+  it("treats a future last_login_at (clock skew) as already counted today", () => {
+    expect(
+      calculateDailyStreakUpdate(
+        "2026-11-18T00:00:00.000Z",
+        6,
+        8,
+        "2026-11-17T12:00:00.000Z",
+      ),
+    ).toEqual({ currentStreak: 6, bestStreak: 8, shouldWrite: false });
+  });
+
+  it("never drops best streak for stale or negative stored values", () => {
+    expect(
+      calculateDailyStreakUpdate(null, 0, -5, "2026-11-17T12:00:00.000Z"),
+    ).toEqual({ currentStreak: 1, bestStreak: 1, shouldWrite: true });
+  });
 });

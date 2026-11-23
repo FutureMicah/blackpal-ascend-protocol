@@ -74,14 +74,30 @@ const BlackCoin = () => {
     setConvertAmount("");
   };
 
-  const claimReward = async (coins: number, name: string) => {
+  const todayUTC = () => new Date().toISOString().slice(0, 10);
+
+  const claimReward = async (coins: number, name: string, isDailyLogin: boolean) => {
     if (!userId) return;
     setProcessing(true);
     try {
-      const { data: profile } = await supabase.from("profiles").select("virtual_currency, xp_points").eq("id", userId).single();
-      await supabase.from("profiles").update({ virtual_currency: (profile?.virtual_currency || 0) + coins, xp_points: (profile?.xp_points || 0) + Math.max(1, Math.floor(coins / 50)) }).eq("id", userId);
-      setBalance(prev => prev + coins);
-      toast({ title: "Claimed!", description: `+${coins} BTAX for ${name}` });
+      if (isDailyLogin) {
+        // Idempotent: the server records one claim per user per UTC day.
+        // A repeat click returns already_claimed and credits nothing.
+        const { data, error } = await (supabase as any).rpc("claim_daily_login", {
+          p_claim_date: todayUTC(),
+        });
+        if (error) throw error;
+        if (data?.already_claimed) {
+          setBalance(Number(data.virtual_currency ?? balance));
+          toast({ title: "Already claimed", description: "Daily login is once a day, come back tomorrow" });
+          return;
+        }
+        setBalance(Number(data.virtual_currency ?? balance + coins));
+        toast({ title: "Claimed!", description: `+${coins} BTAX and +${data?.xp ?? 2} XP for ${name}` });
+        return;
+      }
+      // Only the daily login reward is enabled; the other reward rows are
+      // hidden until their eligibility checks exist.
     } catch (error: any) { toast({ variant: "destructive", title: "Error", description: error.message }); } finally { setProcessing(false); }
   };
 
@@ -167,18 +183,15 @@ const BlackCoin = () => {
               <h2 className="text-xs font-bold mb-2">Earn XP</h2>
               <div className="space-y-1.5">
                 {[
-                  { title: "Daily Login", coins: 100, icon: Star, color: "text-yellow-500" },
-                  { title: "Complete Profile", coins: 500, icon: TrendingUp, color: "text-green-500" },
-                  { title: "Weekly Streak", coins: 1000, icon: Zap, color: "text-blue-500" },
-                  { title: "Invite Friend", coins: 2000, icon: Gift, color: "text-purple-500" },
-                ].map((r, i) => (
-                  <div key={i} className="flex items-center gap-2 p-2 bg-muted/20 rounded-lg">
+                  { key: "daily_login", title: "Daily Login", coins: 100, icon: Star, color: "text-yellow-500" },
+                ].map((r) => (
+                  <div key={r.key} className="flex items-center gap-2 p-2 bg-muted/20 rounded-lg">
                     <r.icon className={`w-4 h-4 ${r.color} shrink-0`} />
                     <div className="flex-1 min-w-0">
                       <p className="text-[10px] font-medium truncate">{r.title}</p>
-                      <p className="text-[9px] text-primary">+{r.coins} BTAX</p>
+                      <p className="text-[9px] text-primary">+{r.coins} BTAX once a day</p>
                     </div>
-                    <Button size="sm" variant="outline" className="h-6 text-[9px] px-2 shrink-0" onClick={() => claimReward(r.coins, r.title)} disabled={processing}>Claim</Button>
+                    <Button size="sm" variant="outline" className="h-6 text-[9px] px-2 shrink-0" onClick={() => claimReward(r.coins, r.title, true)} disabled={processing}>Claim</Button>
                   </div>
                 ))}
               </div>

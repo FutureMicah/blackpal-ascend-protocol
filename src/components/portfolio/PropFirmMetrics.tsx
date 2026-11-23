@@ -105,8 +105,9 @@ export function PropFirmMetrics({
 
     let curW = 0, curL = 0, maxW = 0, maxL = 0;
     for (const p of pnls) {
-      if (p >= 0) { curW++; curL = 0; if (curW > maxW) maxW = curW; }
-      else        { curL++; curW = 0; if (curL > maxL) maxL = curL; }
+      if (p > 0)        { curW++; curL = 0; if (curW > maxW) maxW = curW; }
+      else if (p < 0)   { curL++; curW = 0; if (curL > maxL) maxL = curL; }
+      else              { /* breakeven: neither a win nor a loss, keep it out of both streaks */ }
     }
 
     // Daily-based stats sorted by date

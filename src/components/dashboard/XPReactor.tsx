@@ -7,13 +7,14 @@ interface XPReactorProps {
 }
 
 export const XPReactor = ({ profile }: XPReactorProps) => {
-  const currentXP = profile?.xp_points ?? 0;
-  const currentLevel = profile?.rank_level ?? 1;
-  const xpForNextLevel = currentLevel * 1000; // Simple calculation
+  const currentXP = Math.max(0, Math.floor(profile?.xp_points ?? 0));
+  const currentLevel = Math.max(1, Math.floor((currentXP / 1000) + 1));
+  // Level N requires reaching N * 1000 total XP, so the band for the
+  // current level is [(level-1)*1000, level*1000).
+  const xpForNextLevel = currentLevel * 1000;
+  const xpInBand = currentXP - (currentLevel - 1) * 1000;
   const xpProgress =
-    xpForNextLevel > 0
-      ? ((currentXP % xpForNextLevel) / xpForNextLevel) * 100
-      : 0;
+    xpForNextLevel > 0 ? Math.min(100, (xpInBand / 1000) * 100) : 0;
 
   // StreakTracker keeps achievement_streak and streak_days in sync.
   // Prefer achievement_streak so both widgets show the same number.
@@ -56,7 +57,7 @@ export const XPReactor = ({ profile }: XPReactorProps) => {
       <div className="space-y-2">
         <div className="flex justify-between text-sm">
           <span className="text-muted-foreground">
-            {currentXP % xpForNextLevel} / {xpForNextLevel} XP
+            {xpInBand.toLocaleString()} / 1000 XP to {xpForNextLevel.toLocaleString()}
           </span>
           <span className="text-primary font-semibold">
             {Math.floor(xpProgress)}%
