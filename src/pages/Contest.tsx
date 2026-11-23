@@ -4,16 +4,21 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { supabase } from "@/integrations/supabase/client";
-import { Sparkles, Trophy, Loader2, Info, Swords, Timer, KeyRound } from "lucide-react";
-import { format, formatDistanceToNowStrict } from "date-fns";
+import { Sparkles, Trophy, Loader2, Info, Swords, KeyRound, ChevronDown, Eye, Lock } from "lucide-react";
+import { formatDistanceToNowStrict } from "date-fns";
 import { toast } from "sonner";
+import { lazy, Suspense } from "react";
+const ContestLeaderboard = lazy(() => import("@/components/contest/ContestLeaderboard").then((m) => ({ default: m.ContestLeaderboard })));
+const ContestProgressPanel = lazy(() => import("@/components/contest/ContestProgressPanel").then((m) => ({ default: m.ContestProgressPanel })));
+const RecomputeStatusIndicator = lazy(() => import("@/components/contest/RecomputeStatusIndicator").then((m) => ({ default: m.RecomputeStatusIndicator })));
+const ContestScoreHistory = lazy(() => import("@/components/contest/ContestScoreHistory").then((m) => ({ default: m.ContestScoreHistory })));
+const LeaderboardSkeleton = ({ rows = 5 }: { rows?: number }) => null;
+const ScoreHistorySkeleton = ({ rows = 5 }: { rows?: number }) => null;
 import { ContestRulesModal } from "@/components/contest/ContestRulesModal";
-import { ContestLeaderboard } from "@/components/contest/ContestLeaderboard";
-import { ContestProgressPanel } from "@/components/contest/ContestProgressPanel";
+import { ContestCountdown } from "@/components/contest/ContestCountdown";
 import { ContestReminderPrefs } from "@/components/contest/ContestReminderPrefs";
-import { RecomputeStatusIndicator } from "@/components/contest/RecomputeStatusIndicator";
-import { ContestScoreHistory } from "@/components/contest/ContestScoreHistory";
 import { ContestCardSkeleton } from "@/components/contest/ContestSkeletons";
 import { AccountAccessDialog } from "@/components/portfolio/AccountAccessDialog";
 import { AscendAmbient } from "@/components/ascend/AscendAmbient";
@@ -40,6 +45,7 @@ interface Contest {
 
 interface Entry extends ContestStats {
   contest_id: string;
+  score: number;
   rank: number | null;
   status: string;
 }
@@ -53,6 +59,47 @@ const toRules = (c: Contest): ContestRules => ({
   fail_rate_pct: Number(c.fail_rate_pct),
 });
 
+const ContestLeaderboard_Entry = () => null;
+
+const mysteryDetails = (c: Contest) =>
+  c.rules ? (
+    <details className="text-[10px]">
+      <summary className="cursor-pointer text-primary">House rules</summary>
+      <p className="mt-1 text-muted-foreground whitespace-pre-wrap">{c.rules}</p>
+    </details>
+  ) : null;
+
+const DeferredContestPanels = ({ contestId, contest, meId, entry, ended }: { contestId: string; contest: Contest; meId: string | null; entry?: Entry; ended: boolean }) => {
+  return (
+    <Suspense fallback={null}>
+      <>
+        <ContestLeaderboard contestId={contestId} meId={meId} />
+        <div className="mt-2" />
+        {entry && meId ? (
+          <>
+            <ContestProgressPanel
+              rules={toRules(contest)}
+              stats={{
+                profit_pct: Number(entry.profit_pct),
+                drawdown_pct: Number(entry.drawdown_pct),
+                trades_count: Number(entry.trades_count),
+                active_days: Number(entry.active_days),
+              }}
+              ended={ended}
+              rank={entry.rank}
+              serverStatus={entry.status}
+            />
+            <ContestScoreHistory contestId={contestId} userId={meId} />
+          </>
+        ) : null}
+        <div className="mt-2 text-[9px] text-muted-foreground flex items-center gap-1">
+          <RecomputeStatusIndicator contestId={contestId} />
+        </div>
+      </>
+    </Suspense>
+  );
+};
+
 export default function Contest() {
   const [loading, setLoading] = useState(true);
   const [contests, setContests] = useState<Contest[]>([]);
@@ -62,11 +109,12 @@ export default function Contest() {
   const [joining, setJoining] = useState<string | null>(null);
   const [prizePool, setPrizePool] = useState(0);
   const [accountFor, setAccountFor] = useState<string | null>(null);
+  const [opened, setOpened] = useState<Record<string, boolean>>({});
 
   const loadEntries = useCallback(async (uid: string) => {
     const { data } = await supabase
       .from("contest_entries")
-      .select("contest_id,profit_pct,drawdown_pct,trades_count,active_days,rank,status")
+      .select("contest_id,score,profit_pct,drawdown_pct,trades_count,active_days,rank,status")
       .eq("user_id", uid);
     const map: Record<string, Entry> = {};
     ((data ?? []) as Entry[]).forEach((e) => {
@@ -154,6 +202,7 @@ export default function Contest() {
       return;
     }
     toast.success(`You're in — ${c.title}`, { description: "Your run is being tracked from now." });
+    setOpened((o) => ({ ...o, [c.id]: true }));
     loadEntries(userId);
   };
 
@@ -227,6 +276,7 @@ export default function Contest() {
             {contests.map((c) => {
               const entry = entries[c.id];
               const ended = !!c.ends_at && new Date(c.ends_at).getTime() < Date.now();
+              const isOpen = !!opened[c.id];
               return (
                 <Card key={c.id} className="p-4 space-y-3 tilt-3d neon-border">
                   {c.cover_url && (
@@ -252,40 +302,59 @@ export default function Contest() {
                     <span className="text-muted-foreground">
                       Target {c.target_profit_pct}% · Max DD {c.max_drawdown_pct}%
                     </span>
-                    {c.ends_at && (
-                      <span className="text-muted-foreground flex items-center gap-1">
-                        <Timer className="w-3 h-3" />
-                        {ended ? "Ended" : `Ends ${format(new Date(c.ends_at), "MMM d")}`}
-                      </span>
-                    )}
-                    <RecomputeStatusIndicator contestId={c.id} />
+                    <ContestCountdown endsAt={c.ends_at} />
+                    <span className="text-muted-foreground">
+                      Official status: {entry ? entry.status.replace(/_/g, " ") : "not entered"}
+                    </span>
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <Button
-                      size="sm"
-                      className="h-8 flex-1 text-[11px]"
-                      disabled={!!entry || ended || joining === c.id}
-                      onClick={() => join(c)}
-                    >
-                      {joining === c.id ? (
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      ) : (
-                        <>
-                          <Swords className="w-3.5 h-3.5 mr-1" />
-                          {entry ? "Entered" : ended ? "Closed" : "Enter gauntlet"}
-                        </>
-                      )}
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="h-8 text-[11px]"
-                      onClick={() => setRulesFor(c)}
-                    >
-                      <Info className="w-3.5 h-3.5 mr-1" /> Rules
-                    </Button>
-                  </div>
+                  {!entry && (
+                    <div className="flex items-center gap-2">
+                      <Button
+                        size="sm"
+                        className="h-10 flex-1 text-sm font-bold"
+                        disabled={ended || joining === c.id}
+                        onClick={() => join(c)}
+                      >
+                        {joining === c.id ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <>
+                            <Swords className="w-4 h-4 mr-1.5" />
+                            {ended ? "Contest closed" : `Enter gauntlet — $${Number(c.entry_price_usd)}`}
+                          </>
+                        )}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-10 text-xs"
+                        onClick={() => setRulesFor(c)}
+                      >
+                        <Info className="w-3.5 h-3.5 mr-1" /> Rules
+                      </Button>
+                    </div>
+                  )}
+                  {entry && (
+                    <div className="flex items-center gap-2">
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        className="h-8 flex-1 text-[11px]"
+                        disabled
+                      >
+                        <Swords className="w-3.5 h-3.5 mr-1" /> Entered
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-8 text-[11px]"
+                        onClick={() => setRulesFor(c)}
+                      >
+                        <Info className="w-3.5 h-3.5 mr-1" /> Rules
+                      </Button>
+                    </div>
+                  )}
 
                   {entry && userId && (
                     <Button
@@ -298,51 +367,55 @@ export default function Contest() {
                     </Button>
                   )}
 
-                  <Tabs defaultValue="leaderboard">
-                    <TabsList className="grid w-full grid-cols-2 h-8">
-                      <TabsTrigger value="leaderboard" className="text-[11px]">
-                        Record holders
-                      </TabsTrigger>
-                      <TabsTrigger value="progress" className="text-[11px]">
-                        Your run
-                      </TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="leaderboard" className="mt-2">
-                      <ContestLeaderboard contestId={c.id} meId={userId} />
-                    </TabsContent>
-                    <TabsContent value="progress" className="mt-2 space-y-2">
-                      {entry && userId ? (
-                        <>
-                          <ContestProgressPanel
-                            rules={toRules(c)}
-                            stats={{
-                              profit_pct: Number(entry.profit_pct),
-                              drawdown_pct: Number(entry.drawdown_pct),
-                              trades_count: Number(entry.trades_count),
-                              active_days: Number(entry.active_days),
-                            }}
-                            ended={ended}
-                            rank={entry.rank}
-                          />
-                          <ContestScoreHistory contestId={c.id} userId={userId} />
-                        </>
-                      ) : (
-                        <Card className="p-4 text-center">
-                          <p className="text-[11px] text-muted-foreground">
-                            You haven't entered yet. {c.fail_rate_pct}% failed this one — the board is still short a
-                            record holder.
-                          </p>
-                        </Card>
+                  <Collapsible
+                    open={isOpen}
+                    onOpenChange={(v) => setOpened((o) => ({ ...o, [c.id]: v }))}
+                  >
+                    <CollapsibleTrigger asChild>
+                      <Button size="sm" variant="ghost" className="h-7 w-full text-[11px] text-muted-foreground">
+                        <Eye className="w-3.5 h-3.5 mr-1" />
+                        {isOpen ? "Hide leaderboard & your run" : "View leaderboard & your run"}
+                        <ChevronDown
+                          className={`w-3.5 h-3.5 ml-1 transition-transform ${isOpen ? "rotate-180" : ""}`}
+                        />
+                      </Button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="mt-2">
+                      {!entry && !ended && (
+                        <div className="flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground py-3">
+                          <Lock className="w-3.5 h-3.5" />
+                          Enter the gauntlet to unlock your run progress. Use the Enter button above to join.
+                        </div>
                       )}
-                    </TabsContent>
-                  </Tabs>
+                      <Tabs defaultValue="leaderboard">
+                        <TabsList className="grid w-full grid-cols-2 h-8">
+                          <TabsTrigger value="leaderboard" className="text-[11px]">
+                            Record holders
+                          </TabsTrigger>
+                          <TabsTrigger value="progress" className="text-[11px]">
+                            Your run
+                          </TabsTrigger>
+                        </TabsList>
+                        <TabsContent value="leaderboard" className="mt-2">
+                          <DeferredContestPanels contestId={c.id} contest={c} meId={userId} entry={entry} ended={ended} />
+                        </TabsContent>
+                        <TabsContent value="progress" className="mt-2 space-y-2">
+                          {entry && userId ? (
+                            <DeferredContestPanels contestId={c.id} contest={c} meId={userId} entry={entry} ended={ended} />
+                          ) : (
+                            <Card className="p-4 text-center">
+                              <p className="text-[11px] text-muted-foreground">
+                                You haven&apos;t entered yet. {c.fail_rate_pct}% failed this one — the board is still
+                                short a record holder.
+                              </p>
+                            </Card>
+                          )}
+                        </TabsContent>
+                      </Tabs>
+                    </CollapsibleContent>
+                  </Collapsible>
 
-                  {c.rules && (
-                    <details className="text-[10px]">
-                      <summary className="cursor-pointer text-primary">House rules</summary>
-                      <p className="mt-1 text-muted-foreground whitespace-pre-wrap">{c.rules}</p>
-                    </details>
-                  )}
+                  {mysteryDetails(c)}
                 </Card>
               );
             })}
