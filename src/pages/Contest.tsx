@@ -246,7 +246,7 @@ export default function Contest() {
             78% of traders could not pass this. Prove them wrong and be on the record holder leaderboard.
           </p>
           <p className="text-[11px] text-muted-foreground mt-1.5">
-            Everyone says they have an edge. The drawdown rule says otherwise. Pick your entry — $10, $50 or $100 — and
+            Everyone says they have an edge. The drawdown rule says otherwise. Entry is free. Pick your gauntlet and
             let the leaderboard settle it.
           </p>
         </section>
@@ -291,7 +291,7 @@ export default function Contest() {
                       )}
                     </div>
                     <Badge variant="secondary" className="text-[10px] shrink-0">
-                      ${Number(c.entry_price_usd)}
+                      Free entry
                     </Badge>
                   </div>
 
@@ -321,7 +321,7 @@ export default function Contest() {
                         ) : (
                           <>
                             <Swords className="w-4 h-4 mr-1.5" />
-                            {ended ? "Contest closed" : `Enter gauntlet — $${Number(c.entry_price_usd)}`}
+                            {ended ? "Contest closed" : "Enter gauntlet — Free"}
                           </>
                         )}
                       </Button>
