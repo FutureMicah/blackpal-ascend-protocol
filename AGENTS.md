@@ -1,1 +1,2 @@
 Daily login streak transitions are pure UTC date logic in `src/lib/daily-streak.ts`; persist changes with a last-login compare-and-set so concurrent dashboard loads cannot double-count a day.
+Lazy-loaded pages and global overlays retry transient module fetch failures and render a safe fallback on persistent failures, so import errors never leave a blank screen.
