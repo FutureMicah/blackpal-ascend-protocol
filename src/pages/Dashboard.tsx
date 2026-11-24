@@ -112,6 +112,18 @@ export default function Dashboard() {
       // of each firing their own copy of the same request.
       if (profileLoadingRef.current) return;
       profileLoadingRef.current = true;
+      // The dashboard now depends on a live session for every fetch. If the
+      // session is gone, bail straight to the landing page instead of
+      // spinning on a profile request that can only fail.
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session) {
+        profileLoadingRef.current = false;
+        setLoading(false);
+        navigate("/");
+        return;
+      }
       try {
         setLoadError(null);
         const data = await retryTransient(() =>
@@ -131,6 +143,7 @@ export default function Dashboard() {
             title: "Payment Required",
             description: "You must complete payment to access the dashboard.",
           });
+          setLoading(false);
           navigate("/");
           return;
         }

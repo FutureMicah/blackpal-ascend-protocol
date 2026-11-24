@@ -15,8 +15,9 @@ export function WalletSnapshot({ userId, initialBalance }: WalletSnapshotProps) 
   const [balance, setBalance] = useState(initialBalance ?? 0);
 
   useEffect(() => {
-    // The dashboard's profile query already has this balance.
-    if (initialBalance !== undefined && initialBalance !== null) return;
+    // The dashboard's profile query already carries this balance (0 means
+    // the user simply has none), so it must not re-fetch for a null/zero.
+    if (initialBalance !== undefined) return;
     const loadBalance = async () => {
       const { data } = await supabase
         .from("profiles")

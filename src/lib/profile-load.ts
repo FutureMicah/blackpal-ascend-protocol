@@ -22,6 +22,9 @@ const NETWORK_HINTS = [
 ];
 
 export function isTransientProfileError(error: unknown): boolean {
+  // Our own timeout is always retryable. Compare by name: the class is
+  // declared further down, so an instanceof check here would not work.
+  if ((error as { name?: unknown })?.name === "ProfileLoadTimeout") return true;
   const message = String((error as { message?: unknown })?.message ?? error ?? "").toLowerCase();
   if (NETWORK_HINTS.some((hint) => message.includes(hint))) return true;
   const code = String((error as { code?: unknown })?.code ?? "");
@@ -47,16 +50,20 @@ export function friendlyProfileError(error: unknown): ProfileError {
       message: "Your session expired. Please sign in again.",
     };
   }
+  if (
+    (error as { name?: unknown })?.name === "ProfileLoadTimeout" ||
+    lower.includes("timed out") ||
+    lower.includes("timeout")
+  ) {
+    return {
+      code: "TIMEOUT",
+      message: "Loading your profile is taking too long. Check your connection and try again.",
+    };
+  }
   if (isTransientProfileError(error)) {
     return {
       code: "CONNECTION",
       message: "Connection hiccup while loading your profile. Check your connection and try again.",
-    };
-  }
-  if (lower.includes("timed out") || lower.includes("timeout")) {
-    return {
-      code: "TIMEOUT",
-      message: "Loading your profile is taking too long. Check your connection and try again.",
     };
   }
   return { code: "GENERIC", message: raw || "Failed to load profile. Please try again." };
@@ -75,7 +82,13 @@ export function withTimeout<T>(promise: PromiseLike<T>, ms: number): Promise<T> 
   const timeout = new Promise<never>((_resolve, reject) => {
     timer = setTimeout(() => reject(new ProfileLoadTimeout()), ms);
   });
-  return Promise.race([Promise.resolve(promise), timeout]).finally(() => {
+  // Promise.race alone leaves the losing promise's late rejection unhandled
+  // (a console error / potential crash in strict runtimes). Attach no-op
+  // handlers so whichever side loses is swallowed quietly.
+  const guarded = Promise.resolve(promise);
+  guarded.catch(() => {});
+  timeout.catch(() => {});
+  return Promise.race([guarded, timeout]).finally(() => {
     if (timer) clearTimeout(timer);
   }) as Promise<T>;
 }
