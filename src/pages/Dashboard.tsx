@@ -9,19 +9,17 @@ import { FloatingNav } from "@/components/FloatingNav";
 import { ProfileHeroCard } from "@/components/dashboard/ProfileHeroCard";
 import { XPReactor } from "@/components/dashboard/XPReactor";
 import { WalletSnapshot } from "@/components/dashboard/WalletSnapshot";
-import { BtaxWalletOverview } from "@/components/dashboard/BtaxWalletOverview";
 import { WalletHero } from "@/components/dashboard/WalletHero";
-import { PaymentHistoryPanel } from "@/components/dashboard/PaymentHistoryPanel";
 import { KycStatusBanner } from "@/components/dashboard/KycStatusBanner";
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 import { AchievementNotification } from "@/components/AchievementNotification";
 import { NotificationCenter } from "@/components/NotificationCenter";
 import { StreakTracker } from "@/components/StreakTracker";
 import { useAchievements, AwardedAchievement } from "@/hooks/use-achievements";
-import { FriendActivityFeed } from "@/components/social/FriendActivityFeed";
 import { OnboardingTour } from "@/components/OnboardingTour";
 import { useRealtimeNotifications } from "@/hooks/use-realtime-notifications";
 import { SessionLockScreen } from "@/components/security/SessionLockScreen";
+import { friendlyProfileError, retryTransient, withTimeout } from "@/lib/profile-load";
 
 // Below-fold / on-demand panels: split out of the dashboard first-paint
 // chunk. Mounting order unchanged; Suspense fallback renders nothing so
@@ -51,6 +49,19 @@ const QuestClaimHistory = lazy(() =>
   import("@/components/xp/QuestClaimHistory").then((m) => ({ default: m.QuestClaimHistory }))
 );
 
+// Below-fold panels split out of the dashboard first-paint chunk. They are
+// mounted only after the first paint so their queries and realtime channels
+// do not compete with the profile fetch for the initial connection.
+const FriendActivityFeed = lazy(() =>
+  import("@/components/social/FriendActivityFeed").then((m) => ({ default: m.FriendActivityFeed }))
+);
+const BtaxWalletOverviewLazy = lazy(() =>
+  import("@/components/dashboard/BtaxWalletOverview").then((m) => ({ default: m.BtaxWalletOverview }))
+);
+const PaymentHistoryPanelLazy = lazy(() =>
+  import("@/components/dashboard/PaymentHistoryPanel").then((m) => ({ default: m.PaymentHistoryPanel }))
+);
+
 export default function Dashboard() {
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
@@ -64,6 +75,10 @@ export default function Dashboard() {
   const { toast } = useToast();
   const { checkAndAwardAchievements } = useAchievements();
   const achievementsChecked = useRef(false);
+  // Below-fold panels mount after first paint so their queries/channels do
+  // not contend with the critical profile fetch on slow/mobile connections.
+  const [deferPanels, setDeferPanels] = useState(false);
+  const profileLoadingRef = useRef(false);
   useRealtimeNotifications(user?.id ?? null);
 
   // Paystack return handler (once)
@@ -93,12 +108,22 @@ export default function Dashboard() {
 
   const loadProfile = useCallback(
     async (userId: string, opts?: { silent?: boolean }) => {
+      // Single-flight: overlapping callers share the in-flight fetch instead
+      // of each firing their own copy of the same request.
+      if (profileLoadingRef.current) return;
+      profileLoadingRef.current = true;
       try {
         setLoadError(null);
-        const { data, error } = await supabase.from("profiles").select("*").eq("id", userId).single();
-
-        if (error) throw error;
-        if (!data) throw new Error("Profile row missing");
+        const data = await retryTransient(() =>
+          withTimeout(
+            supabase.from("profiles").select("*").eq("id", userId).single(),
+            15000
+          ).then(({ data, error }) => {
+            if (error) throw error;
+            if (!data) throw new Error("Profile row missing");
+            return data;
+          })
+        );
 
         if (!data.payment_completed) {
           toast({
@@ -162,15 +187,17 @@ export default function Dashboard() {
         }
       } catch (error: any) {
         console.error("loadProfile", error);
-        setLoadError(error?.message || "Failed to load profile");
+        const friendly = friendlyProfileError(error);
+        setLoadError(friendly.message);
         if (!opts?.silent) {
           toast({
             variant: "destructive",
             title: "Error loading profile",
-            description: error?.message || "Please refresh",
+            description: friendly.message,
           });
         }
       } finally {
+        profileLoadingRef.current = false;
         setLoading(false);
       }
     },
@@ -223,6 +250,26 @@ export default function Dashboard() {
       subscription.unsubscribe();
     };
   }, [navigate, loadProfile]);
+
+  // Mount below-fold panels once the first paint settles. Idle time keeps
+  // them off the critical path; the timeout bounds the wait on busy devices.
+  useEffect(() => {
+    if (deferPanels) return;
+    let idleId: number | undefined;
+    const fallback = window.setTimeout(() => setDeferPanels(true), 1500);
+    if ("requestIdleCallback" in window) {
+      idleId = window.requestIdleCallback(() => {
+        window.clearTimeout(fallback);
+        setDeferPanels(true);
+      });
+    }
+    return () => {
+      window.clearTimeout(fallback);
+      if (idleId !== undefined && "cancelIdleCallback" in window) {
+        window.cancelIdleCallback(idleId);
+      }
+    };
+  }, [deferPanels]);
 
   useEffect(() => {
     if (!profile?.id) return;
@@ -364,7 +411,7 @@ export default function Dashboard() {
 
         {user && (
           <div className="mb-3 sm:mb-4">
-            <KycStatusBanner userId={user.id} />
+            <KycStatusBanner userId={user.id} initialStatus={profile?.kyc_status ?? null} />
           </div>
         )}
 
@@ -404,11 +451,25 @@ export default function Dashboard() {
           </div>
 
           <div className="lg:col-span-3 space-y-3 sm:space-y-6 order-2 lg:order-3">
-            <StreakTracker userId={profile.id} onStreakUpdate={handleStreakUpdate} />
-            <FriendActivityFeed userId={profile.id} maxItems={10} />
-            <WalletSnapshot userId={profile.id} />
-            <BtaxWalletOverview userId={profile.id} />
-            <PaymentHistoryPanel userId={profile.id} />
+            <StreakTracker
+              userId={profile.id}
+              onStreakUpdate={handleStreakUpdate}
+              initialProfile={profile}
+            />
+            {deferPanels && (
+              <>
+                <Suspense fallback={null}>
+                  <FriendActivityFeed userId={profile.id} maxItems={10} />
+                </Suspense>
+              </>
+            )}
+            <WalletSnapshot userId={profile.id} initialBalance={profile?.virtual_currency ?? null} />
+            {deferPanels && (
+              <Suspense fallback={null}>
+                <BtaxWalletOverviewLazy userId={profile.id} />
+                <PaymentHistoryPanelLazy userId={profile.id} />
+              </Suspense>
+            )}
             <Suspense fallback={null}>
               <PropAccountLadder userId={profile.id} />
               <CurrencyConverter compact />

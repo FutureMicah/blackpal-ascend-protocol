@@ -8,9 +8,17 @@ import { calculateDailyStreakUpdate } from "@/lib/daily-streak";
 interface StreakTrackerProps {
   userId: string;
   onStreakUpdate?: (streakDays: number) => void;
+  initialProfile?: {
+    achievement_streak?: number | null;
+    best_achievement_streak?: number | null;
+    streak_days?: number | null;
+    last_login_at?: string | null;
+    win_streak?: number | null;
+    best_win_streak?: number | null;
+  } | null;
 }
 
-export const StreakTracker = ({ userId, onStreakUpdate }: StreakTrackerProps) => {
+export const StreakTracker = ({ userId, onStreakUpdate, initialProfile }: StreakTrackerProps) => {
   const [currentStreak, setCurrentStreak] = useState(0);
   const [bestStreak, setBestStreak] = useState(0);
   // Win streak: consecutive contest passes (profiles.win_streak).
@@ -30,13 +38,20 @@ export const StreakTracker = ({ userId, onStreakUpdate }: StreakTrackerProps) =>
 
     const run = async () => {
       try {
-        const { data: profileData, error: loadError } = await supabase
-          .from("profiles")
-          .select("achievement_streak, best_achievement_streak, streak_days, last_login_at, win_streak, best_win_streak")
-          .eq("id", userId)
-          .single();
+        // Dashboard already loaded these columns in its profile query; the
+        // streak write still goes through the atomic path below.
+        const profileData = initialProfile
+          ? initialProfile
+          : await supabase
+              .from("profiles")
+              .select("achievement_streak, best_achievement_streak, streak_days, last_login_at, win_streak, best_win_streak")
+              .eq("id", userId)
+              .single()
+              .then(({ data, error }) => {
+                if (error) throw error;
+                return data;
+              });
 
-        if (loadError) throw loadError;
         if (cancelled) return;
 
         // Keep legacy/migration-dependent columns typed locally until the

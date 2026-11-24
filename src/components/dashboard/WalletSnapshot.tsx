@@ -7,26 +7,29 @@ import { supabase } from "@/integrations/supabase/client";
 
 interface WalletSnapshotProps {
   userId: string;
+  initialBalance?: number | null;
 }
 
-export const WalletSnapshot = ({ userId }: WalletSnapshotProps) => {
+export function WalletSnapshot({ userId, initialBalance }: WalletSnapshotProps) {
   const navigate = useNavigate();
-  const [balance, setBalance] = useState(0);
+  const [balance, setBalance] = useState(initialBalance ?? 0);
 
   useEffect(() => {
+    // The dashboard's profile query already has this balance.
+    if (initialBalance !== undefined && initialBalance !== null) return;
     const loadBalance = async () => {
       const { data } = await supabase
         .from("profiles")
         .select("virtual_currency")
         .eq("id", userId)
         .single();
-      
+
       if (data) {
         setBalance(data.virtual_currency || 0);
       }
     };
     loadBalance();
-  }, [userId]);
+  }, [userId, initialBalance]);
 
   
 

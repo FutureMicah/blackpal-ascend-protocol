@@ -6,12 +6,13 @@ import { supabase } from "@/integrations/supabase/client";
 
 interface Props {
   userId: string;
+  initialStatus?: string | null;
 }
 
 const STORAGE_KEY = "kyc-banner-dismissed-at";
 
-export const KycStatusBanner = ({ userId }: Props) => {
-  const [status, setStatus] = useState<string | null>(null);
+export const KycStatusBanner = ({ userId, initialStatus }: Props) => {
+  const [status, setStatus] = useState<string | null>(initialStatus ?? null);
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
@@ -19,13 +20,16 @@ export const KycStatusBanner = ({ userId }: Props) => {
     if (ts && Date.now() - Number(ts) < 1000 * 60 * 60 * 24 * 3) {
       setDismissed(true);
     }
+    // The dashboard's profile query already carries kyc_status. Skipping the
+    // fetch when it came with context keeps this off the duplicate-request pile.
+    if (initialStatus) return;
     supabase
       .from("profiles")
       .select("kyc_status")
       .eq("id", userId)
       .maybeSingle()
       .then(({ data }) => setStatus(data?.kyc_status ?? "unverified"));
-  }, [userId]);
+  }, [userId, initialStatus]);
 
   if (status === "verified" || dismissed || !status) return null;
 
