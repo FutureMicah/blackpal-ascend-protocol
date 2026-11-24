@@ -48,16 +48,29 @@ export function AdminContestPanel() {
   const load = useCallback(async () => {
     const baseCols =
       "id,title,description,rules,prize_btax,entry_price_usd,target_profit_pct,max_drawdown_pct,min_trades,min_active_days,fail_rate_pct,starts_at,ends_at,is_active";
-    let { data, error } = await supabase
-      .from("contests")
-      .select(`${baseCols},max_entries`)
-      .order("entry_price_usd", { ascending: true });
+    // max_entries is migration-dependent and may not yet be in generated
+    // database types; keep the typed escape hatch scoped to this read only.
+    const queryContestRows = (columns: string) =>
+      (supabase as unknown as {
+        from: (table: "contests") => {
+          select: (selectedColumns: string) => {
+            order: (
+              column: string,
+              options: { ascending: boolean },
+            ) => PromiseLike<{
+              data: unknown[] | null;
+              error: { message?: string } | null;
+            }>;
+          };
+        };
+      })
+        .from("contests")
+        .select(columns)
+        .order("entry_price_usd", { ascending: true });
+    let { data, error } = await queryContestRows(`${baseCols},max_entries`);
     if (error && /max_entries/i.test(error.message ?? "")) {
       // Column not live yet (migration not applied): fall back, treat as unlimited.
-      ({ data, error } = await supabase
-        .from("contests")
-        .select(baseCols)
-        .order("entry_price_usd", { ascending: true }));
+      ({ data, error } = await queryContestRows(baseCols));
     }
     if (error) toast.error("Could not load contests");
     const list = (data as Contest[]) ?? [];

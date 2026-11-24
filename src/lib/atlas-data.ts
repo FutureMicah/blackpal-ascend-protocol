@@ -54,7 +54,7 @@ export interface AtlasTradersOptions {
  */
 export async function loadAtlasTraders(
   supabase: {
-    rpc: (fn: string, args?: Record<string, unknown>) => Promise<{ data: unknown; error: unknown }>;
+    rpc: (fn: string, args?: Record<string, unknown>) => PromiseLike<{ data: unknown; error: unknown }>;
   },
   opts: AtlasTradersOptions = {},
 ): Promise<AtlasTraderRow[]> {

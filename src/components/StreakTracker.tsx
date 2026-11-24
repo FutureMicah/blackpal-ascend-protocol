@@ -30,7 +30,7 @@ export const StreakTracker = ({ userId, onStreakUpdate }: StreakTrackerProps) =>
 
     const run = async () => {
       try {
-        const { data: profile, error: loadError } = await supabase
+        const { data: profileData, error: loadError } = await supabase
           .from("profiles")
           .select("achievement_streak, best_achievement_streak, streak_days, last_login_at, win_streak, best_win_streak")
           .eq("id", userId)
@@ -39,9 +39,20 @@ export const StreakTracker = ({ userId, onStreakUpdate }: StreakTrackerProps) =>
         if (loadError) throw loadError;
         if (cancelled) return;
 
+        // Keep legacy/migration-dependent columns typed locally until the
+        // generated database schema catches up with the deployed profile.
+        const profile = profileData as unknown as {
+          achievement_streak?: number | null;
+          best_achievement_streak?: number | null;
+          streak_days?: number | null;
+          last_login_at?: string | null;
+          win_streak?: number | null;
+          best_win_streak?: number | null;
+        } | null;
+
         const previousStreak = profile?.achievement_streak ?? profile?.streak_days ?? 0;
         const previousBest = profile?.best_achievement_streak ?? 0;
-        const lastLoginAt = profile?.last_login_at;
+        const lastLoginAt = profile?.last_login_at ?? null;
 
         // Show saved values immediately so UI does not flicker to 0
         setCurrentStreak(previousStreak);
