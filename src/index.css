@@ -1032,6 +1032,25 @@ html[data-energy="silent"] [class*="animate-"] {
   display: flex; align-items: center; gap: 8px;
   padding: 0 12px; font-size: 10px; font-weight: 700; letter-spacing: 0.04em;
 }
+.arena--static .arena__fighter--bull,
+.arena--static .arena__fighter--bear,
+.arena--static .arena__clash {
+  animation: none !important;
+}
+.arena--static .arena__stage,
+.arena--static .arena__fighter {
+  transform: none !important;
+}
+/* Contest hero sizing: keep the same visual footprint as the old placeholder
+   (h-36 / sm:h-44) without a fixed 190px floor on small phones. */
+.arena--contest {
+  aspect-ratio: auto;
+  min-height: 0;
+  height: 9rem;
+}
+@media (min-width: 640px) {
+  .arena--contest { height: 11rem; }
+}
 .arena__hud-label--bull { color: hsl(var(--ascend-cyan)); text-shadow: 0 0 10px hsl(var(--ascend-cyan) / 0.6); }
 .arena__hud-label--bear { color: hsl(var(--ascend-violet)); text-shadow: 0 0 10px hsl(var(--ascend-violet) / 0.6); }
 .arena__bar { flex: 1; height: 4px; border-radius: 999px; background: hsl(var(--ascend-violet) / 0.45); overflow: hidden; }

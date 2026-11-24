@@ -20,6 +20,7 @@ import { ContestRulesModal } from "@/components/contest/ContestRulesModal";
 import { ContestCountdown } from "@/components/contest/ContestCountdown";
 import { ContestReminderPrefs } from "@/components/contest/ContestReminderPrefs";
 import { ContestCardSkeleton } from "@/components/contest/ContestSkeletons";
+import { BullBearArena } from "@/components/ascend/BullBearArena";
 import { AccountAccessDialog } from "@/components/portfolio/AccountAccessDialog";
 import { AscendAmbient } from "@/components/ascend/AscendAmbient";
 import { CountUp } from "@/components/ascend/CountUp";
@@ -317,15 +318,9 @@ export default function Contest() {
         </header>
 
         <section className="mb-4 ascend-panel rounded-2xl p-4 ascend-reveal">
-          {/* Lottie slot — replace this div with your Lottie player when ready */}
-          <div
-            id="contest-hero-lottie"
-            className="mb-3 w-full h-36 sm:h-44 rounded-xl border border-border/60 bg-muted/20 flex items-center justify-center overflow-hidden"
-            aria-label="Contest hero animation"
-          >
-            <p className="text-[11px] text-muted-foreground px-4 text-center">
-              Drop your Lottie animation here
-            </p>
+          {/* Bull vs bear hero — lightweight inline SVG/CSS, no Lottie, no remote asset */}
+          <div className="mb-3 w-full">
+            <BullBearArena bullPct={50} className="arena--contest" />
           </div>
 
           <div className="grid grid-cols-2 gap-2 mb-3 text-center">
