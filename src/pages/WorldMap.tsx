@@ -24,6 +24,7 @@ import { LiveTraderRail } from "@/components/atlas/LiveTraderRail";
 import { RealtimeVerifier as RealtimeVerifierLazy } from "@/components/RealtimeVerifier";
 import { supabase } from "@/integrations/supabase/client";
 import { captureUserLocation } from "@/lib/location-tracker";
+import { loadAtlasTraders } from "@/lib/atlas-data";
 import { useToast } from "@/hooks/use-toast";
 import { throttleMsToHz, shouldCoalesceGps } from "@/lib/gps-throttle";
 
@@ -96,12 +97,21 @@ const WorldMap = () => {
     setEnrichError(null);
     setEnriching(true);
     try {
-      const ids = list.map((t) => t.user_id);
-      const { data: profs, error } = await supabase
-        .from("profiles")
-        .select("id, display_name, avatar_url, xp_points")
-        .in("id", ids);
-      if (error) throw error;
+      // atlas_public_users already returns display_name/avatar_url joined
+      // server-side. Only enrich rows that came back WITHOUT a name (older
+      // rows / RPC shape drift), so the common path costs no extra query.
+      const missing = list.filter((t) => !t.display_name);
+      const profs = missing.length
+        ? ((
+            await supabase
+              .from("profiles")
+              .select("id, display_name, avatar_url, xp_points")
+              .in(
+                "id",
+                missing.map((t) => t.user_id),
+              )
+          ).data ?? [])
+        : [];
       const profMap = new Map((profs ?? []).map((p: any) => [p.id, p]));
       setTraders((curr) =>
         curr.map((t) => {
@@ -252,17 +262,30 @@ const WorldMap = () => {
   );
 
   useEffect(() => {
+    let cancelled = false;
     const init = async () => {
       const loc = await captureUserLocation({ askGPS: false });
       if (loc?.latitude && loc?.longitude) setMyPosDebounced([loc.latitude, loc.longitude]);
 
-      const { data } = await supabase
-        .from("user_locations")
-        .select("user_id, country, country_code, city, latitude, longitude, is_online, last_seen_at")
-        .not("latitude", "is", null)
-        .not("longitude", "is", null);
+      // Privacy-safe load: SECURITY DEFINER RPC, never a raw user_locations
+      // read. Ghost users are excluded, other traders get jittered
+      // (country) coordinates, and only the viewer's own precise row is
+      // exact. See src/lib/atlas-data.ts.
+      const rows = await loadAtlasTraders(supabase, { limit: 800 });
+      const list = rows.map((r) => ({
+        user_id: r.user_id,
+        country: r.country ?? r.country_code ?? null,
+        country_code: r.country_code ?? null,
+        city: null,
+        latitude: r.latitude ?? null,
+        longitude: r.longitude ?? null,
+        is_online: r.is_online ?? false,
+        last_seen_at: r.last_seen_at ?? new Date(0).toISOString(),
+        display_name: r.display_name ?? null,
+        avatar_url: r.avatar_url ?? null,
+        xp: null,
+      })) as Trader[];
 
-      const list = (data ?? []) as Trader[];
       // Derive "fresh online" from last_seen_at < 5 minutes (heartbeat window)
       const now = Date.now();
       list.forEach((t) => {
@@ -270,6 +293,7 @@ const WorldMap = () => {
         if (now - seen < 5 * 60_000) t.is_online = true;
         else if (now - seen > 10 * 60_000) t.is_online = false;
       });
+      if (cancelled) return;
       setTraders(list);
       setLoading(false);
 
@@ -310,12 +334,26 @@ const WorldMap = () => {
     const onVis = () => { if (document.hidden) setOffline(); };
     document.addEventListener("visibilitychange", onVis);
 
+    // Refresh via the privacy-safe RPC only. Realtime user_locations
+    // postgres_changes is owner-RLS filtered, so subscribing to it
+    // cannot refresh the map for regular users; a short poll is the
+    // safe path (same as SnapchatMap). Debounced so rapid triggers
+    // collapse into one RPC call instead of refetch storms.
+    let refreshTimer: ReturnType<typeof setTimeout> | null = null;
+    const scheduleRefresh = () => {
+      if (refreshTimer) clearTimeout(refreshTimer);
+      refreshTimer = setTimeout(() => void init(), 600);
+    };
     const ch = supabase
       .channel("locations-stream")
-      .on("postgres_changes", { event: "*", schema: "public", table: "user_locations" }, () => init())
+      .on("postgres_changes", { event: "*", schema: "public", table: "user_locations" }, scheduleRefresh)
       .subscribe();
+    const poll = setInterval(() => void init(), 30_000);
     return () => {
+      cancelled = true;
       clearInterval(heartbeat);
+      clearInterval(poll);
+      if (refreshTimer) clearTimeout(refreshTimer);
       document.removeEventListener("visibilitychange", onVis);
       setOffline();
       supabase.removeChannel(ch);
