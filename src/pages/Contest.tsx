@@ -307,10 +307,13 @@ export default function Contest() {
     <div className="min-h-screen bg-background rebrand-contest relative">
       <AscendAmbient />
       <FloatingNav />
-      <div className="relative z-10 max-w-5xl mx-auto px-3 sm:px-6 pt-16 pb-20">
+      <div
+        className="relative z-10 max-w-5xl mx-auto px-3 sm:px-6 pt-16"
+        style={{ paddingBottom: "calc(5rem + env(safe-area-inset-bottom))" }}
+      >
         <header className="mb-4 ascend-reveal">
           <h1 className="text-lg sm:text-2xl font-bold flex items-center gap-2">
-            <Sparkles className="w-5 h-5 orbit-3d" /> <span className="neon-text">Contests</span>
+            <Sparkles className="w-5 h-5 shrink-0" aria-hidden="true" /> <span className="neon-text">Contests</span>
           </h1>
           <p className="text-xs text-muted-foreground mt-0.5">
             Live contests posted by the academy. Win BTAX rewards.
