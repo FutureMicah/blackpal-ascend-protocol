@@ -1066,10 +1066,71 @@ html[data-energy="silent"] [class*="animate-"] {
   color: hsl(var(--ascend-gold) / 0.85);
 }
 
+/* ============ Trophy Cup hero (replaces Bull vs Bear on Contests) ============ */
+.trophy-arena__glow {
+  left: 50%; top: 12%; width: 60%; height: 78%;
+  transform: translateX(-50%);
+  background: radial-gradient(circle, hsl(var(--ascend-gold) / 0.55), transparent 65%);
+}
+.trophy-arena[data-charge="trophy"] .trophy-arena__glow { opacity: 0.85; transform: translateX(-50%) scale(1.12); }
+.trophy-arena__zone { left: 0; width: 100%; }
+.trophy__ring {
+  fill: none;
+  stroke: hsl(var(--ascend-gold) / 0.22);
+  stroke-width: 1.2;
+  stroke-dasharray: 3 7;
+  transform-origin: 320px 160px;
+  animation: trophy-ring 26s linear infinite;
+}
+.trophy__ring--outer { stroke: hsl(var(--ascend-cyan) / 0.16); animation-direction: reverse; animation-duration: 34s; }
+@keyframes trophy-ring { to { transform: rotate(360deg); } }
+.trophy__cup {
+  transform-origin: 320px 170px;
+  animation: trophy-float 4.5s ease-in-out infinite;
+  filter: drop-shadow(0 0 12px hsl(var(--ascend-gold) / 0.45));
+}
+@keyframes trophy-float {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+  50% { transform: translate3d(0, -10px, 0) rotate(-1.2deg); }
+}
+.trophy-arena[data-charge="trophy"] .trophy__cup { animation: trophy-burst 700ms var(--ascend-ease); }
+@keyframes trophy-burst {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.07) rotate(1.5deg); }
+  100% { transform: scale(1); }
+}
+.trophy__bowl { fill: hsl(var(--ascend-gold) / 0.14); stroke: hsl(var(--ascend-gold)); stroke-width: 1.6; }
+.trophy__line { fill: none; stroke: hsl(var(--ascend-gold)); stroke-width: 1.6; stroke-linecap: round; }
+.trophy__shine { fill: none; stroke: hsl(var(--ascend-gold) / 0.55); stroke-width: 1.2; stroke-linecap: round; }
+.trophy__star { fill: hsl(var(--ascend-gold) / 0.9); filter: drop-shadow(0 0 8px hsl(var(--ascend-gold) / 0.9)); }
+.trophy__sparks { transform-origin: 320px 160px; animation: trophy-ring 20s linear infinite; }
+.trophy__spark {
+  fill: hsl(var(--ascend-gold) / 0.85);
+  filter: drop-shadow(0 0 6px hsl(var(--ascend-gold) / 0.8));
+  animation: trophy-twinkle 2.6s ease-in-out infinite;
+}
+.trophy__dot { fill: hsl(var(--ascend-cyan) / 0.7); animation: trophy-twinkle 3.1s ease-in-out infinite; }
+.trophy__spark--d1, .trophy__dot--d1 { animation-delay: 0.7s; }
+.trophy__spark--d2, .trophy__dot--d2 { animation-delay: 1.4s; }
+.trophy__spark--d3, .trophy__dot--d3 { animation-delay: 2.1s; }
+@keyframes trophy-twinkle {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 1; }
+}
+.trophy-arena[data-charge="trophy"] .trophy__spark { animation: trophy-burst 700ms var(--ascend-ease); }
+.arena--static .trophy__cup,
+.arena--static .trophy__ring,
+.arena--static .trophy__sparks,
+.arena--static .trophy__spark,
+.arena--static .trophy__dot {
+  animation: none !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .ascend-grain, .ascend-vignette, .ascend-streak,
   .ascend-reveal, .ascend-loader::after,
-  .arena__fighter--bull, .arena__fighter--bear, .arena__clash { animation: none !important; }
+  .arena__fighter--bull, .arena__fighter--bear, .arena__clash,
+  .trophy__cup, .trophy__ring, .trophy__sparks, .trophy__spark, .trophy__dot { animation: none !important; }
   .ascend-streak { opacity: 0; }
   .holo-card, .arena__stage, .arena__fighter { transform: none !important; }
 }

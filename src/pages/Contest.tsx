@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { supabase } from "@/integrations/supabase/client";
-import { Sparkles, Trophy, Loader2, Info, Swords, KeyRound, ChevronDown, Eye, Lock } from "lucide-react";
+import { Trophy, Loader2, Info, Swords, KeyRound, ChevronDown, Eye, Lock } from "lucide-react";
 import { formatDistanceToNowStrict } from "date-fns";
 import { toast } from "sonner";
 import { lazy, Suspense } from "react";
@@ -20,7 +20,7 @@ import { ContestRulesModal } from "@/components/contest/ContestRulesModal";
 import { ContestCountdown } from "@/components/contest/ContestCountdown";
 import { ContestReminderPrefs } from "@/components/contest/ContestReminderPrefs";
 import { ContestCardSkeleton } from "@/components/contest/ContestSkeletons";
-import { BullBearArena } from "@/components/ascend/BullBearArena";
+import { TrophyCupArena } from "@/components/ascend/TrophyCupArena";
 import { AccountAccessDialog } from "@/components/portfolio/AccountAccessDialog";
 import { AscendAmbient } from "@/components/ascend/AscendAmbient";
 import { CountUp } from "@/components/ascend/CountUp";
@@ -313,7 +313,7 @@ export default function Contest() {
       >
         <header className="mb-4 ascend-reveal">
           <h1 className="text-lg sm:text-2xl font-bold flex items-center gap-2">
-            <Sparkles className="w-5 h-5 shrink-0" aria-hidden="true" /> <span className="neon-text">Contests</span>
+            <Trophy className="w-5 h-5 shrink-0" strokeWidth={1.5} aria-hidden="true" /> <span className="neon-text">Contests</span>
           </h1>
           <p className="text-xs text-muted-foreground mt-0.5">
             Live contests posted by the academy. Win BTAX rewards.
@@ -321,9 +321,9 @@ export default function Contest() {
         </header>
 
         <section className="mb-4 ascend-panel rounded-2xl p-4 ascend-reveal">
-          {/* Bull vs bear hero — lightweight inline SVG/CSS, no Lottie, no remote asset */}
+          {/* Trophy cup hero — thin-line SVG/CSS, no Lottie, no remote asset */}
           <div className="mb-3 w-full">
-            <BullBearArena bullPct={50} className="arena--contest" />
+            <TrophyCupArena className="arena--contest" />
           </div>
 
           <div className="grid grid-cols-2 gap-2 mb-3 text-center">
